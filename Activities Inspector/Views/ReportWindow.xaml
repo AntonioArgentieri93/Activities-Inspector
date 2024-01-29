@@ -1,0 +1,122 @@
+﻿<Window x:Class="ProgettoInformaticaForense_Argentieri.Views.ReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        xmlns:resx="clr-namespace:Activities_Inspector"
+        xmlns:converters="clr-namespace:ProgettoInformaticaForense_Argentieri.Converters"
+        xmlns:models="clr-namespace:ProgettoInformaticaForense_Argentieri.Models"
+        Title="ReportWindow" 
+        Height="580" Width="720"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        DataContext="{Binding ReportViewModel, Source={StaticResource Locator}}"
+        IsEnabled="{Binding IsEnabled}">
+    
+    <Window.Resources>
+        <converters:BoolToEnumConverter x:Key="BoolToEnumConverter" />
+        <converters:ProvisioningTypeToIsEnabledConverter x:Key="ProvisioningTypeToIsEnabledConverter" />
+    </Window.Resources>
+
+    <StackPanel VerticalAlignment="Center"
+                Margin="10,0">
+        <GroupBox>
+            <GroupBox.Header>
+                <TextBlock Text="{x:Static resx:Resources.ReportWindow_Inquirer_Group_Header}" />
+            </GroupBox.Header>
+            <StackPanel Margin="5">
+                <Label Content="{x:Static resx:Resources.ReportWindow_Inquirer_Group_Surname}"
+                       Margin="-3,0,0,0"/>
+                <TextBox Text="{Binding InquirerSurname, UpdateSourceTrigger=PropertyChanged}"
+                         Height="25"
+                         VerticalContentAlignment="Center"
+                         Margin="0,0,0,5"/>
+
+                <Label Content="{x:Static resx:Resources.ReportWindow_Inquirer_Group_Name}"
+                       Margin="-3,0,0,0"/>
+                <TextBox Text="{Binding InquirerName, UpdateSourceTrigger=PropertyChanged}" 
+                         Height="25"
+                         VerticalContentAlignment="Center"
+                         Margin="0,0,0,5"/>
+
+                <Label Content="{x:Static resx:Resources.ReportWindow_Inquirer_Group_Qualification}"
+                       Margin="-3,0,0,0"/>
+                <TextBox Text="{Binding InquirerQualification, UpdateSourceTrigger=PropertyChanged}"
+                         Height="25"
+                         VerticalContentAlignment="Center"
+                         Margin="0,0,0,5"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Margin="0,15,0,0">
+            <GroupBox.Header>
+                <TextBlock Text="{x:Static resx:Resources.ReportWindow_Description_Group_Surname}" />
+            </GroupBox.Header>
+            <StackPanel Margin="5">
+                <TextBox Text="{Binding ObjectDescription, UpdateSourceTrigger=PropertyChanged}"
+                         TextWrapping="Wrap"
+                         Height="150"/>
+            </StackPanel>
+        </GroupBox>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,20,0,0">
+                <RadioButton IsChecked="{Binding Path=ProvisioningType, Converter={StaticResource BoolToEnumConverter}, 
+                                ConverterParameter={x:Static models:ProvisioningType.OfficialTechnicalConsultancy}}" 
+                             Content="{x:Static resx:Resources.ReportWindow_OfficialTechnicalConsultancy_Value}"
+                             VerticalAlignment="Bottom"/>
+
+                <RadioButton IsChecked="{Binding Path=ProvisioningType, Converter={StaticResource BoolToEnumConverter}, 
+                             ConverterParameter={x:Static models:ProvisioningType.TechnicalConsultancy}}" 
+                             Content="{x:Static resx:Resources.ReportWindow_TechnicalConsultancy_Value}"
+                             Margin="15,0,0,0"
+                             VerticalAlignment="Bottom"/>
+
+                <RadioButton IsChecked="{Binding Path=ProvisioningType, Converter={StaticResource BoolToEnumConverter}, 
+                                ConverterParameter={x:Static models:ProvisioningType.Expertise}}" 
+                             Content="{x:Static resx:Resources.ReportWindow_Expertise_Value}"
+                             Margin="15,0,0,0" 
+                             VerticalAlignment="Bottom"/>
+
+                <RadioButton IsChecked="{Binding Path=ProvisioningType, Converter={StaticResource BoolToEnumConverter}, 
+                             ConverterParameter={x:Static models:ProvisioningType.ParereProveritate}}" 
+                             Content="{x:Static resx:Resources.ReportWindow_ParereProveritate_Value}"
+                             Margin="15,0,0,0" 
+                             VerticalAlignment="Bottom"/>
+            </StackPanel>
+
+            <Grid Margin="0,5"
+                  Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <RadioButton IsChecked="{Binding Path=ProvisioningType, Converter={StaticResource BoolToEnumConverter}, 
+                             ConverterParameter={x:Static models:ProvisioningType.Other}}" 
+                             Content="{x:Static resx:Resources.ReportWindow_Other_Value}"
+                             VerticalAlignment="Center"/>
+
+                <TextBox Text="{Binding Other}"
+                         Height="25"
+                         VerticalContentAlignment="Center"
+                         Margin="10,5,5,5"
+                         IsEnabled="{Binding ProvisioningType, Converter={StaticResource ProvisioningTypeToIsEnabledConverter}, 
+                                UpdateSourceTrigger=PropertyChanged}"
+                         Grid.Column="1" />
+            </Grid>
+        </Grid>
+
+        <Button Command="{Binding GenerateReportCommand}"
+                Content="{x:Static resx:Resources.ReportWindow_GenerateReport_Button_Content}"
+                Style="{StaticResource Button_Style}"
+                Margin="0,10,0,0"/>
+    </StackPanel>
+</Window>

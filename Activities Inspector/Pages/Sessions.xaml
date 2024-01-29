@@ -1,0 +1,162 @@
+﻿<Page x:Class="ProgettoInformaticaForense_Argentieri.Pages.Sessions"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:fa="http://schemas.fontawesome.com/icons/"
+      xmlns:resx="clr-namespace:Activities_Inspector"
+      xmlns:converters="clr-namespace:ProgettoInformaticaForense_Argentieri.Converters"
+      xmlns:models="clr-namespace:ProgettoInformaticaForense_Argentieri.Models"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Sessions"
+      DataContext="{Binding SessionsViewModel, Source={StaticResource Locator}}">
+
+    <Page.Resources>
+        <converters:DateTimeFormatConverter x:Key="DateTimeFormatConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" 
+                                              Visible="Visible"
+                                              NotVisible="Collapsed"/>
+        <converters:AccessTypeValueConverter x:Key="AccessTypeValueConverter" />
+        <converters:AccessTypeTooltipValueConverter x:Key="AccessTypeTooltipValueConverter" />
+        <converters:TimeSpanDurationConverter x:Key="TimeSpanDurationConverter" />
+
+        <DataTemplate DataType="{x:Type models:SessionEntry}">
+            <Grid Width="{Binding ActualWidth, ElementName=MainGrid}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding UserName}"
+                           Style="{StaticResource DataTemplateItemStyle}"/>
+
+                <TextBlock Text="{Binding Group}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="1"/>
+
+                <TextBlock Text="{Binding MachineName}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="2"/>
+
+                <TextBlock Text="{Binding LogOnTime, Converter={StaticResource DateTimeFormatConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="3"/>
+
+                <TextBlock Text="{Binding LogOffTime, Converter={StaticResource DateTimeFormatConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="4"/>
+
+                <TextBlock Text="{Binding Duration, Converter={StaticResource TimeSpanDurationConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="5"/>
+
+                <TextBlock Text="{Binding NetworkAddress}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="6"/>
+
+                <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeValueConverter}}"
+                           ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="7"/>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid Margin="0,5,5,5" x:Name="MainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Command="{Binding ExportCommand}"
+                    Content="{x:Static resx:Resources.MainWindows_ExportCommand_Content}"
+                    Style="{StaticResource Button_Style}"/>
+
+            <Button Command="{Binding LoadSessionEntriesCommand}"
+                    Content="{x:Static resx:Resources.MainWindows_LoadCommand_Content}"
+                    Style="{StaticResource Button_Style}"/>
+        </StackPanel>
+
+        <Grid Width="{Binding ActualWidth, ElementName=MainGrid}"
+              Background="Gray"
+              HorizontalAlignment="Left"
+              Height="30"
+              Margin="0,5,0,0"
+              x:Name="Header"
+              Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_UserName}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="0"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_Group}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="1"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_MachineName}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="2"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_LogOnTime}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="3"  />
+
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_LogOffTime}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="4"  />
+
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_Duration}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="5"  />
+
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_NetworkAddress}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="6"  />
+
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_AccessType}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="7"  />
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Sessions}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 AlternationCount="2"
+                 Width="Auto"         
+                 ItemContainerStyle="{StaticResource Lststyle}"
+                 BorderThickness="0"
+                 Grid.Row="2"/>
+
+        <fa:ImageAwesome Icon="Solid_Spinner"
+                         Spin="True"
+                         SpinDuration="4"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Foreground="#FF504f4e"
+                         Width="30"
+                         Margin="0,0,25,5"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                         Grid.Row="2"/>
+    </Grid>
+</Page>

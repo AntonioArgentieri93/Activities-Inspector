@@ -1,0 +1,113 @@
+﻿<Page x:Class="ProgettoInformaticaForense_Argentieri.Pages.TimeIntervals"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:fa="http://schemas.fontawesome.com/icons/"
+      xmlns:resx="clr-namespace:Activities_Inspector"
+      xmlns:converters="clr-namespace:ProgettoInformaticaForense_Argentieri.Converters"
+      xmlns:models="clr-namespace:ProgettoInformaticaForense_Argentieri.Models"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="TimeIntervals"
+      DataContext="{Binding TimeIntervalsViewModel, Source={StaticResource Locator}}">
+
+    <Page.Resources>
+        <converters:DateTimeFormatConverter x:Key="DateTimeFormatConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" 
+                                              Visible="Visible"
+                                              NotVisible="Collapsed"/>
+        <converters:TimeSpanDurationConverter x:Key="TimeSpanDurationConverter" />
+
+        <DataTemplate DataType="{x:Type models:UsageInfo}">
+            <Grid Width="{Binding ActualWidth, ElementName=MainGrid}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Interval.Start, Converter={StaticResource DateTimeFormatConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"/>
+                <TextBlock Text="{Binding Interval.End, Converter={StaticResource DateTimeFormatConverter}}" 
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="1"/>
+                <TextBlock Text="{Binding Duration, Converter={StaticResource TimeSpanDurationConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="2"/>
+                <TextBlock Text="{Binding MachineName}"
+                           ToolTip="{Binding MachineName}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="3"/>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid Margin="0,5,5,5" x:Name="MainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Command="{Binding ExportCommand}"
+                    Content="{x:Static resx:Resources.MainWindows_ExportCommand_Content}"
+                    Style="{StaticResource Button_Style}"/>
+
+            <Button Command="{Binding LoadIntervalsCommand}"
+                    Content="{x:Static resx:Resources.MainWindows_LoadCommand_Content}"
+                    Style="{StaticResource Button_Style}"/>
+        </StackPanel>
+
+        <Grid Width="{Binding ActualWidth, ElementName=MainGrid}"
+              Background="Gray"
+              HorizontalAlignment="Left"
+              Height="30"
+              Margin="0,5,0,0"
+              x:Name="Header"
+              Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Start}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="0"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_End}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="1"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Duration}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="2"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_MachineName}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="3"  />
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Infos}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 AlternationCount="2"
+                 Width="Auto"         
+                 ItemContainerStyle="{StaticResource Lststyle}"
+                 BorderThickness="0"
+                 Grid.Row="2"/>
+
+        <fa:ImageAwesome Icon="Solid_Spinner"
+                         Spin="True"
+                         SpinDuration="4"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Foreground="#FF504f4e"
+                         Width="30"
+                         Margin="0,0,25,5"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                         Grid.Row="2"/>
+    </Grid>
+</Page>

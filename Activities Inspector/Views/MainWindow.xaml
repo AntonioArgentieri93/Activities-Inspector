@@ -1,0 +1,68 @@
+﻿<Window x:Class="ProgettoInformaticaForense_Argentieri.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:resx="clr-namespace:Activities_Inspector"
+        xmlns:converters="clr-namespace:ProgettoInformaticaForense_Argentieri.Converters"
+        xmlns:models="clr-namespace:ProgettoInformaticaForense_Argentieri.Models"
+        mc:Ignorable="d"
+        Title="{x:Static resx:Resources.AppName}" Height="450" Width="800"
+        WindowState="Maximized"
+        DataContext="{Binding MainViewModel, Source={StaticResource Locator}}">
+
+    <Window.Resources>
+        <converters:ViewerModeNameConverter x:Key="ViewerModeNameConverter" />
+
+        <DataTemplate DataType="{x:Type models:ViewerMode}">
+            <TextBlock Text="{Binding Converter={StaticResource ViewerModeNameConverter}}"
+                       Style="{StaticResource WizardItemStyle}"/>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.18*"
+                              MinWidth="200"/>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ListView ItemsSource="{Binding ViewerModes}"
+                  SelectedItem="{Binding SelectedViewerMode}"
+                  Background="#FF00365C"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  Margin="0,49.5,5,0">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Height" Value="50" />
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="#FFbfbfbb" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+
+            <Button DataContext="{Binding ReportViewModel, Source={StaticResource Locator}}" 
+                    Command="{Binding OpenReportWindowCommand}"
+                    Content="{x:Static resx:Resources.MainWindow_Report_Button_Content}"
+                    Style="{StaticResource Report_Button_Style}" 
+                    Height="40"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,5,0"
+                    Grid.Row="1" />
+        </Grid>
+
+        <Frame x:Name="MainFrame"
+               NavigationUIVisibility="Hidden"
+               RenderTransformOrigin="0.5,0.5"
+               Source="/Pages/TimeIntervals.xaml"
+               Grid.Column="1" />
+    </Grid>
+</Window>

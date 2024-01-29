@@ -1,0 +1,10 @@
+[
+  {
+    "typeidentifier": 113,
+    "script": "local guid = shellitem:unpack_guid(0x0E) \nlocal flag = shellitem:unpack_byte(0x03) \nproperties:Add(\"TypeName\", \"Control Panel\") \nproperties:Add(\"Guid\", tostring(guid)) \nproperties:Add(\"Flags\", tostring(flag)) \nif knownGUIDs:ContainsKey(tostring(guid)) then \n     properties:Add(\"Name\", string.format(\"{{CONTROL PANEL: %s}}\", knownGUIDs[guid])) \nelse \n     properties:Add(\"Name\", string.format(\"{{CONTROL PANEL: %s}}\", guid)) \nend"
+  },
+  {
+    "typeidentifier": 1,
+    "script": "test test /test\\tests;\\test;test;"
+  }
+]

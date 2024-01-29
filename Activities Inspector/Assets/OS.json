@@ -1,0 +1,65 @@
+[
+  {
+    "os": "Windows XP",
+    "files": [
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags"
+    ]
+  },
+  {
+    "os": "Windows XP 64-Bit",
+    "files": [
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU"
+    ]
+  },
+  {
+    "os": "Windows Vista",
+    "files": [
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags"
+    ]
+  },
+  {
+    "os": "Windows 7",
+    "files": [
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags"
+    ]
+  },
+  {
+    "os": "Windows 8",
+    "files": [
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU"
+    ]
+  },
+  {
+    "os": "Windows 8.1",
+    "files": [
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags"
+    ]
+  },
+  {
+    "os": "Windows 10",
+    "files": [
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",
+      "UsrClass.dat\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "NTUSER.DAT\\Software\\Microsoft\\Windows\\Shell\\BagMRU"
+    ]
+  }
+]

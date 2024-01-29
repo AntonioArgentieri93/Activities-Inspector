@@ -1,0 +1,424 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve">
+    <value>Activities Inspector</value>
+  </data>
+  <data name="App_DateTime_Error_Message" xml:space="preserve">
+    <value>Attenzione! L'orario del PC potrebbe essere stato modificato oppure il server NTP non è raggiungibile.
+Per verificare eventuali modifiche all'orario di sistema consultare la sezione "MODIFICHE ALL'ORA DI SISTEMA".</value>
+  </data>
+  <data name="ExportCommand_ExportComplete_Message" xml:space="preserve">
+    <value>Esportazione conclusa con successo.</value>
+  </data>
+  <data name="InstalledPrograms_FileName" xml:space="preserve">
+    <value>Programmi installati</value>
+  </data>
+  <data name="Intervals_FileName" xml:space="preserve">
+    <value>Accensione - Spegnimento</value>
+  </data>
+  <data name="MainWindows_ExportCommand_Content" xml:space="preserve">
+    <value>Esporta</value>
+  </data>
+  <data name="MainWindows_InstallEntry_DataSource" xml:space="preserve">
+    <value>Sorgente</value>
+  </data>
+  <data name="MainWindows_InstallEntry_FileName" xml:space="preserve">
+    <value>Nome file</value>
+  </data>
+  <data name="MainWindows_InstallEntry_FullPath" xml:space="preserve">
+    <value>Percorso</value>
+  </data>
+  <data name="MainWindows_InstallEntry_installDate" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="MainWindows_LoadCommand_Content" xml:space="preserve">
+    <value>Cerca</value>
+  </data>
+  <data name="MainWindows_Prefetch_ExecutableFileName" xml:space="preserve">
+    <value>Nome file</value>
+  </data>
+  <data name="MainWindows_Prefetch_Extension" xml:space="preserve">
+    <value>Estensione</value>
+  </data>
+  <data name="MainWindows_Prefetch_LastRunTime" xml:space="preserve">
+    <value>Data ultima esecuzione</value>
+  </data>
+  <data name="MainWindows_Prefetch_SourceFileName" xml:space="preserve">
+    <value>Sorgente</value>
+  </data>
+  <data name="MainWindows_RecentFolder_ActionTime" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="MainWindows_RecentFolder_DataSource" xml:space="preserve">
+    <value>Sorgente</value>
+  </data>
+  <data name="MainWindows_RecentFolder_FileName" xml:space="preserve">
+    <value>Nome file</value>
+  </data>
+  <data name="MainWindows_RecentFolder_FullPath" xml:space="preserve">
+    <value>Percorso </value>
+  </data>
+  <data name="MainWindows_Sessions_AccessType" xml:space="preserve">
+    <value>Tipo di accesso</value>
+  </data>
+  <data name="MainWindows_Sessions_Duration" xml:space="preserve">
+    <value>Durata</value>
+  </data>
+  <data name="MainWindows_Sessions_Group" xml:space="preserve">
+    <value>Dominio</value>
+  </data>
+  <data name="MainWindows_Sessions_LogOffTime" xml:space="preserve">
+    <value>Ora di disconnessione</value>
+  </data>
+  <data name="MainWindows_Sessions_LogOnTime" xml:space="preserve">
+    <value>Ora di accesso</value>
+  </data>
+  <data name="MainWindows_Sessions_MachineName" xml:space="preserve">
+    <value>Nome macchina</value>
+  </data>
+  <data name="MainWindows_Sessions_NetworkAddress" xml:space="preserve">
+    <value>Indirizzo di rete</value>
+  </data>
+  <data name="MainWindows_Sessions_UserName" xml:space="preserve">
+    <value>Utente</value>
+  </data>
+  <data name="MainWindows_ShellBags_AbsolutePath" xml:space="preserve">
+    <value>Percorso</value>
+  </data>
+  <data name="MainWindows_ShellBags_AccessedDate" xml:space="preserve">
+    <value>Data accesso</value>
+  </data>
+  <data name="MainWindows_ShellBags_CreationDate" xml:space="preserve">
+    <value>Data di creazione</value>
+  </data>
+  <data name="MainWindows_ShellBags_LastRegistryWriteDate" xml:space="preserve">
+    <value>Data ultima scrittura</value>
+  </data>
+  <data name="MainWindows_ShellBags_RegistryPath" xml:space="preserve">
+    <value>Percorso nel registro</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_DeviceName" xml:space="preserve">
+    <value>Dispositivo</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_EventTime" xml:space="preserve">
+    <value>Ora evento</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_MachineName" xml:space="preserve">
+    <value>Nome macchina</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_NewTime" xml:space="preserve">
+    <value>Nuovo orario</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_OldTime" xml:space="preserve">
+    <value>Vecchio orario</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_PluggedTime" xml:space="preserve">
+    <value>Data inserimento</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_UnpluggedTime" xml:space="preserve">
+    <value>Data rimozione</value>
+  </data>
+  <data name="MainWindows_SystemTimeChanged_UserName" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="MainWindows_TimeIntervals_Duration" xml:space="preserve">
+    <value>Durata</value>
+  </data>
+  <data name="MainWindows_TimeIntervals_End" xml:space="preserve">
+    <value>Spegnimento</value>
+  </data>
+  <data name="MainWindows_TimeIntervals_MachineName" xml:space="preserve">
+    <value>Nome macchina</value>
+  </data>
+  <data name="MainWindows_TimeIntervals_Start" xml:space="preserve">
+    <value>Accensione</value>
+  </data>
+  <data name="MainWindow_Report_Button_Content" xml:space="preserve">
+    <value>REPORT</value>
+  </data>
+  <data name="MainWindow_Usb_DeviceName" xml:space="preserve">
+    <value>Dispositivo</value>
+  </data>
+  <data name="MainWindow_Usb_MachineName" xml:space="preserve">
+    <value>Nome macchina</value>
+  </data>
+  <data name="MainWindow_Usb_PluggedTime" xml:space="preserve">
+    <value>Data inserimento</value>
+  </data>
+  <data name="MainWindow_Usb_ProductId" xml:space="preserve">
+    <value>PID</value>
+  </data>
+  <data name="MainWindow_Usb_SerialNumber" xml:space="preserve">
+    <value>Serial number</value>
+  </data>
+  <data name="MainWindow_Usb_State" xml:space="preserve">
+    <value>Stato</value>
+  </data>
+  <data name="MainWindow_Usb_UnpluggedTime" xml:space="preserve">
+    <value>Data rimozione</value>
+  </data>
+  <data name="MainWindow_Usb_UsbClass" xml:space="preserve">
+    <value>Classe</value>
+  </data>
+  <data name="MainWindow_Usb_VendorId" xml:space="preserve">
+    <value>VID</value>
+  </data>
+  <data name="MainWindow_ViewerMode_InstalledPrograms" xml:space="preserve">
+    <value>PROGRAMMI INSTALLATI</value>
+  </data>
+  <data name="MainWindow_ViewerMode_Prefetch" xml:space="preserve">
+    <value>PREFETCH</value>
+  </data>
+  <data name="MainWindow_ViewerMode_Recents" xml:space="preserve">
+    <value>FILE RECENTI</value>
+  </data>
+  <data name="MainWindow_ViewerMode_Sessions" xml:space="preserve">
+    <value>LOGON/LOGOFF</value>
+  </data>
+  <data name="MainWindow_ViewerMode_ShellBags" xml:space="preserve">
+    <value>SHELLBAGS</value>
+  </data>
+  <data name="MainWindow_ViewerMode_SystemTimeChanged" xml:space="preserve">
+    <value>MODIFICHE ALL'ORA DI SISTEMA</value>
+  </data>
+  <data name="MainWindow_ViewerMode_TimeIntervals" xml:space="preserve">
+    <value>ACCENSIONE/SPEGNIMENTO</value>
+  </data>
+  <data name="MainWindow_ViewerMode_Usb" xml:space="preserve">
+    <value>PERIFERICHE USB</value>
+  </data>
+  <data name="Prefetch_FileName" xml:space="preserve">
+    <value>Prefetch</value>
+  </data>
+  <data name="Recents_FileName" xml:space="preserve">
+    <value>File recenti</value>
+  </data>
+  <data name="ReportWindows_OperationComplete_Info" xml:space="preserve">
+    <value>Operazione completata con successo!</value>
+  </data>
+  <data name="ReportWindow_Description_Group_Surname" xml:space="preserve">
+    <value>Descrizione caso</value>
+  </data>
+  <data name="ReportWindow_Expertise_Value" xml:space="preserve">
+    <value>PERIZIA</value>
+  </data>
+  <data name="ReportWindow_GenerateReport_Button_Content" xml:space="preserve">
+    <value>Genera report</value>
+  </data>
+  <data name="ReportWindow_Inquirer_Group_Header" xml:space="preserve">
+    <value>Investigatore</value>
+  </data>
+  <data name="ReportWindow_Inquirer_Group_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="ReportWindow_Inquirer_Group_Qualification" xml:space="preserve">
+    <value>Qualifica</value>
+  </data>
+  <data name="ReportWindow_Inquirer_Group_Surname" xml:space="preserve">
+    <value>Cognome</value>
+  </data>
+  <data name="ReportWindow_OfficialTechnicalConsultancy_Value" xml:space="preserve">
+    <value>CONSULENZA TECNICA D'UFFICIO</value>
+  </data>
+  <data name="ReportWindow_Other_Value" xml:space="preserve">
+    <value>Altro:</value>
+  </data>
+  <data name="ReportWindow_ParereProveritate_Value" xml:space="preserve">
+    <value>PARERE PRO VERITATE</value>
+  </data>
+  <data name="ReportWindow_TechnicalConsultancy_Value" xml:space="preserve">
+    <value>CONSULENZA TECNICA DI PARTE</value>
+  </data>
+  <data name="ReportWindow_Title" xml:space="preserve">
+    <value>Activities Inspector - Report</value>
+  </data>
+  <data name="Sessions_AccessType_Batch" xml:space="preserve">
+    <value>Batch (4)</value>
+  </data>
+  <data name="Sessions_AccessType_Batch_Tooltip" xml:space="preserve">
+    <value>Il tipo di accesso batch viene utilizzato dai server batch, in cui i processi possono essere esecutori per conto di un utente senza l'intervento diretto.</value>
+  </data>
+  <data name="Sessions_AccessType_CachedInteractive" xml:space="preserve">
+    <value>Cached Interactive (11)</value>
+  </data>
+  <data name="Sessions_AccessType_CachedInteractive_Tooltip" xml:space="preserve">
+    <value>Un utente ha eseguito l'accesso al computer con credenziali di rete archiviate localmente nel computer. Il controller di dominio non è stato contattato per verificare le credenziali.</value>
+  </data>
+  <data name="Sessions_AccessType_CachedRemoteInteractive" xml:space="preserve">
+    <value>Cached Remote Interactive (12)</value>
+  </data>
+  <data name="Sessions_AccessType_CachedRemoteInteractive_Tooltip" xml:space="preserve">
+    <value>Un utente ha eseguito l'accesso a questo computer in remoto utilizzando Servizi terminal o Desktop remoto.. Viene utilizzato per il controllo interno.</value>
+  </data>
+  <data name="Sessions_AccessType_CachedUnlock" xml:space="preserve">
+    <value>Cached Unlock (13)</value>
+  </data>
+  <data name="Sessions_AccessType_CachedUnlock_Tooltip" xml:space="preserve">
+    <value>Accesso workstation.</value>
+  </data>
+  <data name="Sessions_AccessType_Interactive" xml:space="preserve">
+    <value>Interactive (2)</value>
+  </data>
+  <data name="Sessions_AccessType_Interactive_Tooltip" xml:space="preserve">
+    <value>Un utente ha eseguito l'accesso al computer.</value>
+  </data>
+  <data name="Sessions_AccessType_NetworkCleartext" xml:space="preserve">
+    <value>Network Cleartext (8)</value>
+  </data>
+  <data name="Sessions_AccessType_NetworkClearText_Tooltip" xml:space="preserve">
+    <value>Un utente ha eseguito l'accesso al computer dalla rete. La password dell'utente è stata passata al pacchetto di autenticazione nel formato non crittografato. L'autenticazione incorporata in pacchetto tutte le credenziali hash prima di inviarle attraverso la rete. Le credenziali non attraversano la rete in testo normale (detto anche testo non crittografato).</value>
+  </data>
+  <data name="Sessions_AccessType_NewCredentials" xml:space="preserve">
+    <value>New Credentials (9)</value>
+  </data>
+  <data name="Sessions_AccessType_NewCredentials_Tooltip" xml:space="preserve">
+    <value>Un chiamante ha clonato il token corrente e specificato nuove credenziali per le connessioni in uscita. La nuova sessione di accesso ha la stessa identità locale, ma utilizza credenziali diverse per altre connessioni di rete.</value>
+  </data>
+  <data name="Sessions_AccessType_RemoteInteractive" xml:space="preserve">
+    <value>Remote Interactive (10)</value>
+  </data>
+  <data name="Sessions_AccessType_RemoteInteractive_Tooltip" xml:space="preserve">
+    <value>Un utente ha eseguito l'accesso a questo computer in remoto utilizzando Servizi terminal o Desktop remoto.</value>
+  </data>
+  <data name="Sessions_FileName" xml:space="preserve">
+    <value>Sessioni</value>
+  </data>
+  <data name="ShellBags_FileName" xml:space="preserve">
+    <value>ShellBags</value>
+  </data>
+  <data name="SystemTimeChanged_AccountName_ColumnHeader" xml:space="preserve">
+    <value>Nome utente</value>
+  </data>
+  <data name="SystemTimeChanged_FileName" xml:space="preserve">
+    <value>Modifiche all'ora di sistema</value>
+  </data>
+  <data name="SystemTimeChanged_NewTime_ColumnHeader" xml:space="preserve">
+    <value>Nuovo orario</value>
+  </data>
+  <data name="SystemTimeChanged_OldTime_ColumnHeader" xml:space="preserve">
+    <value>Orario precedente</value>
+  </data>
+  <data name="SystemTimeChanged_TimeGenerated_ColumnHeader" xml:space="preserve">
+    <value>Ora evento</value>
+  </data>
+  <data name="Usb_FileName" xml:space="preserve">
+    <value>Usb</value>
+  </data>
+</root>

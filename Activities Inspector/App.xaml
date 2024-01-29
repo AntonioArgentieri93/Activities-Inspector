@@ -1,0 +1,15 @@
+﻿<Application x:Class="ProgettoInformaticaForense_Argentieri.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewmodel="clr-namespace:ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure"
+             Startup="Application_StartupAsync"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <viewmodel:ViewModelLocator x:Key="Locator"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Skins/MainSkin.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
