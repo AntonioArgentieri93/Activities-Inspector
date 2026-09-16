@@ -1,4 +1,5 @@
-﻿using GalaSoft.MvvmLight.Command;
+﻿using Activities_Inspector.Models;
+using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
@@ -217,13 +218,19 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 IsBusy = true;
 
-                var result = await _reportService.CreatePdfFile(ProvisioningType, Other, InquirerSurname, InquirerName, 
-                    InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries, 
+                var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
+                    InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath);
+                
+                var result = await _reportService.CreatePdfFileAsync(content);
 
                 if (result.IsSuccess)
                 {
                     _dialogService.ShowInfo(Activities_Inspector.Resources.ReportWindows_OperationComplete_Info);
+                }
+                else
+                {
+                    _dialogService.ShowError(result.Error);
                 }
             }
             catch (Exception ex)

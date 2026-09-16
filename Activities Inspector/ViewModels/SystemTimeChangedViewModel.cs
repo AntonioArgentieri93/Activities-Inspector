@@ -65,15 +65,15 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         #endregion
 
-        private readonly ISystemTimeChangedService _timeChanged;
+        private readonly ISystemTimeChangedService _timeChangedService;
         private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
-        public SystemTimeChangedViewModel(ISystemTimeChangedService timeChanged, IDialogService dialogService,
+        public SystemTimeChangedViewModel(ISystemTimeChangedService timeChangedService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
         {
-            _timeChanged = timeChanged;
+            _timeChangedService = timeChangedService;
             _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
@@ -91,7 +91,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var result = await _timeChanged.GetSystemTimeChangedEntriesAsync();
+                var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync();
 
                 if (result.IsSuccess)
                 {

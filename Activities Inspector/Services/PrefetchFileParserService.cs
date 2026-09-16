@@ -33,16 +33,14 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
             if (tempSig.Equals("MAM"))
             {
-                //windows 10, bisogna decomprimere
+                //windows 10, so we need to decompress
 
-                //La dimensione dei dati decompressi è all'offset 4 
                 var size = BitConverter.ToUInt32(rawBytes, 4);
 
-                //Otteniamo i dati compressi (saltando la firma di 8 byte)
+                //get our compressed bytes (skipping signature and uncompressed size)
                 var compressedBytes = rawBytes.Skip(8).ToArray();
                 var decom = Xpress2.Decompress(compressedBytes, size);
 
-                //aggiorna rawBytes con byte decompressi in modo che il resto funzioni
                 rawBytes = decom;
             }
 
@@ -64,6 +62,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                         pf = new Version26(rawBytes, file);
                         break;
                     case Utils.Version.Win10:
+                    case Utils.Version.Win11:
                         pf = new Version30(rawBytes, file);
                         break;
                     default:

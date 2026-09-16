@@ -91,7 +91,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var getRecentFilesResult = await _recentFilesService.GetRecentFiles();
+                var getRecentFilesResult = await _recentFilesService.GetRecentFilesAsync();
 
                 if (getRecentFilesResult.IsSuccess)
                 {

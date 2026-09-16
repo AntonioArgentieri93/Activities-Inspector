@@ -1,11 +1,21 @@
-﻿using Aspose.Pdf;
+﻿using Activities_Inspector.Models;
 using CSharpFunctionalExtensions;
+using MigraDocCore.DocumentObjectModel;
+using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using MigraDocCore.Rendering;
+using PdfSharpCore.Utils;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Utils;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Document = MigraDocCore.DocumentObjectModel.Document;
+using Section = MigraDocCore.DocumentObjectModel.Section;
+using Table = MigraDocCore.DocumentObjectModel.Tables.Table;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
 {
@@ -13,772 +23,194 @@ namespace ProgettoInformaticaForense_Argentieri.Services
     {
         private readonly INetService _netService;
 
-        private static Document _document;
-
         public ReportService(INetService netService)
         {
             _netService = netService;
         }
 
-        public async Task<Result> CreatePdfFile(ProvisioningType provisioningType, string other, string inquirerSurname, 
-            string inquirerName, string inquirerQualification,string description,
-            UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries, 
-            PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
-            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, string destinationPath)
+        public async Task<Result> CreatePdfFileAsync(ReportContent content)
         {
-            var taskCompletionSource = new TaskCompletionSource<Result>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            try
+            return await Task.Run(() =>
             {
-                _document = new Document();
-
-                await Task.Run(() =>
+                try
                 {
-                    AddCover(provisioningType, other, inquirerSurname, inquirerName, inquirerQualification, description);
-                    AddContents(usageInfos, installedPrograms, recentFolderEntries, prefetchInfoEntries, shellBagEntries, 
-                        sessionEntries, systemTimeChangedEntries, usbEntries);
+                    var document = new Document();
+                    var section = document.AddSection();
 
-                    _document.Save(Path.Combine(destinationPath, "Report.pdf"));
+                    SetPageProperties(document, section);
 
-                    taskCompletionSource.SetResult(Result.Success());
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                taskCompletionSource.SetResult(Result.Failure(ex.Message));
-            }
+                    InsertMainHeader(section);
+                    AddCover(content.ProvisioningType, content.Other, content.InquirerSurname, content.InquirerName,
+                        content.InquirerQualification, content.ObjectDescription, section);
+                    AddContents(content.UsageInfos, content.InstallEntries, content.RecentFolderEntries, content.PrefetchInfoEntries, content.ShellBagEntries,
+                        content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, section);
 
-            return taskCompletionSource.Task.Result;
-        }
+                    var doc = FinalizeDocument(document);
 
-        private void AddCover(ProvisioningType provisioningType, string other, string inquirerSurname, string inquirerName, 
-            string inquirerQualification, string description)
-        {
-            var page = _document.Pages.Add();
+                    var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now.ToString("dd-M-yyyy")}.pdf");
+                    File.WriteAllBytes(filePath, doc);
 
-            var header = new Aspose.Pdf.Text.TextFragment();
-            if(provisioningType != ProvisioningType.Other)
-            {
-                header = new Aspose.Pdf.Text.TextFragment(GetProvisioningType(provisioningType));
-            }
-            else
-            {
-                header = new Aspose.Pdf.Text.TextFragment(other);
-            }
-
-            header.HorizontalAlignment = HorizontalAlignment.Right;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-            header.TextState.Underline = true;
-
-            var obj = new Aspose.Pdf.Text.TextFragment("OGGETTO: Relazione dei risultati prodotti dal software 'Activities Inspector'" +
-                " in merito alle attivita' condotte sul PC.");
-            obj.HorizontalAlignment = HorizontalAlignment.Left;
-            obj.TextState.FontSize = 13;
-            obj.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            for (int i = 1; i <= 3; i++)
-            {
-                var row = table.Rows.Add();
-
-                switch (i)
-                {
-                    case 1:
-                        row.Cells.Add("Cognome investigatore: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        row.Cells.Add(inquirerSurname);
-                        break;
-                    case 2:
-                        row.Cells.Add("Nome investigatore: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        row.Cells.Add(inquirerName);
-                        break;
-                    case 3:
-                        row.Cells.Add("Qualifica investigatore: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        row.Cells.Add(inquirerQualification);
-                        break;
+                    return Result.Success();
                 }
-            }
-
-            var descriptionLabel = new Aspose.Pdf.Text.TextFragment("Descrizione del caso");
-            descriptionLabel.HorizontalAlignment = HorizontalAlignment.Left;
-            descriptionLabel.TextState.FontSize = 13;
-            descriptionLabel.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var descript = new Aspose.Pdf.Text.TextFragment(description);
-            descript.HorizontalAlignment = HorizontalAlignment.Left;
-            descript.TextState.FontSize = 11;
-
-            page.Paragraphs.Add(header);
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(obj);
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(table);
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(descriptionLabel);
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            page.Paragraphs.Add(descript);
-
-            AddPremise();
+                catch (Exception ex)
+                {
+                    return Result.Failure(ex.Message);
+                }
+            });
         }
 
-        private void AddPremise()
+        private static void SetPageProperties(Document document, Section section)
         {
-            _document.Pages[1].Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages[1].Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages[1].Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
+            section.PageSetup.PageFormat = PageFormat.A4;
+            section.PageSetup.TopMargin = Unit.FromCentimeter(1);
+            section.PageSetup.BottomMargin = Unit.FromCentimeter(1);
+            section.PageSetup.LeftMargin = Unit.FromCentimeter(1);
+            section.PageSetup.RightMargin = Unit.FromCentimeter(1);
+        }
 
-            var machineName = System.Net.Dns.GetHostName();
-            var privateIpAddresses = _netService.GetAvailablePrivateIPs().ToList();
-            var publicIpAddress = _netService.GetPublicIPAddress();
+        private static void InsertMainHeader(Section section)
+        {
+            if (ImageSource.ImageSourceImpl == null)
+            {
+                ImageSource.ImageSourceImpl = new ImageSharpImageSource<Rgba32>();
+            }
 
-            var header = new Aspose.Pdf.Text.TextFragment("Premessa");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
+            var table = section.AddTable();
 
-            var content = new Aspose.Pdf.Text.TextFragment("La presente relazione e' stata prodotta attraverso il software " +
+            table.AddColumn(Unit.FromMillimeter(25));
+            table.AddColumn(Unit.FromMillimeter(167));
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var row = table.AddRow();
+
+            var cell1 = row.Cells[0];
+            var image = cell1.AddImage(ImageSource.FromFile("Assets/Logo.png"));
+            image.Width = Unit.FromCentimeter(2);
+            image.Height = Unit.FromCentimeter(2);
+            image.LockAspectRatio = true;
+
+            var cell2 = row.Cells[1];
+            var par1 = cell2.AddParagraph("ACTIVITIES INSPECTOR");
+            var par2 = cell2.AddParagraph("REPORT DELLE EVIDENZE DIGITALI");
+            var par3 = cell2.AddParagraph($"Documento generato in data: {DateTime.Now.ToString("dd-M-yyyy")}");
+
+            OverrideParagraphDefaultStyle(par1, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,
+                    horizontalAlignment: ParagraphAlignment.Center);
+            OverrideParagraphDefaultStyle(par2, 13, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,
+                    horizontalAlignment: ParagraphAlignment.Center);
+            OverrideParagraphDefaultStyle(par3, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: false,
+                    horizontalAlignment: ParagraphAlignment.Center);
+        }
+
+        private void AddCover(ProvisioningType provisioningType, string other, string inquirerSurname, string inquirerName,
+            string inquirerQualification, string description, Section section)
+        {
+            var header = provisioningType != ProvisioningType.Other ? GetProvisioningType(provisioningType) : other;
+            var headerParagraph = section.AddParagraph(header);
+
+            OverrideParagraphDefaultStyle(headerParagraph, 13, Unit.FromMillimeter(0d), Unit.FromMillimeter(10d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,
+                    horizontalAlignment: ParagraphAlignment.Right, underline: Underline.Single);
+
+            var obj = section.AddParagraph("OGGETTO: Relazione dei risultati prodotti dal software Activities Inspector in merito alle attivita' condotte sul PC.");
+            OverrideParagraphDefaultStyle(obj, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(13d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(10d), bold: true);
+
+            var table = section.AddTable();
+            table.Borders.Width = 1;
+            table.Borders.Color = Colors.Black;
+            table.AddColumn(Unit.FromMillimeter(192));
+
+            var row = table.AddRow();
+            var cell = row.Cells[0];
+
+            var inquirerSurnameLabel = cell.AddParagraph();
+            inquirerSurnameLabel.AddText("Cognome investigatore: ");
+            var inquirerSurnameValue = inquirerSurnameLabel.AddFormattedText(inquirerSurname ?? String.Empty);
+            inquirerSurnameValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(inquirerSurnameLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var inquirerNameLabel = cell.AddParagraph();
+            inquirerNameLabel.AddText("Nome investigatore: ");
+            var inquirerNameValue = inquirerNameLabel.AddFormattedText(inquirerName ?? String.Empty);
+            inquirerNameValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(inquirerNameLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var inquirerQualificationLabel = cell.AddParagraph();
+            inquirerQualificationLabel.AddText("Qualifica investigatore: ");
+            var inquirerQualificationValue = inquirerQualificationLabel.AddFormattedText(inquirerQualification ?? String.Empty);
+            inquirerQualificationValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(inquirerQualificationLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var descriptionParagraph = section.AddParagraph("Descrizione del caso");
+            OverrideParagraphDefaultStyle(descriptionParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(10d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+            var descriptionValue = section.AddParagraph(description);
+            OverrideParagraphDefaultStyle(descriptionValue, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(10d));
+
+            AddPremise(section);
+        }
+
+        private void AddPremise(Section section)
+        {
+            var promiseParagraph = section.AddParagraph("Premessa");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(10d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "La presente relazione e' stata prodotta attraverso il software " +
                 "Activities Inspector. \n"
                 + "Activities Inspector è il software che consente di estrapolare " +
                 "informazioni dettagliate riguardanti l’utilizzo del PC. \n" +
                 "Le informazioni elaborate coinvolgono il registro di sistema, " +
                 "eventi di Windows e " +
-                "file memorizzati in cartelle specifiche del file system.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            if (privateIpAddresses.Count <= 2)
-            {
-                table.ColumnWidths = "135";
-            }
-            else if (privateIpAddresses.Count == 3)
-            {
-                table.ColumnWidths = "110";
-            }
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            for (int i = 1; i <= 3; i++)
-            {
-                var row = table.Rows.Add();
-
-                switch (i)
-                {
-                    case 1:
-                        
-                        row.Cells.Add("Nome macchina: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        row.Cells.Add(machineName);
-                        break;
-                    case 2:
-                        row.Cells.Add("Indirizzo/i IP privati: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        foreach (var address in privateIpAddresses)
-                        {
-                            row.Cells.Add(address);
-                        }
-                        break;
-                    case 3:
-                        row.Cells.Add("Indirizzo IP pubblico: ", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                        row.Cells.Add(publicIpAddress);
-                        break;
-                }
-            }
-
-            _document.Pages[1].Paragraphs.Add(header);
-            _document.Pages[1].Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages[1].Paragraphs.Add(content);
-            _document.Pages[1].Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages[1].Paragraphs.Add(table);
-        }
-
-        private void AddContents(UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries,
-            PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
-            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries)
-        {
-            AddUsageInfos(usageInfos);
-            AddInstalledPrograms(installedPrograms);
-            AddRecentFolderEntries(recentFolderEntries);
-            AddPrefetchInfoEntries(prefetchInfoEntries);
-            AddShellbagsEntries(shellBagEntries);
-            AddSessionEntries(sessionEntries);
-            AddSystemTimeChangedEntries(systemTimeChangedEntries);
-            AddUsbEntries(usbEntries);
-        }
-
-        private void AddUsageInfos(UsageInfo[] usageInfos)
-        {
-            if (usageInfos == null || usageInfos.Length == 0) return;
-
-            var page = _document.Pages.Add();
-
-            var header = new Aspose.Pdf.Text.TextFragment("Orari di accensione e spegnimento");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("È la funzionalità che consente di determinare tutti gli intervalli temporali indicanti il momento \n" +
-                "in cui il PC è stato acceso fino al momento in cui è stato spento. \n " +
-                "Si tiene conto anche degli eventuali log indicanti i riavvii di sistema e inizio/fine della fase di standby. \n" +
-                "Le date sono indicate nel formato gg/mm/aaaa e gli orari espressi attraverso lo standard GMT. \n" +
-                "Vengono inoltre riportate le durate di ogni sessione ed il nome del PC su cui la rilevazione è stata effettuata.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            int elementIndex = 0;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            for (int i = 1; i <= usageInfos.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Accensione", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Spegnimento", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Durata", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Nome macchina", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var endInterval = string.Empty;
-                    var duration = string.Empty;
-
-                    if (usageInfos[elementIndex].Interval.End.HasValue)
-                    {
-                        endInterval = DateBuilder.BuildFromDateTime(usageInfos[elementIndex].Interval.End.Value);
-                    }
-
-                    if(usageInfos[elementIndex].Duration != null)
-                    {
-                        duration = $"{usageInfos[elementIndex].Duration.Days} giorno/i - {usageInfos[elementIndex].Duration.Hours} ora/e - {usageInfos[elementIndex].Duration.Minutes} minuti - " +
-                            $"{usageInfos[elementIndex].Duration.Seconds} secondi.";
-                    }
-
-                    row.Cells.Add(DateBuilder.BuildFromDateTime(usageInfos[elementIndex].Interval.Start));
-                    row.Cells.Add(endInterval);
-                    row.Cells.Add(duration);
-                    row.Cells.Add(usageInfos[elementIndex].MachineName);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddInstalledPrograms(InstallEntry[] installedPrograms)
-        {
-            if (installedPrograms == null || installedPrograms.Length == 0) return;
-
-            if(_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("Programmi installati");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("La ricerca dei programmi installati viene effettuata attraverso la ricerca \n" +
-                "nel registro di sistema. La ricerca analizza due percorsi specifici del registro: \n" +
-                "\n" +
-                "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
-                "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
-                "\n" +
-                "La ricerca restituisce così tutti i software installati sia a livello di singolo utente che di macchina (tutti gli utenti).");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= installedPrograms.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Nome file", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Sorgente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Percorso", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Data", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var installDate = string.Empty;
-
-                    if (installedPrograms[elementIndex].InstallDate.HasValue)
-                    {
-                        installDate = installedPrograms[elementIndex].InstallDate.Value.ToShortDateString();
-                    }
-
-                    row.Cells.Add(installedPrograms[elementIndex].FileName ?? string.Empty);
-                    row.Cells.Add(installedPrograms[elementIndex].DataSource);
-                    row.Cells.Add(installedPrograms[elementIndex].FullPath ?? string.Empty);
-                    row.Cells.Add(installDate);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddRecentFolderEntries(RecentFolderEntry[] recentFolderEntries)
-        {
-            if (recentFolderEntries == null || recentFolderEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("File recenti");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("La seguente funzionalità tiene traccia dei file aperti recentemente da un utente. \n" +
-                "Ogni volta che un file viene aperto, Windows crea una sorta di collegamento allo stesso. \n" +
-                "La cartella in cui vengono creati i collegamenti si trova al percorso C:\\Users\\[NOME PROFILO]\\Recent ed il software ricerca i file " +
-                "con estensione .lnk contenuti in questa cartella. \n" +
-                "Ogni risultato contiene il nome del file, il percorso nella cartella dei file recenti, il percorso del file originario nel file system e" +
-                "la data di ultima apertura del file.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= recentFolderEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Nome file", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Sorgente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Percorso", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Data", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var actionTime = string.Empty;
-
-                    if(recentFolderEntries[elementIndex].ActionTime != null)
-                    {
-                        actionTime = DateBuilder.BuildFromDateTime(recentFolderEntries[elementIndex].ActionTime);
-                    }
-
-                    row.Cells.Add(recentFolderEntries[elementIndex].FileName);
-                    row.Cells.Add(recentFolderEntries[elementIndex].DataSource);
-                    row.Cells.Add(recentFolderEntries[elementIndex].FullPath);
-                    row.Cells.Add(actionTime);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddPrefetchInfoEntries(PrefetchInfoEntry[] prefetchInfoEntries)
-        {
-            if (prefetchInfoEntries == null || prefetchInfoEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("Prefetch");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("I file di prefetch comunemente vengono utilizzati da Windows per velocizzare " +
-                "l’esecuzione delle applicazioni. Ogni volta che un utente esegue un’applicazione (file .exe), " +
-                "viene generato un file con estensione .pf rappresentante, appunto, un file prefetch. \n" +
-                "Questi file vengono salvati nella cartella C:\\Windows\\Prefetch \n" +
-                "All’interno della cartella Prefetch possono esserci anche dei collegamenti relativi ad applicazioni non più " +
-                "installate nel PC in uso.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= prefetchInfoEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Nome file", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Sorgente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Estensione", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Data ultima esecuzione", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var lastRunTime = string.Empty;
-
-                    if(prefetchInfoEntries[elementIndex].LastRunTime != null)
-                    {
-                        lastRunTime = DateBuilder.BuildFromDateTime(prefetchInfoEntries[elementIndex].LastRunTime);
-                    }
-
-                    row.Cells.Add(prefetchInfoEntries[elementIndex].ExecutableFileName);
-                    row.Cells.Add(prefetchInfoEntries[elementIndex].SourceFileName);
-                    row.Cells.Add(prefetchInfoEntries[elementIndex].Extension ?? string.Empty);
-                    row.Cells.Add(lastRunTime);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddShellbagsEntries(ShellBagEntry[] shellBagEntries)
-        {
-            if (shellBagEntries == null || shellBagEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("Shellbags");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("Ogni volta che viene aperta una cartella attraverso la funzione “Esplora risorse”, " +
-                "Windows salva le impostazioni di questa directory nel registro di sistema. \n" +
-                "Lo scopo di questa funzionalità è quello di conoscere i percorsi, nomi e data " +
-                "di apertura delle cartelle aperte sia sul disco fisso che su dispositivi USB. \n" +
-                "E’ importante analizzare queste chiavi in quanto siamo in grado anche di rilevare eventuali " +
-                "azioni di un utente malevolo anche quando questo ha cancellato i file e le cartelle da esso visitate. \n" +
-                "I risultati restituiti contengono il percorso della cartella, data di accesso, data di creazione, data " +
-                "dell’ultima scrittura e il percorso nel registro di sistema.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= shellBagEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Percorso assoluto", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Data ultima scrittura", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Percorso nel registro", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var lastRegistryWriteData = string.Empty;
-
-                    if (shellBagEntries[elementIndex].LastRegistryWriteDate != null)
-                    {
-                        lastRegistryWriteData = DateBuilder.BuildFromDateTime(shellBagEntries[elementIndex].LastRegistryWriteDate);
-                    }
-
-                    row.Cells.Add(shellBagEntries[elementIndex].AbsolutePath);
-                    row.Cells.Add(lastRegistryWriteData);
-                    row.Cells.Add(shellBagEntries[elementIndex].RegistryPath);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddSessionEntries(SessionEntry[] sessionEntries)
-        {
-            if (sessionEntries == null || sessionEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("LogOn/LogOff");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("Questa funzionalità ha lo scopo di determinare tutti gli accessi di un " +
-                "utente ad un PC. Per accesso non si intende l’accensione del PC stesso, ma l’operazione di scelta, ed eventualmente " +
-                "autenticazione, di un account. \n" +
-                "La funzionalità di ricerca si basa sui log di sistema. " +
-                "In particolare vengono presi come riferimento gli eventi della categoria “Sicurezza”. ");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= sessionEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Utente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Dominio", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Nome macchina", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Ora di accesso", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Ora disconnessione", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Durata", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Indirizzo di rete", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Tipo di accesso", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    var logOnTime = string.Empty;
-                    var logOffTime = string.Empty;
-                    var duration = string.Empty;
-
-                    if(sessionEntries[elementIndex].LogOnTime != null)
-                    {
-                        logOnTime = DateBuilder.BuildFromDateTime(sessionEntries[elementIndex].LogOnTime);
-                    }
-
-                    if (sessionEntries[elementIndex].LogOffTime != null)
-                    {
-                        logOffTime = DateBuilder.BuildFromDateTime(sessionEntries[elementIndex].LogOffTime.Value);
-                    }
-
-                    if (sessionEntries[elementIndex].Duration != null)
-                    {
-                        duration = $"{sessionEntries[elementIndex].Duration.Value.Days} giorno/i - {sessionEntries[elementIndex].Duration.Value.Hours} ora/e - {sessionEntries[elementIndex].Duration.Value.Minutes} minuti - " +
-                            $"{sessionEntries[elementIndex].Duration.Value.Seconds} secondi.";
-                    }
-
-                    row.Cells.Add(sessionEntries[elementIndex].UserName ?? string.Empty);
-                    row.Cells.Add(sessionEntries[elementIndex].Group ?? string.Empty);
-                    row.Cells.Add(sessionEntries[elementIndex].MachineName ?? string.Empty);
-                    row.Cells.Add(logOnTime);
-                    row.Cells.Add(logOffTime);
-                    row.Cells.Add(duration);
-                    row.Cells.Add(sessionEntries[elementIndex].NetworkAddress ?? string.Empty);
-                    row.Cells.Add(sessionEntries[elementIndex].AccessType ?? string.Empty);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddSystemTimeChangedEntries(SystemTimeChangedEntry[] systemTimeChangedEntries)
-        {
-            if (systemTimeChangedEntries == null || systemTimeChangedEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("Modifiche all'ora di sistema");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("All’avvio dell’applicazione il software verifica che l’ora e la " +
-                "data del sistema siano genuine comunicando eventuali manomissioni da parte dell’utente. \n" +
-                "Questa operazione è molto importante perché può farci capire se anche i log possono aver subito delle alterazioni " +
-                "riportando dei dati non veritieri. \n" +
-                "La verifica delle modifiche a ora e data viene effettuata ricavando l’ora esatta del sistema e confrontando la " +
-                "stessa con l’ora e data restituita dal server NTP di Windows (time.windows.com). \n" +
-                "nel momento in cui la discrepanza fra i due orari è maggiore di 1 minuto il software comunica con una possibile manomissione.\n" +
-                "Il messaggio in questione può comparire anche nel momento in cui non è possibile interrogare il server di riferimento " +
-                "perchè il PC non è connesso alla rete oppure il server non è raggiungibile. \n" +
-                "Se la tabella dei risultati è vuota allora è molto probabile che non vi siano state alterazioni da parte dell’utente " +
-                "o che tali log siano stati eliminati dall’utente svuotando il registro eventi. \n" +
-                "La tabella dei risultati riporta il nome dell’utente che ha fatto l’eventuale modifica, " +
-                "l’ora in cui è stato effettuata l’operazione, l’ora iniziale del PC prima della modifica e " +
-                "l’ora del PC dopo la modifica.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= systemTimeChangedEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Nome utente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Ora evento", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Orario precedente", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Nuovo orario", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    row.Cells.Add(systemTimeChangedEntries[elementIndex].AccountName ?? string.Empty);
-                    row.Cells.Add(systemTimeChangedEntries[elementIndex].TimeGenerated ?? string.Empty);
-                    row.Cells.Add(systemTimeChangedEntries[elementIndex].OldTime ?? string.Empty);
-                    row.Cells.Add(systemTimeChangedEntries[elementIndex].NewTime ?? string.Empty);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
-        }
-
-        private void AddUsbEntries(UsbEntry[] usbEntries)
-        {
-            if (usbEntries == null || usbEntries.Length == 0) return;
-
-            if (_document.Pages.Count == 1)
-            {
-                var page = _document.Pages.Add();
-            }
-
-            var header = new Aspose.Pdf.Text.TextFragment("Periferiche USB");
-            header.HorizontalAlignment = HorizontalAlignment.Left;
-            header.TextState.FontSize = 13;
-            header.TextState.FontStyle = Aspose.Pdf.Text.FontStyles.Bold;
-
-            var content = new Aspose.Pdf.Text.TextFragment("La seguente funzionalità riporta tutte le periferiche USB che sono state connesse/rimosse e/dal PC in questione. \n" +
-                "La ricerca dei dispositivi avviene scansionando il registro di sistema a partire dal file in C:\\Windows\\System32\\config\\SYSTEM ed intercettando" +
-                " gli eventi di connessione / disconnessine. \n" +
-                "I dati recuperati dal registro riguardano il nome del dispositivo, il seriale (ove disponibile), VendorId, " +
-                "ProductId, classe(tipologia di dispositivo) e le date di ultimo inserimento e ultima rimozione. \n" +
-                "Per ottenere i timestamps con le date di inserimento / rimozione è indispensabile avviare il software con privilegi " +
-                "di amministratore. \n" +
-                "\n" +
-                "Attraverso gli eventi di sistema, viene inoltre reperita un'ultima informazione riguardante lo stato del dispositivo che ci permette " +
-                "di determinare quando questo è connesso o meno, al momento della rilevazione.\n" +
-                "L'aggiornamento dello stato avviene in realtime.");
-            content.HorizontalAlignment = HorizontalAlignment.Left;
-            content.TextState.FontSize = 12;
-
-            var table = new Table();
-            table.ColumnAdjustment = ColumnAdjustment.AutoFitToWindow;
-            table.Border = new BorderInfo(BorderSide.All, Color.FromRgb(System.Drawing.Color.LightGray));
-            table.DefaultCellPadding = new MarginInfo(5, 5, 5, 5);
-
-            int elementIndex = 0;
-
-            for (int i = 1; i <= usbEntries.Length + 1; i++)
-            {
-                var row = table.Rows.Add();
-
-                if (i == 1)
-                {
-                    row.Cells.Add("Stato", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Nome dispositivo", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Serial number", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("VID", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("PID", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Classe number", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Ultimo inserimento", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                    row.Cells.Add("Ultima rimozione", new Aspose.Pdf.Text.TextState { FontStyle = Aspose.Pdf.Text.FontStyles.Bold, FontSize = 11 });
-                }
-                else
-                {
-                    row.Cells.Add(MapUsbState(usbEntries[elementIndex].Plugged) ?? string.Empty);
-                    row.Cells.Add(usbEntries[elementIndex].DeviceName ?? string.Empty);
-                    row.Cells.Add(usbEntries[elementIndex].SerialNumber ?? string.Empty);
-                    row.Cells.Add(usbEntries[elementIndex].VendorId ?? string.Empty);
-                    row.Cells.Add(usbEntries[elementIndex].ProductId ?? string.Empty);
-                    row.Cells.Add(usbEntries[elementIndex].UsbClass ?? string.Empty);
-                    row.Cells.Add(DateBuilder.BuildFromDateTimeOffset(usbEntries[elementIndex].LastConnected) ?? string.Empty);
-                    row.Cells.Add(DateBuilder.BuildFromDateTimeOffset(usbEntries[elementIndex].LastRemoved) ?? string.Empty);
-
-                    elementIndex += 1;
-                }
-            }
-
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(header);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(content);
-            _document.Pages.Last().Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("\n"));
-            _document.Pages.Last().Paragraphs.Add(table);
+                "file memorizzati nel file system.";
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+            table.Borders.Width = 1;
+            table.Borders.Color = Colors.Black;
+            table.AddColumn(Unit.FromMillimeter(192));
+
+            var row = table.AddRow();
+            var cell = row.Cells[0];
+
+            var machineName = System.Net.Dns.GetHostName();
+            var privateIpAddresses = _netService.GetAvailablePrivateIPs().ToList();
+            var publicIpAddress = _netService.GetPublicIPAddress();
+
+            var machineNameLabel = cell.AddParagraph();
+            machineNameLabel.AddText("Nome macchina: ");
+            var machineNameValue = machineNameLabel.AddFormattedText(machineName ?? String.Empty);
+            machineNameValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(machineNameLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var privateAddressesLabel = cell.AddParagraph();
+            privateAddressesLabel.AddText("Indirizzo/i IP privati: ");
+            var privateAddressesValue = privateAddressesLabel.AddFormattedText(string.Join(" ; ", privateIpAddresses) ?? String.Empty);
+            privateAddressesValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(privateAddressesLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var publicAddressLabel = cell.AddParagraph();
+            publicAddressLabel.AddText("Indirizzo IP pubblico: ");
+            var publicAddressValue = publicAddressLabel.AddFormattedText(publicIpAddress ?? String.Empty);
+            publicAddressValue.Font.Bold = true;
+            OverrideParagraphDefaultStyle(publicAddressLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
         }
 
         private string GetProvisioningType(ProvisioningType provisioningType)
@@ -800,7 +232,651 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             }
         }
 
+        private void AddContents(UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries,
+            PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
+            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section)
+        {
+            AddUsageInfos(usageInfos, section);
+            AddInstalledPrograms(installedPrograms, section);
+            AddRecentFolderEntries(recentFolderEntries, section);
+            AddPrefetchInfoEntries(prefetchInfoEntries, section);
+            AddShellbagsEntries(shellBagEntries, section);
+            AddSessionEntries(sessionEntries, section);
+            AddSystemTimeChangedEntries(systemTimeChangedEntries, section);
+            AddUsbEntries(usbEntries,section);
+        }
+
+        private void AddUsageInfos(UsageInfo[] usageInfos, Section section)
+        {
+            if (usageInfos == null || usageInfos.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Orari di accensione e spegnimento");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "È la funzionalità che consente di determinare tutti gli intervalli temporali indicanti il momento \n" +
+                "in cui il PC è stato acceso fino al momento in cui è stato spento. \n " +
+                "Si tiene conto anche degli eventuali log indicanti i riavvii di sistema e inizio/fine della fase di standby. \n" +
+                "Le date sono indicate nel formato gg/mm/aaaa e gli orari espressi attraverso lo standard GMT. \n" +
+                "Vengono inoltre riportate le durate di ogni sessione ed il nome del PC su cui la rilevazione è stata effettuata.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Accensione",
+                "Spegnimento",
+                "Durata",
+                "Nome macchina"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var info in usageInfos)
+            {
+                var endInterval = string.Empty;
+                var duration = string.Empty;
+
+                if (info.Interval.End.HasValue)
+                {
+                    endInterval = DateBuilder.BuildFromDateTime(info.Interval.End.Value);
+                }
+
+                if (info.Duration != null)
+                {
+                    duration = $"{info.Duration.Days} giorno/i - {info.Duration.Hours} ora/e - {info.Duration.Minutes} minuti - " +
+                        $"{info.Duration.Seconds} secondi.";
+                }
+
+                var rowValues = new List<string>()
+                {
+                    DateBuilder.BuildFromDateTime(info.Interval.Start) ?? string.Empty,
+                    endInterval ?? string.Empty,
+                    duration ?? string.Empty,
+                    info.MachineName ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddInstalledPrograms(InstallEntry[] installedPrograms, Section section)
+        {
+            if (installedPrograms == null || installedPrograms.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Programmi installati");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "La ricerca dei programmi installati viene effettuata attraverso la ricerca \n" +
+                "nel registro di sistema. La ricerca analizza due percorsi specifici del registro: \n" +
+                "\n" +
+                "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
+                "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
+                "\n" +
+                "La ricerca restituisce così tutti i software installati sia a livello di singolo utente che di macchina (tutti gli utenti).";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Nome file",
+                "Sorgente",
+                "Percorso",
+                "Data"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in installedPrograms)
+            {
+                var installDate = string.Empty;
+
+                if (item.InstallDate.HasValue)
+                {
+                    installDate = item.InstallDate.Value.ToShortDateString();
+                }
+
+                var rowValues = new List<string>()
+                {
+                    item.FileName ?? string.Empty,
+                    item.DataSource ?? string.Empty,
+                    item.FullPath ?? string.Empty,
+                    installDate ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddRecentFolderEntries(RecentFolderEntry[] recentFolderEntries, Section section)
+        {
+            if (recentFolderEntries == null || recentFolderEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("File recenti");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "La seguente funzionalità tiene traccia dei file aperti recentemente da un utente. \n" +
+                "Ogni volta che un file viene aperto, Windows crea una sorta di collegamento allo stesso. \n" +
+                "La cartella in cui vengono creati i collegamenti si trova al percorso C:\\Users\\[NOME PROFILO]\\Recent ed il software ricerca i file " +
+                "con estensione .lnk contenuti in questa cartella. \n" +
+                "Ogni risultato contiene il nome del file, il percorso nella cartella dei file recenti, il percorso del file originario nel file system e" +
+                "la data di ultima apertura del file.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Nome file",
+                "Sorgente",
+                "Percorso",
+                "Data"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in recentFolderEntries)
+            {
+                var actionTime = string.Empty;
+
+                if (item.ActionTime != null)
+                {
+                    actionTime = DateBuilder.BuildFromDateTime(item.ActionTime);
+                }
+
+                var rowValues = new List<string>()
+                {
+                    item.FileName ?? string.Empty,
+                    item.DataSource ?? string.Empty,
+                    item.FullPath ?? string.Empty,
+                    actionTime ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddPrefetchInfoEntries(PrefetchInfoEntry[] prefetchInfoEntries, Section section)
+        {
+            if (prefetchInfoEntries == null || prefetchInfoEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Prefetch");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "I file di prefetch comunemente vengono utilizzati da Windows per velocizzare " +
+                "l’esecuzione delle applicazioni. Ogni volta che un utente esegue un’applicazione (file .exe), " +
+                "viene generato un file con estensione .pf rappresentante, appunto, un file prefetch. \n" +
+                "Questi file vengono salvati nella cartella C:\\Windows\\Prefetch \n" +
+                "All’interno della cartella Prefetch possono esserci anche dei collegamenti relativi ad applicazioni non più " +
+                "installate nel PC in uso.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Nome file",
+                "Sorgente",
+                "Estensione",
+                "Data ultima esecuzione"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in prefetchInfoEntries)
+            {
+                var lastRunTime = string.Empty;
+
+                if (item != null)
+                {
+                    lastRunTime = DateBuilder.BuildFromDateTime(item.LastRunTime);
+                }
+
+                var rowValues = new List<string>()
+                {
+                    item.ExecutableFileName ?? string.Empty,
+                    item.SourceFileName ?? string.Empty,
+                    item.Extension ?? string.Empty,
+                    lastRunTime ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddShellbagsEntries(ShellBagEntry[] shellBagEntries, Section section)
+        {
+            if (shellBagEntries == null || shellBagEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Shellbags");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "Ogni volta che viene aperta una cartella attraverso la funzione “Esplora risorse”, " +
+                "Windows salva le impostazioni di questa directory nel registro di sistema. \n" +
+                "Lo scopo di questa funzionalità è quello di conoscere i percorsi, nomi e data " +
+                "di apertura delle cartelle aperte sia sul disco fisso che su dispositivi USB. \n" +
+                "E’ importante analizzare queste chiavi in quanto siamo in grado anche di rilevare eventuali " +
+                "azioni di un utente malevolo anche quando questo ha cancellato i file e le cartelle da esso visitate. \n" +
+                "I risultati restituiti contengono il percorso della cartella, data di accesso, data di creazione, data " +
+                "dell’ultima scrittura e il percorso nel registro di sistema.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Percorso assoluto",
+                "Data ultima scrittura",
+                "Percorso nel registro"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in shellBagEntries)
+            {
+                var lastRegistryWriteData = string.Empty;
+
+                if (item.LastRegistryWriteDate != null)
+                {
+                    lastRegistryWriteData = DateBuilder.BuildFromDateTime(item.LastRegistryWriteDate);
+                }
+
+                var rowValues = new List<string>()
+                {
+                    item.AbsolutePath ?? string.Empty,
+                    lastRegistryWriteData ?? string.Empty,
+                    item.RegistryPath ?? string.Empty,
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddSessionEntries(SessionEntry[] sessionEntries, Section section)
+        {
+            if (sessionEntries == null || sessionEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("LogOn/LogOff");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "Questa funzionalità ha lo scopo di determinare tutti gli accessi di un " +
+                "utente ad un PC. Per accesso non si intende l’accensione del PC stesso, ma l’operazione di scelta, ed eventualmente " +
+                "autenticazione, di un account. \n" +
+                "La funzionalità di ricerca si basa sui log di sistema. " +
+                "In particolare vengono presi come riferimento gli eventi della categoria “Sicurezza”. ";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Utente",
+                "Dominio",
+                "Nome macchina",
+                "Ora di accesso",
+                "Ora disconnessione",
+                "Durata",
+                "Indirizzo di rete",
+                "Tipo di accesso"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in sessionEntries)
+            {
+                var logOnTime = string.Empty;
+                var logOffTime = string.Empty;
+                var duration = string.Empty;
+
+                if (item.LogOnTime != null)
+                {
+                    logOnTime = DateBuilder.BuildFromDateTime(item.LogOnTime);
+                }
+
+                if (item.LogOffTime != null)
+                {
+                    logOffTime = DateBuilder.BuildFromDateTime(item.LogOffTime.Value);
+                }
+
+                if (item.Duration != null)
+                {
+                    duration = $"{item.Duration.Value.Days} giorno/i - {item.Duration.Value.Hours} ora/e - {item.Duration.Value.Minutes} minuti - " +
+                        $"{item.Duration.Value.Seconds} secondi.";
+                }
+
+                var rowValues = new List<string>()
+                {
+                    item.UserName ?? string.Empty,
+                    item.Group ?? string.Empty,
+                    item.MachineName ?? string.Empty,
+                    logOnTime ?? string.Empty,
+                    logOffTime ?? string.Empty,
+                    duration ?? string.Empty,
+                    item.NetworkAddress ?? string.Empty,
+                    item.AccessType ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddSystemTimeChangedEntries(SystemTimeChangedEntry[] systemTimeChangedEntries, Section section)
+        {
+            if (systemTimeChangedEntries == null || systemTimeChangedEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Modifiche all'ora di Sistema");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "All’avvio dell’applicazione il software verifica che l’ora e la " +
+                "data del sistema siano genuine comunicando eventuali manomissioni da parte dell’utente. \n" +
+                "Questa operazione è molto importante perché può farci capire se anche i log possono aver subito delle alterazioni " +
+                "riportando dei dati non veritieri. \n" +
+                "La verifica delle modifiche a ora e data viene effettuata ricavando l’ora esatta del sistema e confrontando la " +
+                "stessa con l’ora e data restituita dal server NTP di Windows (time.windows.com). \n" +
+                "nel momento in cui la discrepanza fra i due orari è maggiore di 1 minuto il software comunica con una possibile manomissione.\n" +
+                "Il messaggio in questione può comparire anche nel momento in cui non è possibile interrogare il server di riferimento " +
+                "perchè il PC non è connesso alla rete oppure il server non è raggiungibile. \n" +
+                "Se la tabella dei risultati è vuota allora è molto probabile che non vi siano state alterazioni da parte dell’utente " +
+                "o che tali log siano stati eliminati dall’utente svuotando il registro eventi. \n" +
+                "La tabella dei risultati riporta il nome dell’utente che ha fatto l’eventuale modifica, " +
+                "l’ora in cui è stato effettuata l’operazione, l’ora iniziale del PC prima della modifica e " +
+                "l’ora del PC dopo la modifica.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Nome utente",
+                "Ora evento",
+                "Orario precedente",
+                "Nuovo orario"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in systemTimeChangedEntries)
+            {
+                var rowValues = new List<string>()
+                {
+                    item.AccountName ?? string.Empty,
+                    item.TimeGenerated ?? string.Empty,
+                    item.OldTime ?? string.Empty,
+                    item.NewTime ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private void AddUsbEntries(UsbEntry[] usbEntries, Section section)
+        {
+            if (usbEntries == null || usbEntries.Length == 0) return;
+
+            AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph("Periferiche USB");
+            OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "La seguente funzionalità riporta tutte le periferiche USB che sono state connesse/rimosse e/dal PC in questione. \n" +
+                "La ricerca dei dispositivi avviene scansionando il registro di sistema a partire dal file in C:\\Windows\\System32\\config\\SYSTEM ed intercettando" +
+                " gli eventi di connessione / disconnessine. \n" +
+                "I dati recuperati dal registro riguardano il nome del dispositivo, il seriale (ove disponibile), VendorId, " +
+                "ProductId, classe(tipologia di dispositivo) e le date di ultimo inserimento e ultima rimozione. \n" +
+                "Per ottenere i timestamps con le date di inserimento / rimozione è indispensabile avviare il software con privilegi " +
+                "di amministratore. \n" +
+                "\n" +
+                "Attraverso gli eventi di sistema, viene inoltre reperita un'ultima informazione riguardante lo stato del dispositivo che ci permette " +
+                "di determinare quando questo è connesso o meno, al momento della rilevazione.\n" +
+                "L'aggiornamento dello stato avviene in realtime.";
+
+            var contentParagraph = section.AddParagraph(content);
+            OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Stato",
+                "Nome dispositivo",
+                "Serial number",
+                "VID",
+                "PID",
+                "Classe number",
+                "Ultimo inserimento",
+                "Ultima rimozione"
+            };
+
+            AddHeaderToTable(table, headerLabels);
+
+            foreach (var item in usbEntries)
+            {
+                var rowValues = new List<string>()
+                {
+                    MapUsbState(item.Plugged) ?? string.Empty,
+                    item.DeviceName ?? string.Empty,
+                    item.SerialNumber ?? string.Empty,
+                    item.VendorId ?? string.Empty,
+                    item.ProductId ?? string.Empty,
+                    item.UsbClass ?? string.Empty,
+                    DateBuilder.BuildFromDateTimeOffset(item.LastConnected) ?? string.Empty,
+                    DateBuilder.BuildFromDateTimeOffset(item.LastRemoved) ?? string.Empty
+                };
+
+                AddRowValuesToTable(table, rowValues);
+            }
+        }
+
         private string MapUsbState(bool plugged)
             => plugged ? "Connesso" : "Non connesso";
+
+        private static byte[] FinalizeDocument(Document document)
+        {
+            using var stream = new MemoryStream();
+            var pdfRenderer = new PdfDocumentRenderer(true) // makes fonts available
+            {
+                Document = document
+            };
+            pdfRenderer.RenderDocument();
+            pdfRenderer.PdfDocument.Save(stream);
+
+            return stream.ToArray();
+        }
+
+        #region Utils
+
+        private static void OverrideParagraphDefaultStyle(Paragraph paragraph, Unit size, Unit marginLeft,
+            Unit spaceBefore, Unit marginRight, Unit spaceAfter, string name = "Arial",
+            bool bold = false, ParagraphAlignment horizontalAlignment = ParagraphAlignment.Left, Underline underline = Underline.None)
+        {
+            paragraph.Format.Font.Size = size;
+
+            paragraph.Format.LeftIndent = marginLeft;
+            paragraph.Format.SpaceBefore = spaceBefore;
+            paragraph.Format.RightIndent = marginRight;
+            paragraph.Format.SpaceAfter = spaceAfter;
+
+            paragraph.Format.Font.Name = name;
+            paragraph.Format.Font.Bold = bold;
+            paragraph.Format.Font.Underline = underline;
+
+            paragraph.Format.Alignment = horizontalAlignment;
+        }
+
+        private static void AddSeparator(Section section)
+        {
+            section.AddParagraph().AddLineBreak();
+
+            var table = section.AddTable();
+
+            table.AddColumn(Unit.FromMillimeter(192d));
+
+            table.Borders.Left.Width = 0;
+            table.Borders.Top.Width = 1;
+            table.Borders.Right.Width = 0;
+            table.Borders.Bottom.Width = 0;
+            table.Borders.Color = Colors.Black;
+
+            var row = table.AddRow();
+        }
+
+        private void AddNewPage(Section section)
+        {
+            var pageBreak = section.AddParagraph();
+            pageBreak.Format.PageBreakBefore = true;
+        }
+
+        private void AddHeaderToTable(Table table, List<string> labels)
+        {
+            var columnsNumber = labels.Count;
+            var columnWidth = (float)192 / columnsNumber;
+
+            for (var i=0; i<columnsNumber; i++)
+            {
+                table.AddColumn(Unit.FromMillimeter(columnWidth)); 
+            }
+
+            var row = table.AddRow();
+
+            for (var i = 0; i < columnsNumber; i++)
+            {
+                var cell = row.Cells[i];
+
+                var paragraph = cell.AddParagraph(labels[i]);
+
+                OverrideParagraphDefaultStyle(paragraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,
+                    horizontalAlignment: ParagraphAlignment.Center);
+            }
+        }
+
+        private void AddRowValuesToTable(Table table, List<string> values)
+        {
+            var row = table.AddRow();
+
+            for (var i = 0; i < values.Count; i++)
+            {
+                var cell = row.Cells[i];
+
+                var safeText = AddWordBreaks(values[i]);
+
+                var paragraph = cell.AddParagraph(safeText);
+                paragraph.Format.Alignment = ParagraphAlignment.Left;
+                paragraph.Format.SpaceBefore = 0;
+                paragraph.Format.SpaceAfter = 0;
+                cell.Format.LeftIndent = 0; // Il contenuto della cella non ha margini a sx
+            }
+        }
+
+        private string AddWordBreaks(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+
+            const int maxWordLength = 10;
+            var result = new StringBuilder();
+
+            int count = 0;
+            foreach (char c in text)
+            {
+                result.Append(c);
+                count++;
+
+                // Ogni tot caratteri, inserisce un punto di interruzione
+                if (count >= maxWordLength && char.IsLetterOrDigit(c))
+                {
+                    result.Append("\u200B"); // Zero-width space (permette il word wrap)
+                    count = 0;
+                }
+            }
+
+            return result.ToString();
+        }
+
+        #endregion
     }
 }

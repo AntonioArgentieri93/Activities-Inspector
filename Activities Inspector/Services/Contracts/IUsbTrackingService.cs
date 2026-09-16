@@ -7,6 +7,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public interface IUsbTrackingService
     {
-        Task<Result<List<UsbEntry>>> BuildUsbEntries(bool isAdministrator);
+        Task<Result<List<UsbEntry>>> BuildUsbEntriesAsync(bool isAdministrator);
     }
 }

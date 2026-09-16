@@ -55,6 +55,7 @@
             </GroupBox.Header>
             <StackPanel Margin="5">
                 <TextBox Text="{Binding ObjectDescription, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
                          TextWrapping="Wrap"
                          Height="150"/>
             </StackPanel>
@@ -104,7 +105,7 @@
                              Content="{x:Static resx:Resources.ReportWindow_Other_Value}"
                              VerticalAlignment="Center"/>
 
-                <TextBox Text="{Binding Other}"
+                <TextBox Text="{Binding Other, UpdateSourceTrigger=PropertyChanged}"
                          Height="25"
                          VerticalContentAlignment="Center"
                          Margin="10,5,5,5"

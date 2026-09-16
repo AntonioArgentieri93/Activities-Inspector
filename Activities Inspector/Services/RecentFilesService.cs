@@ -13,12 +13,9 @@ namespace ProgettoInformaticaForense_Argentieri.Services
     {
         private const string FILE_EXTENSION = @"*.lnk";
 
-        public async Task<Result<List<RecentFolderEntry>>> GetRecentFiles()
+        public async Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync()
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<RecentFolderEntry>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            try
+            return await Task.Run(async () =>
             {
                 string userName = Environment.UserName;
 
@@ -30,14 +27,14 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                 var tmp = new List<RecentFolderEntry>();
 
-                await Task.Run(() =>
+                try
                 {
                     var files = new DirectoryInfo(path).GetFiles(FILE_EXTENSION);
                     var orderedFiles = files.OrderBy(fl => fl.LastWriteTime).ToList();
 
                     foreach (var file in orderedFiles)
                     {
-                        var lnkFile = LoadFile(file.FullName);
+                        var lnkFile = await LoadFileAsync(file.FullName);
 
                         if (lnkFile == null) continue;
 
@@ -46,25 +43,23 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                         var actionTime = file.LastWriteTime; //Action Time
                         var fileName = Path.GetFileNameWithoutExtension(file.Name); //Filename
                         var dataSource = file.FullName; //Data Source
-                        var fullPath = lnkFile.LocalPath + lnkFile.CommonPath; //Full Path
+                        var fullPath = lnkFile.LocalPath; //Full Path
 
                         tmp.Add(new RecentFolderEntry(actionTime, fileName, dataSource, fullPath));
                     }
 
-                    taskCompletionSource.SetResult(Result.Success(tmp));
-                });
-            }
-            catch (Exception ex)
-            {
-                taskCompletionSource.SetResult(Result.Failure<List<RecentFolderEntry>>(ex.Message));
-            }
-
-            return taskCompletionSource.Task.Result;
+                    return Result.Success(tmp);
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure<List<RecentFolderEntry>>(ex.Message);
+                }
+            });
         }
 
-        private LnkFile LoadFile(string lnkFile)
+        private async Task<LnkFile> LoadFileAsync(string lnkFile)
         {
-            var raw = File.ReadAllBytes(lnkFile);
+            var raw = await File.ReadAllBytesAsync(lnkFile);
 
             return raw[0] != 0x4c ? null : new LnkFile(raw, lnkFile);
         }

@@ -11,7 +11,6 @@ using RawCopy;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
@@ -104,7 +103,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     if (shellbagsResult.IsSuccess)
                     {
                         var shellBags = shellbagsResult.Value;
-                        var entries = GetShellBagsEntries(shellBags).Where(sb => sb.AbsolutePath != string.Empty).ToList();
+                        var entries = GetShellBagsEntries(shellBags)
+                            .Where(sb => sb.AbsolutePath != string.Empty)
+                            .ToList();
 
                         ShellBagsEntries = new ObservableCollection<ShellBagEntry>(entries);
 
@@ -117,7 +118,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori." +
+                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }

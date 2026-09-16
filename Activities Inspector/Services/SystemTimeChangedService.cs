@@ -16,69 +16,62 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         public async Task<Result<List<SystemTimeChangedEntry>>> GetSystemTimeChangedEntriesAsync()
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<SystemTimeChangedEntry>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var entries = new List<SystemTimeChangedEntry>();
-
-            try
+            return await Task.Run(() =>
             {
-                await Task.Run(() =>
+                try
                 {
-                    var logEntries = GetSystemTimeChangedEventLogEntries().ToList();
+                    var entries = new List<SystemTimeChangedEntry>();
+
+                    var logEntries = GetSystemTimeChangedEventLogEntries().ToList(); 
 
                     foreach (var entry in logEntries)
                     {
-                        if (entry.ReplacementStrings[1] == "LOCAL SERVICE" || 
+                        if (entry.ReplacementStrings.Length < 8) continue;
+
+                        if (entry.ReplacementStrings[1] == "LOCAL SERVICE" ||
                             entry.ReplacementStrings[1] == "SERVIZIO LOCALE") continue;
 
                         if (entry.ReplacementStrings[7] == @"C:\Windows\System32\svchost.exe") continue;
 
-                        DateTime timeGenerated;
-                        DateTime.TryParseExact(entry.TimeGenerated.ToString(), "dd/M/yyyy HH:mm:ss",
-                            DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out timeGenerated);
+                        if (!DateTime.TryParseExact(entry.TimeGenerated.ToString(), "dd/M/yyyy HH:mm:ss",
+                            DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime timeGenerated))
+                        {
+                            continue; 
+                        }
 
-                        DateTime oldTime = DateTime.Parse(entry.ReplacementStrings[4], null, 
-                            DateTimeStyles.RoundtripKind).ToLocalTime();
-                        DateTime newTime = DateTime.Parse(entry.ReplacementStrings[5], null, 
-                            DateTimeStyles.RoundtripKind).ToLocalTime();
+                        if (!DateTime.TryParse(entry.ReplacementStrings[4], null, DateTimeStyles.RoundtripKind, out DateTime oldTime) ||
+                            !DateTime.TryParse(entry.ReplacementStrings[5], null, DateTimeStyles.RoundtripKind, out DateTime newTime))
+                        {
+                            continue;
+                        }
 
-                        if (oldTime.ToString().Equals(newTime.ToString())) continue;
+                        oldTime = oldTime.ToLocalTime();
+                        newTime = newTime.ToLocalTime();
 
-                        entries.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1], DateBuilder.BuildFromDateTime(timeGenerated),
-                            DateBuilder.BuildFromString(oldTime.ToString()), DateBuilder.BuildFromString(newTime.ToString())));
+                        if (oldTime == newTime) continue; 
+
+                        entries.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1],
+                            DateBuilder.BuildFromDateTime(timeGenerated),
+                            DateBuilder.BuildFromString(oldTime.ToString()),
+                            DateBuilder.BuildFromString(newTime.ToString())));
                     }
-                });
 
-                entries.OrderBy(ee => ee.TimeGenerated);
+                    entries = entries.OrderBy(ee => ee.TimeGenerated).ToList();
 
-                taskCompletionSource.SetResult(Result.Success(entries));
-            }
-            catch (Exception ex)
-            {
-                taskCompletionSource.SetResult(Result.Failure<List<SystemTimeChangedEntry>>(ex.Message));
-            }
-
-            return taskCompletionSource.Task.Result;
+                    return Result.Success(entries);
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure<List<SystemTimeChangedEntry>>(ex.Message);
+                }
+            });
         }
 
         private IEnumerable<EventLogEntry> GetSystemTimeChangedEventLogEntries()
         {
-            var systemEvents = GetSystemEvents().ToList();
+            var systemEvents = Utility.Helpers.GetLogEntries(LOG_FILTER);
 
             return systemEvents.Where(ev => ev.EventID == 4616);
-        }
-
-        private IEnumerable<EventLogEntry> GetSystemEvents()
-        {
-            var myLog = new EventLog();
-            myLog.Log = LOG_FILTER;
-
-            foreach (var @event in myLog.Entries)
-            {
-                var logEntry = (EventLogEntry)@event;
-                yield return logEntry;
-            }
         }
     }
 }

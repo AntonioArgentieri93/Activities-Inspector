@@ -108,11 +108,12 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                         "le informazioni sugli orari di inserimento e rimozione del dispositivo non saranno disponibili.");
                 }
 
-                var result = await _usbTrackingService.BuildUsbEntries(isAdministrator); 
+                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator); 
 
                 if (result.IsSuccess)
                 {
-                    foreach(var usbEntry in result.Value)
+                    UsbEntries = new ObservableCollection<UsbEntry>(result.Value);
+                    foreach (var usbEntry in result.Value)
                     {
                         SyncUsbEntries(new ObservableCollection<UsbEntry>(result.Value), _temp);
                     }
@@ -229,35 +230,33 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         {
             var insertQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
             ManagementEventWatcher insertWatcher = new ManagementEventWatcher(insertQuery);
-            insertWatcher.EventArrived += new EventArrivedEventHandler(OnDeviceInserted);
+            insertWatcher.EventArrived += new EventArrivedEventHandler(OnDevicePlugged);
             insertWatcher.Start();
 
             var removeQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
             ManagementEventWatcher removeWatcher = new ManagementEventWatcher(removeQuery);
-            removeWatcher.EventArrived += new EventArrivedEventHandler(OnDeviceRemoved);
+            removeWatcher.EventArrived += new EventArrivedEventHandler(OnDeviceUnplagged);
             removeWatcher.Start();
         }
 
-        private void OnDeviceInserted(object sender, EventArrivedEventArgs e)
+        private void OnDevicePlugged(object sender, EventArrivedEventArgs e)
         {
             EvaluateState(e, true);
         }
 
-        private void OnDeviceRemoved(object sender, EventArrivedEventArgs e)
+        private void OnDeviceUnplagged(object sender, EventArrivedEventArgs e)
         {
             EvaluateState(e, false);
         }
 
         private void EvaluateState(EventArrivedEventArgs e, bool newIsPlugged)
         {
-            ManagementBaseObject instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+            var instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
             var deviceIdValue = instance.Properties["DeviceID"];
-
             if (deviceIdValue == null) return;
 
             var value = deviceIdValue.Value;
-
             if (value == null) return;
 
             var strValue = value.ToString();
@@ -286,6 +285,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     if (newIsPlugged)
                     {
                         device.LastConnected = now;
+                        device.LastRemoved = null;
                     }
                     else
                     {
@@ -299,14 +299,11 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     var plugged = true;
 
                     var serialNumber = splitResult[2];
-
                     var deviceName = (string)instance.Properties["Caption"].Value;
-
                     var usbClass = (string)instance.Properties["PNPClass"].Value;
-
                     var lastConnected = DateTimeOffset.Now.ToLocalTime();
-
-                    var newEntry = new UsbEntry(plugged, deviceName, serialNumber, vid, pid, usbClass, lastConnected, null);
+                    var newEntry = new UsbEntry(plugged, deviceName, serialNumber, 
+                        vid, pid, usbClass, lastConnected, null);
 
                     if(_temp.Any(ue => ue.SerialNumber == newEntry.SerialNumber && ue.VendorId == newEntry.VendorId &&
                         ue.ProductId == newEntry.ProductId) == false)

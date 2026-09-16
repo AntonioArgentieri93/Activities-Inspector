@@ -7,6 +7,7 @@
       xmlns:resx="clr-namespace:Activities_Inspector"
       xmlns:converters="clr-namespace:ProgettoInformaticaForense_Argentieri.Converters"
       xmlns:models="clr-namespace:ProgettoInformaticaForense_Argentieri.Models"
+      xmlns:usercontrols="clr-namespace:Activities_Inspector.UserControls"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="ShellBags"
@@ -17,6 +18,13 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" 
                                               Visible="Visible"
                                               NotVisible="Collapsed"/>
+        <converters:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverter"
+                                            Visible="Visible"
+                                            Collapsed="Collapsed"/>
+        <converters:CollectionToVisibilityConverter x:Key="CollectionToVisibilityConverterOpposite"
+                                            Visible="Collapsed"
+                                            Collapsed="Visible"/>
+        <converters:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" />
 
         <DataTemplate DataType="{x:Type models:ShellBagEntry}">
             <Grid Width="{Binding ActualWidth, ElementName=MainGrid}">
@@ -90,7 +98,11 @@
                  Width="Auto"         
                  ItemContainerStyle="{StaticResource Lststyle}"
                  BorderThickness="0"
+                 Visibility="{Binding Infos, Converter={StaticResource CollectionToVisibilityConverter}}"
                  Grid.Row="2"/>
+        <usercontrols:NoContentAvailable Visibility="{Binding ShellBagsEntries, Converter={StaticResource CollectionToVisibilityConverterOpposite}}"
+                                         Opacity="{Binding IsBusy, Converter={StaticResource BooleanToOpacityConverter}}"
+                                         Grid.Row="2"/>
 
         <fa:ImageAwesome Icon="Solid_Spinner"
                          Spin="True"

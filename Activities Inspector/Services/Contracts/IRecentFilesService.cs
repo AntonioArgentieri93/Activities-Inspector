@@ -7,6 +7,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public interface IRecentFilesService
     {
-        Task<Result<List<RecentFolderEntry>>> GetRecentFiles();
+        Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync();
     }
 }

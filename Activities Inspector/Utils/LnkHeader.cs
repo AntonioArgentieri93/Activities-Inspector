@@ -133,6 +133,11 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
             Buffer.BlockCopy(rawBytes, 4, sigBytes, 0, 16);
             Signature = new Guid(sigBytes);
 
+            //if (Signature != _goodSignature)
+            //{
+            //    throw new Exception("Invalid Signature!");
+            //}
+
             DataFlags = (DataFlag)BitConverter.ToInt32(rawBytes, 20);
             FileAttributes = (FileAttribute)BitConverter.ToInt32(rawBytes, 24);
 

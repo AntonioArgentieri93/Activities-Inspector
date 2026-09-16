@@ -8,7 +8,6 @@ using Registry.Abstractions;
 using ServiceStack;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
@@ -17,34 +16,32 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public class UsbTrackingService : IUsbTrackingService
     {
-        private string _hivePath = @"C:\Windows\System32\config\SYSTEM";
-        private string _regPath = @"SYSTEM";
+        private const string HIVE_PATH = @"C:\Windows\System32\config\SYSTEM";
+        private const string REG_PATH = @"SYSTEM";
 
-        public async Task<Result<List<UsbEntry>>> BuildUsbEntries(bool isAdministrator)
+        public async Task<Result<List<UsbEntry>>> BuildUsbEntriesAsync(bool isAdministrator)
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<UsbEntry>>> (
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            try
+            return await Task.Run(async () =>
             {
                 var tmp = new List<UsbEntry>();
 
-                await Task.Run(() =>
+                try
                 {
                     if (isAdministrator)
                     {
                         var files = new List<string>()
                         {
-                            _hivePath
+                            HIVE_PATH
                         };
 
                         var rawFiles = Helper.GetRawFiles(files);
 
-                        var bb = rawFiles.First().FileStream.ReadFully();
+                        var rawFile = rawFiles.First();
+                        var byteArray = await rawFile.FileStream.ReadFullyAsync();
 
-                        var reg = new RegistryHive(bb, rawFiles.First().InputFilename);
+                        var reg = new RegistryHive(byteArray, rawFile.InputFilename);
 
-                        reg.ParseHive();
+                        _ = reg.ParseHive();
 
                         var subKeys = reg.Root.SubKeys;
                         var controlSets = subKeys.Where(sk => sk.KeyName.StartsWith("ControlSet")).ToList();
@@ -101,7 +98,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                     }
                     else
                     {
-                        using(var baseKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(_regPath))
+                        using (var baseKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(REG_PATH))
                         {
                             var subKeyNames = baseKey.GetSubKeyNames();
                             var controlSets = subKeyNames.Where(sk => sk.StartsWith("ControlSet")).ToList();
@@ -109,9 +106,9 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                             foreach (var controlSet in controlSets)
                             {
                                 var keyPath = controlSet + @"\Enum\USB";
-                                using(var key = baseKey.OpenSubKey(keyPath))
+                                using (var key = baseKey.OpenSubKey(keyPath))
                                 {
-                                    if(key != null)
+                                    if (key != null)
                                     {
                                         foreach (var registryKey in key.GetSubKeyNames())
                                         {
@@ -124,15 +121,15 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                                             using (var skey = key.OpenSubKey(registryKey))
                                             {
-                                                if(skey != null)
+                                                if (skey != null)
                                                 {
-                                                    foreach(var sskeyName in skey.GetSubKeyNames())
+                                                    foreach (var sskeyName in skey.GetSubKeyNames())
                                                     {
                                                         var serialNumber = sskeyName;
 
                                                         using (var ssKey = skey.OpenSubKey(sskeyName))
                                                         {
-                                                            if(ssKey != null)
+                                                            if (ssKey != null)
                                                             {
                                                                 var registryValue = ssKey.GetValue("DeviceDesc").ToString();
                                                                 var deviceName = BuildDeviceName(registryValue);
@@ -161,15 +158,13 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                         }
                     }
 
-                    taskCompletionSource.SetResult(Result.Success(tmp));
-                });
-            }
-            catch (Exception ex)
-            {
-                taskCompletionSource.SetResult(Result.Failure<List<UsbEntry>>(ex.Message));
-            }
-
-            return taskCompletionSource.Task.Result;
+                    return Result.Success(tmp);
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure<List<UsbEntry>>(ex.Message);
+                }
+            });
         }
 
         private string BuildVendorId(string registryKey)
@@ -279,8 +274,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                         foreach (var device in collection)
                         {
                             var usbDevice = Convert.ToString(device);
-
-                            Console.WriteLine(device);
 
                             if (usbDevice.Contains(vid) && usbDevice.Contains(pid))
                                 return true;

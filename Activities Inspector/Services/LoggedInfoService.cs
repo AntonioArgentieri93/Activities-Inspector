@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using ProgettoInformaticaForense_Argentieri.Models;
+using ProgettoInformaticaForense_Argentieri.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,21 +15,24 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         public async Task<Result<List<SessionEntry>>> GetSessionsAsync()
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<SessionEntry>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var sessionsList = new List<SessionEntry>();
-
-            try
+            return await Task.Run(async () =>
             {
-                await Task.Run(() =>
+                try
                 {
-                    var logOnEntries = GetLogOnEntries().ToList();
-                    var logOffEntries = GetLogOffEntries().ToList();
+                    var sessionsList = new List<SessionEntry>();
+
+                    var systemEvents = Helpers.GetLogEntries(LOG_FILTER).ToList();
+
+                    var logOnTask = GetLogOnEntriesAsync(systemEvents);
+                    var logOffTask = GetLogOffEntriesAsync(systemEvents);
+                    var logOnEntries = (await logOnTask).ToList();
+                    var logOffEntries = (await logOffTask).ToList();
 
                     foreach (var logOffEntry in logOffEntries)
                     {
-                        var selectedLogOnEntry = logOnEntries.Where(ev => ev.Index == logOffEntry.Index).FirstOrDefault();
+                        var selectedLogOnEntry = logOnEntries
+                            .Where(ev => ev.Index == logOffEntry.Index)
+                            .FirstOrDefault();
 
                         if (selectedLogOnEntry != null)
                         {
@@ -61,70 +65,64 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                             accessType: logOnEntry.AccessType.ToString()));
                     }
 
-                    sessionsList.OrderBy(ev => ev.LogOnTime);
-                });
+                    sessionsList = sessionsList.OrderBy(ev => ev.LogOnTime).ToList();
 
-                taskCompletionSource.SetResult(Result.Success(sessionsList));
-            }
-            catch (Exception ex)
+                    return Result.Success(sessionsList);
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure<List<SessionEntry>>(ex.Message);
+                }
+            });
+        }
+
+        private async Task<IEnumerable<LogOnEntry>> GetLogOnEntriesAsync(List<EventLogEntry> systemEvents)
+        {
+            return await Task.Run(() =>
             {
-                taskCompletionSource.SetResult(Result.Failure<List<SessionEntry>>(ex.Message));
-            }
+                var logOnEntries = systemEvents.Where(ev => ev.EventID == 4624).ToList();
 
-            return taskCompletionSource.Task.Result;
+                //Filtro evento
+                var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
+
+                //Filtro nome utente
+                var filteredByAccountName = filteredByAccessType.Where(ev => ev.ReplacementStrings[5].StartsWith("UMFD-") == false &&
+                    ev.ReplacementStrings[5].StartsWith("DWM-") == false).ToList();
+
+                //Filtro duplicati
+                var entries = BuildLogOnEntries(filteredByAccountName).ToList();
+                var distinctEntries = RemoveDuplicates(entries).ToList();
+
+                return distinctEntries;
+            });
         }
 
-        private IEnumerable<LogOnEntry> GetLogOnEntries()
+        private async Task<IEnumerable<LogoffEntry>> GetLogOffEntriesAsync(List<EventLogEntry> systemEvents)
         {
-            var systemEvents = GetSystemEvents().ToList();
-
-            var logOnEntries = systemEvents.Where(ev => ev.EventID == 4624).ToList();
-
-            //Filtro evento
-            var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
-
-            //Filtro nome utente
-            var filteredByAccountName = filteredByAccessType.Where(ev => ev.ReplacementStrings[5].StartsWith("UMFD-") == false &&
-                ev.ReplacementStrings[5].StartsWith("DWM-") == false).ToList();
-
-            //Filtro duplicati
-            var entries = BuildLogOnEntries(filteredByAccountName).ToList();
-            var distinctEntries = RemoveDuplicates(entries).ToList();
-
-            foreach (var entry in distinctEntries)
-                yield return entry;
-        }
-
-        private IEnumerable<LogoffEntry> GetLogOffEntries()
-        {
-            var systemEvents = GetSystemEvents().ToList();
-
-            var logOffEntries = systemEvents.Where(ev => ev.EventID == 4647).ToList();
-
-            foreach (var entry in logOffEntries)
-                yield return new LogoffEntry(entry.ReplacementStrings[3], entry.TimeGenerated);
-        }
-
-        private IEnumerable<EventLogEntry> GetSystemEvents()
-        {
-            var myLog = new EventLog();
-            myLog.Log = LOG_FILTER;
-
-            foreach (var @event in myLog.Entries)
+            return await Task.Run(() =>
             {
-                var logEntry = (EventLogEntry)@event;
-                yield return logEntry;
-            }
+                var entries = new List<LogoffEntry>();
+
+                var logOffEntries = systemEvents.Where(ev => ev.EventID == 4647).ToList();
+
+                foreach(var entry in logOffEntries)
+                {
+                    entries.Add(new LogoffEntry(entry.ReplacementStrings[3], entry.TimeGenerated));
+                }
+
+                return entries; 
+            });
         }
 
         private IEnumerable<EventLogEntry> FilterByAccessType(IEnumerable<EventLogEntry> events)
         {
-            var noCat0 = events.Where(ev => ev.ReplacementStrings[8] != "0");
-            var noCat3 = noCat0.Where(ev => ev.ReplacementStrings[8] != "3");
-            var noCat5 = noCat3.Where(ev => ev.ReplacementStrings[8] != "5");
-            var noCat7 = noCat5.Where(ev => ev.ReplacementStrings[8] != "7");
+            var filteredEvents = events.Where(ev => 
+                ev.ReplacementStrings[8] != "0" &&
+                ev.ReplacementStrings[8] != "3" &&
+                ev.ReplacementStrings[8] != "5" &&
+                ev.ReplacementStrings[8] != "7");
 
-            foreach (var item in noCat7)
+            foreach (var item in filteredEvents)
                 yield return item;
         }
 

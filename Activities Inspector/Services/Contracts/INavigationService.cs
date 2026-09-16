@@ -4,7 +4,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public interface INavigationService
     {
-        void Navigate(ViewerMode viewerMode);
+        void Navigate(LeftNavbarItem item);
         void ShowNavigator();
         void ShowSettingsWindow();
     }

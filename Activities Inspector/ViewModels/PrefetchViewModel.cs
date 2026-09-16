@@ -111,7 +111,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori." +
+                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 } 
             }

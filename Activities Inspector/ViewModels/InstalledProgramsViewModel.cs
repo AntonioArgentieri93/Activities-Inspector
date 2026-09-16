@@ -91,7 +91,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntries();
+                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync();
 
                 if (getInstallEntriesResult.IsSuccess)
                 {

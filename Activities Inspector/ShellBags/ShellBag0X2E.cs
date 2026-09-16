@@ -14,6 +14,7 @@ namespace RecentFolder.ShellBags
 
             ExtensionBlocks = new List<IExtensionBlock>();
 
+
             var index = 0;
 
             if (rawBytes[3] == 0x80 || rawBytes.Length == 0x16)
@@ -51,45 +52,43 @@ namespace RecentFolder.ShellBags
 
                 var testSig2 = BitConverter.ToInt32(rawBytes, 5);
 
-                //if (testSig2 >= 0x15032601)
-                //{
-                //    FriendlyName = "Control panel category";
-
-                //    index = 0x12;
-
-                //    var val1 = Encoding.Unicode.GetString(rawBytes, index, 0x48 * 2).Trim('\0');
-
-                //    index = 0x116;
-
-                //    var val2 = Encoding.Unicode.GetString(rawBytes, index, rawBytes.Length - 0x22 - index).Trim('\0');
-
-                //    var guidb = new byte[16];
-                //    index = rawBytes.Length - 0x22; //beginning of guids
-
-                //    Buffer.BlockCopy(rawBytes, index, guidb, 0, 16);
-
-                //    var g = new Guid(guidb);
-                //    var gf = GuidMapping.GuidMapping.GetDescriptionFromGuid(g.ToString());
-
-                //    index += 16;
-
-                //    guidb = new byte[16];
-                //    Buffer.BlockCopy(rawBytes, index, guidb, 0, 16);
-
-                //    var g2 = new Guid(guidb);
-                //    var g2f = GuidMapping.GuidMapping.GetDescriptionFromGuid(g2.ToString());
-
-                //    Value = val2;
-
-                //    Category = g2f;
-
-                //    return;
-                //}
-
                 if (testSig2 >= 0x15032601)
                 {
+                    FriendlyName = "Control panel category";
+
+                    index = 0x12;
+
+                    var val1 = Encoding.Unicode.GetString(rawBytes, index, 0x48 * 2).Trim('\0');
+
+                    index = 0x116;
+
+                    var val2 = Encoding.Unicode.GetString(rawBytes, index, rawBytes.Length - 0x22 - index).Trim('\0');
+
+                    var guidb = new byte[16];
+                    index = rawBytes.Length - 0x22; //beginning of guids
+
+                    Buffer.BlockCopy(rawBytes, index, guidb, 0, 16);
+
+                    var g = new Guid(guidb);
+                    var gf = GuidMapping.GuidMapping.GetDescriptionFromGuid(g.ToString());
+
+                    index += 16;
+
+                    guidb = new byte[16];
+                    Buffer.BlockCopy(rawBytes, index, guidb, 0, 16);
+
+                    var g2 = new Guid(guidb);
+                    var g2f = GuidMapping.GuidMapping.GetDescriptionFromGuid(g2.ToString());
+
+                    Value = val2;
+
+                    DevicePath = val1;
+
+                    Category = g2f;
+
                     return;
                 }
+
 
                 ProcessPropertyViewDefault(rawBytes);
             }

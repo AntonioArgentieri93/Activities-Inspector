@@ -13,17 +13,26 @@
 
     <Window.Resources>
         <converters:ViewerModeNameConverter x:Key="ViewerModeNameConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"
+                                              Visible="Visible"
+                                              NotVisible="Collapsed"/>
 
-        <DataTemplate DataType="{x:Type models:ViewerMode}">
-            <TextBlock Text="{Binding Converter={StaticResource ViewerModeNameConverter}}"
-                       Style="{StaticResource WizardItemStyle}"/>
+        <DataTemplate DataType="{x:Type models:LeftNavbarItem}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Converter={StaticResource ViewerModeNameConverter}}"
+                           Style="{StaticResource WizardItemStyle}"/>
+                <Image Source="../Assets/shield.png" 
+                       Visibility="{Binding RequiresAdminPrivileges, Converter={StaticResource BoolToVisibilityConverter}}"
+                       Width="20" 
+                       Height="20" />
+            </StackPanel>
         </DataTemplate>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.18*"
-                              MinWidth="200"/>
+                              MinWidth="240"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
@@ -31,11 +40,11 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ListView ItemsSource="{Binding ViewerModes}"
-                  SelectedItem="{Binding SelectedViewerMode}"
-                  Background="#FF00365C"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  Margin="0,49.5,5,0">
+            <ListView ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem}"
+                      Background="#FF00365C"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      Margin="0,49.5,5,0">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="Foreground" Value="White" />

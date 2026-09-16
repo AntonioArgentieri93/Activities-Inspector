@@ -17,17 +17,14 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         public async Task<Result<List<PrefetchInfoEntry>>> GetPrefetchFileInfosAsync()
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<PrefetchInfoEntry>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var prefetchFileNames = GetPrefetchFilesNames().ToList();
-
-            var tmp = new List<PrefetchInfoEntry>();
-
-            try
+            return await Task.Run(async () =>
             {
-                await Task.Run(() =>
+                try
                 {
+                    var prefetchFileNames = (await GetPrefetchFilesNamesAsync()).ToList();
+
+                    var tmp = new List<PrefetchInfoEntry>();
+
                     foreach (var fileName in prefetchFileNames)
                     {
                         var pf = parser.Open(fileName);
@@ -42,36 +39,28 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                         var extension = fileInfo.Extension; //File extension
 
-                        foreach (var lastRunTime in lastRunTimes) //Action Time
-                        {
-                            tmp.Add(new PrefetchInfoEntry(executableFilename, sourceFileName, 
-                                lastRunTime.LocalDateTime, extension));
-                        }
+                        var lastRunTime = lastRunTimes.Last(); //Action Time
+                        tmp.Add(new PrefetchInfoEntry(executableFilename, sourceFileName,
+                            lastRunTime.LocalDateTime, extension));
                     }
 
-                    taskCompletionSource.SetResult(Result.Success(tmp));
-                });
-            }
-            catch (Exception ex)
-            {
-                taskCompletionSource.SetResult(Result.Failure<List<PrefetchInfoEntry>>(ex.Message));
-            }
-
-            return taskCompletionSource.Task.Result;
+                    return Result.Success(tmp);
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure<List<PrefetchInfoEntry>>(ex.Message);
+                }
+            });
         }
 
-        private IEnumerable<string> GetPrefetchFilesNames()
+        private async Task<IEnumerable<string>> GetPrefetchFilesNamesAsync()
         {
-            var prefetchFileNames = Directory.GetFiles(FILE_PATH).ToList();
-
-            foreach (var fileName in prefetchFileNames)
+            return await Task.Run(() =>
             {
-                var fileInfo = new FileInfo(fileName);
+                var prefetchFileNames = Directory.GetFiles(FILE_PATH, "*.pf").ToList();
 
-                if (fileInfo.Extension != EXTENSION) continue;
-
-                yield return fileName;
-            }
+                return prefetchFileNames;
+            });
         }
     }
 }

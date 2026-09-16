@@ -13,7 +13,9 @@ namespace ProgettoInformaticaForense_Argentieri.Utils
         [Description("Windows 8.0, Windows 8.1, or Windows Server 2012(R2)")]
         Win8xOrWin2012x = 26,
         [Description("Windows 10")]
-        Win10 = 30
+        Win10 = 30,
+        [Description("Windows 11")]
+        Win11 = 31
     }
 
     public interface IPrefetch

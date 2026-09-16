@@ -11,22 +11,22 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
     {
         #region Proprietà
 
-        private List<ViewerMode> _viewerModes;
+        private List<LeftNavbarItem> _items;
 
-        public List<ViewerMode> ViewerModes
+        public List<LeftNavbarItem> Items
         {
-            get => _viewerModes;
-            set => Set(nameof(ViewerModes), ref _viewerModes, value);
+            get => _items;
+            set => Set(nameof(Items), ref _items, value);
         }
 
-        private ViewerMode _selectedViewerMode;
+        private LeftNavbarItem _selectedItem;
 
-        public ViewerMode SelectedViewerMode
+        public LeftNavbarItem SelectedItem
         {
-            get => _selectedViewerMode;
+            get => _selectedItem;
             set
             {
-                var changed = Set(nameof(SelectedViewerMode), ref _selectedViewerMode, value);
+                var changed = Set(nameof(SelectedItem), ref _selectedItem, value);
 
                 if (changed)
                 {
@@ -42,7 +42,18 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         public MainWindowViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            ViewerModes = Enum.GetValues(typeof(ViewerMode)).Cast<ViewerMode>().Cast<ViewerMode>().ToList();
+            var viewerModes = Enum.GetValues(typeof(ViewerMode)).Cast<ViewerMode>().ToList();
+            
+            Items = new List<LeftNavbarItem>();
+            foreach (var mode in viewerModes)
+            {
+                var requiresAdminPrivileges = mode == ViewerMode.Prefetch ||
+                    mode == ViewerMode.Sessions || 
+                    mode == ViewerMode.ShellBags ||
+                    mode == ViewerMode.Usb;
+
+                Items.Add(new LeftNavbarItem(mode, requiresAdminPrivileges));
+            }
         }
     }
 }

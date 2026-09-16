@@ -10,20 +10,20 @@ namespace ProgettoInformaticaForense_Argentieri.Services
     {
         private ViewerMode _lastViewerMode = ViewerMode.TimeIntervals;
 
-        public void Navigate(ViewerMode viewerMode)
+        public void Navigate(LeftNavbarItem item)
         {
-            if (_lastViewerMode == viewerMode) return;
+            if (_lastViewerMode == item.ViewerMode) return;
 
             var window = (Application.Current.MainWindow);
             var frame = ((MainWindow)window).Frame;
 
-            var rawPageUri = _uri[viewerMode];
+            var rawPageUri = _uri[item.ViewerMode];
 
             var pageUri = new Uri(rawPageUri, UriKind.Relative);
 
             frame.Navigate(pageUri);
 
-            _lastViewerMode = viewerMode;
+            _lastViewerMode = item.ViewerMode;
         }
 
         public void ShowNavigator()

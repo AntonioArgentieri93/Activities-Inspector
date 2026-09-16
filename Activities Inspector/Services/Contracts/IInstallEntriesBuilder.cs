@@ -7,6 +7,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public interface IInstallEntriesBuilder
     {
-        Task<Result<List<InstallEntry>>> GetInstallEntries();
+        Task<Result<List<InstallEntry>>> GetInstallEntriesAsync();
     }
 }
