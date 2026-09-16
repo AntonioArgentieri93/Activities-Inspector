@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -85,7 +86,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadShellBagsEntriesCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadShellBagsEntriesCommandAsync()
         {
@@ -98,7 +99,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    var shellbagsResult = await _shellBagsParserService.ParseShellBags();
+                    using var cts = new CancellationTokenSource();
+                    var shellbagsResult = await _shellBagsParserService.ParseShellBagsAsync(cts.Token);
 
                     if (shellbagsResult.IsSuccess)
                     {
@@ -122,22 +124,23 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false & ShellBagsEntries != null;
+            => !IsBusy && ShellBagsEntries != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(ShellBagsEntries, EntryType.ShellBags);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(ShellBagsEntries, EntryType.ShellBags, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -148,9 +151,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

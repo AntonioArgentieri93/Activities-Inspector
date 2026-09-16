@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json;
+using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Utils;
 using ProgettoInformaticaForense_Argentieri.Utils.JSON;
@@ -29,10 +30,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             this.OSRegistryFile = OSRegistryFile;
         }
 
-        /// <summary>
-        /// Overrides (or Adds) existing GUID entries into <see cref="KnownGuids.dict"/>
-        /// </summary>
-        /// <param name="guidsFile">A JSON file that contains <see cref="GUIDPair"/></param>
         private void UpdateKnownGUIDS(string guidsFile)
         {
             if (guidsFile.Equals(string.Empty))
@@ -40,7 +37,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
             IList<GUIDPair> guidPairs = new List<GUIDPair>();
 
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(Constants.ASSEMBLY_NAMESPACE + guidsFile);
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AppConstants.Assembly.Namespace + guidsFile);
 
             if (stream == null) return;
 
@@ -62,7 +59,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
             IList<DecodedScriptPair> scriptPairs = new List<DecodedScriptPair>();
 
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(Constants.ASSEMBLY_NAMESPACE + file);
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AppConstants.Assembly.Namespace + file);
 
             if (stream == null) return;
 
@@ -89,7 +86,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             {
                 IList<RegistryLocations> registrylocations = new List<RegistryLocations>();
 
-                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(Constants.ASSEMBLY_NAMESPACE + OSRegistryFile);
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AppConstants.Assembly.Namespace + OSRegistryFile);
 
                 using (var reader = new StreamReader(stream))
                 {
@@ -115,9 +112,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         public List<string> GetUsernameLocations()
         {
-            //todo retrieve from OSRegistryFile instead of hardcoded path
             List<string> list = new List<string>();
-            // found username retrievalable key-value @ https://stackoverflow.com/a/53585223
             list.Add(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders");
             return list;
         }
@@ -129,16 +124,11 @@ namespace ProgettoInformaticaForense_Argentieri.Services
         }
 
 
-        /// <summary>
-        /// Retrieves the default <see cref="RegistryLocations"/> configuration from the embedded resource.
-        /// </summary>
-        /// <returns>A list of Registry Locations.</returns>
         public static IList<RegistryLocations> GetDefaultRegistryLocations()
         {
             IList<RegistryLocations> retval = new List<RegistryLocations>();
             try
             {
-                //internal resource retrieval, see: https://stackoverflow.com/a/3314213
                 Assembly assembly = Assembly.GetExecutingAssembly();
                 string internalResourcePath = assembly.GetManifestResourceNames().Single(str => str.EndsWith(DefaultOsConfig));
                 using (Stream fileStream = assembly.GetManifestResourceStream(internalResourcePath))
@@ -155,12 +145,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             return retval;
         }
 
-        /// <summary>
-        /// Checks if a JSON file can be deserialized for a valid known Type
-        /// </summary>
-        /// <typeparam name="T">The known API Type to deserialize from. See <see cref="IO.Networking.JSON"/></typeparam>
-        /// <param name="location">a fully qualified path to a json file</param>
-        /// <returns>true, if the file could successfully be deserialized. False otherwise.</returns>
         private static bool IsValidConfigFile<T>(string location)
         {
             if (File.Exists(location))
@@ -169,7 +153,6 @@ namespace ProgettoInformaticaForense_Argentieri.Services
                 try
                 {
                     JsonConvert.DeserializeObject<T>(json);
-                    //if we can deserialize, we can use it.
                     return true;
                 }
                 catch (JsonSerializationException)

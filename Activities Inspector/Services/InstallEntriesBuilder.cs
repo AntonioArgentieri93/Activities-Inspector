@@ -1,109 +1,111 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.Win32;
+using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using ProgettoInformaticaForense_Argentieri.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public class InstallEntriesBuilder : IInstallEntriesBuilder
     {
-        private const string WOW6432_KEY = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-        private const string MICROSOFT_KEY = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-        private const string LOG_FILTER = "Application";
-
-        public async Task<Result<List<InstallEntry>>> GetInstallEntriesAsync()
+        public async Task<Result<List<InstallEntry>>> GetInstallEntriesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var wow6432Locals = await GetFromLocalMachineAsync(WOW6432_KEY);
-                var microsoftLocals = await GetFromLocalMachineAsync(MICROSOFT_KEY);
-                var users = await GetFromCurrentUserAsync(MICROSOFT_KEY);
-                var events = await GetFromEventsAsync();
+                var wow6432Locals = await GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
+                var microsoftLocals = await GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                var users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                var events = await GetFromEventsAsync(cancellationToken);
 
                 return Result.Success(wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList());
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                return Result.Failure<List<InstallEntry>>(ex.Message);
+                return Result.Failure<List<InstallEntry>>(ex.ToString());
             }
         }
 
-        private async Task<IEnumerable<InstallEntry>> GetFromLocalMachineAsync(string key)
+        private Task<List<InstallEntry>> GetFromLocalMachineAsync(string keyPath, CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            return Task.Run(() =>
             {
                 var entries = new List<InstallEntry>();
 
-                using (var rk = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(key))
+                using var rk = Registry.LocalMachine.OpenSubKey(keyPath);
+                if (rk == null) return entries;
+
+                foreach (var skName in rk.GetSubKeyNames())
                 {
-                    foreach (var skName in rk.GetSubKeyNames())
-                    {
-                        using (var sk = rk.OpenSubKey(skName))
-                        {
-                            entries.Add(BuildInstallEntry(sk));
-                        }
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var sk = rk.OpenSubKey(skName);
+                    if (sk != null)
+                        entries.Add(BuildInstallEntry(sk));
                 }
 
                 return entries;
-            });
+            }, cancellationToken);
         }
 
-        private async Task<IEnumerable<InstallEntry>> GetFromCurrentUserAsync(string key)
+        private Task<List<InstallEntry>> GetFromCurrentUserAsync(string keyPath, CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            return Task.Run(() =>
             {
                 var entries = new List<InstallEntry>();
 
-                using (var rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key))
+                using var rk = Registry.CurrentUser.OpenSubKey(keyPath);
+                if (rk == null) return entries;
+
+                foreach (var skName in rk.GetSubKeyNames())
                 {
-                    foreach(var skName in rk.GetSubKeyNames())
-                    {
-                        using (var sk = rk.OpenSubKey(skName))
-                        {
-                            entries.Add(BuildInstallEntry(sk));
-                        }
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var sk = rk.OpenSubKey(skName);
+                    if (sk != null)
+                        entries.Add(BuildInstallEntry(sk));
                 }
 
                 return entries;
-            });
+            }, cancellationToken);
         }
 
-        private async static Task<IEnumerable<InstallEntry>> GetFromEventsAsync()
+        private Task<List<InstallEntry>> GetFromEventsAsync(CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            return Task.Run(() =>
             {
-                var events = Utility.Helpers.GetLogEntries(LOG_FILTER);
-
+                var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
                 var installedPrograms = events.Where(ev => ev.EventID == 11707).ToList();
 
                 var entries = new List<InstallEntry>();
 
                 for (int i = 0; i < installedPrograms.Count; i++)
                 {
-                    var substrings = installedPrograms[i].ReplacementStrings[0].Split(':');
-                    var substrings2 = substrings[1].Split(new char[] { '-', '-' });
-                    var fileName = substrings2[0].Trim();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    var entry = new InstallEntry(fileName, string.Empty, string.Empty, 
+                    var substrings = installedPrograms[i].ReplacementStrings[0].Split(':');
+                    var substrings2 = substrings[1].Split(new[] { '-', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                    var fileName = substrings2.Length > 0 ? substrings2[0].Trim() : string.Empty;
+
+                    var entry = new InstallEntry(fileName, string.Empty, string.Empty,
                         installedPrograms[i].TimeGenerated.ToLocalTime());
 
-                    if (entries.Any(ie => ie.FileName == entry.FileName && 
+                    if (entries.Any(ie => ie.FileName == entry.FileName &&
                         ie.InstallDate == entry.InstallDate)) continue;
+
                     entries.Add(entry);
                 }
 
                 return entries;
-            });
+            }, cancellationToken);
         }
 
-        private InstallEntry BuildInstallEntry(RegistryKey registryKey)
-            => new InstallEntry(registryKey.GetValue("DisplayName")?.ToString(), registryKey.ToString(),
+        private static InstallEntry BuildInstallEntry(RegistryKey registryKey)
+            => new InstallEntry(
+                registryKey.GetValue("DisplayName")?.ToString(),
+                registryKey.ToString(),
                 registryKey.GetValue("InstallLocation")?.ToString(),
                 DateBuilder.BuildDateTimeFromString(registryKey.GetValue("InstallDate")?.ToString()));
     }

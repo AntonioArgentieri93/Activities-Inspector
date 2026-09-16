@@ -1,4 +1,4 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
 using System.Collections.Generic;
 
 namespace ProgettoInformaticaForense_Argentieri.Models
@@ -21,9 +21,9 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public virtual IDictionary<string, string> GetAllProperties()
         {
             SortedDictionary<string, string> properties = new SortedDictionary<string, string>();
-            AddPairIfNotNull(properties, Constants.SIZE, Size.ToString("X2"));
-            AddPairIfNotNull(properties, Constants.EXTENSION_VERSION, ExtensionVersion.ToString());
-            AddPairIfNotNull(properties, Constants.SIGNATURE, Signature.ToString("X4"));
+            AddPairIfNotNull(properties, AppConstants.ShellItems.Size, Size.ToString("X2"));
+            AddPairIfNotNull(properties, AppConstants.ShellItems.ExtensionVersion, ExtensionVersion.ToString());
+            AddPairIfNotNull(properties, AppConstants.ShellItems.Signature, Signature.ToString("X4"));
             return properties;
         }
     }

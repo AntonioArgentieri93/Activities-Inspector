@@ -10,6 +10,7 @@ using RawCopy;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -83,7 +84,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadPrefetchInfoEntriesCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadPrefetchInfoEntriesCommandAsync()
         {
@@ -96,7 +97,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    var getPrefetchFileInfosResult = await _prefetchFileInfoBuilderService.GetPrefetchFileInfosAsync();
+                    using var cts = new CancellationTokenSource();
+                    var getPrefetchFileInfosResult = await _prefetchFileInfoBuilderService.GetPrefetchFileInfosAsync(cts.Token);
 
                     if (getPrefetchFileInfosResult.IsSuccess)
                     {
@@ -113,24 +115,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 {
                     _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
-                } 
+                }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false & PrefetchEntries != null;
+            => !IsBusy && PrefetchEntries != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(PrefetchEntries, EntryType.Prefetch);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(PrefetchEntries, EntryType.Prefetch, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -141,9 +144,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

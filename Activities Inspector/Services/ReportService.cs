@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Document = MigraDocCore.DocumentObjectModel.Document;
 using Section = MigraDocCore.DocumentObjectModel.Section;
@@ -28,35 +29,34 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             _netService = netService;
         }
 
-        public async Task<Result> CreatePdfFileAsync(ReportContent content)
+        public async Task<Result> CreatePdfFileAsync(ReportContent content, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
-                {
-                    var document = new Document();
-                    var section = document.AddSection();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    SetPageProperties(document, section);
+                var document = new Document();
+                var section = document.AddSection();
 
-                    InsertMainHeader(section);
-                    AddCover(content.ProvisioningType, content.Other, content.InquirerSurname, content.InquirerName,
-                        content.InquirerQualification, content.ObjectDescription, section);
-                    AddContents(content.UsageInfos, content.InstallEntries, content.RecentFolderEntries, content.PrefetchInfoEntries, content.ShellBagEntries,
-                        content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, section);
+                SetPageProperties(document, section);
 
-                    var doc = FinalizeDocument(document);
+                InsertMainHeader(section);
+                AddCover(content.ProvisioningType, content.Other, content.InquirerSurname, content.InquirerName,
+                    content.InquirerQualification, content.ObjectDescription, section);
+                AddContents(content.UsageInfos, content.InstallEntries, content.RecentFolderEntries, content.PrefetchInfoEntries, content.ShellBagEntries,
+                    content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, section);
 
-                    var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now.ToString("dd-M-yyyy")}.pdf");
-                    File.WriteAllBytes(filePath, doc);
+                var doc = FinalizeDocument(document);
 
-                    return Result.Success();
-                }
-                catch (Exception ex)
-                {
-                    return Result.Failure(ex.Message);
-                }
-            });
+                var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now:dd-M-yyyy}.pdf");
+                await File.WriteAllBytesAsync(filePath, doc, cancellationToken);
+
+                return Result.Success();
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return Result.Failure(ex.ToString());
+            }
         }
 
         private static void SetPageProperties(Document document, Section section)

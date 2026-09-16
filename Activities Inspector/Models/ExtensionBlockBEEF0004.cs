@@ -1,4 +1,4 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
 using System;
 using System.Collections.Generic;
 
@@ -70,10 +70,10 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public override IDictionary<string, string> GetAllProperties()
         {
             var ret = base.GetAllProperties();
-            AddPairIfNotNull(ret, Constants.CREATION_DATE, CreationDate);
-            AddPairIfNotNull(ret, Constants.ACCESSED_DATE, AccessedDate);
-            AddPairIfNotNull(ret, Constants.LONG_NAME, LongName);
-            AddPairIfNotNull(ret, Constants.LOCALIZED_NAME, LocalizedName);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.CreationDate, CreationDate);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.AccessedDate, AccessedDate);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.LongName, LongName);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.LocalizedName, LocalizedName);
             return ret;
         }
     }

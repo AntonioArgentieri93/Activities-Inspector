@@ -1,61 +1,55 @@
 ﻿using CSharpFunctionalExtensions;
+using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public class ShellBagsParserService : IShellBagsParserService
     {
-        private readonly FileLocations locations;
+        private readonly FileLocations _locations;
 
         public ShellBagsParserService()
         {
-            locations = InitPaths();
+            _locations = InitPaths();
         }
 
-        public async Task<Result<List<IShellItem>>> ParseShellBags()
+        public async Task<Result<List<IShellItem>>> ParseShellBagsAsync(CancellationToken cancellationToken = default)
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<IShellItem>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
             try
             {
                 var retList = new List<IShellItem>();
 
                 await Task.Run(() =>
                 {
-                    var parser = new ConfigParser(locations.GUIDFileLocation, locations.OSFileLocation,
-                        locations.ScriptFileLocation);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var parser = new ConfigParser(_locations.GUIDFileLocation, _locations.OSFileLocation,
+                        _locations.ScriptFileLocation);
 
                     var onlineReader = new OnlineRegistryReader(parser, false);
                     retList.AddRange(ShellBagParser.GetShellItems(onlineReader));
+                }, cancellationToken);
 
-                    taskCompletionSource.SetResult(Result.Success(retList));
-                });
+                return Result.Success(retList);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                taskCompletionSource.SetResult(Result.Failure<List<IShellItem>>(ex.Message));
+                return Result.Failure<List<IShellItem>>(ex.ToString());
             }
-
-            return taskCompletionSource.Task.Result;
         }
 
         private FileLocations InitPaths()
         {
             string workingRoot = Directory.GetCurrentDirectory();
 
-            const string guids = Constants.GUID_FILE_PATH;
-            const string os = Constants.OS_FILE_PATH;
-            const string scripts = Constants.SCRIPTS_FILE_PATH;
-
-            var guidsPath = Path.Combine(workingRoot, guids);
-            var osPath = Path.Combine(workingRoot, os);
-            var scriptsPath = Path.Combine(workingRoot, scripts);
+            var guidsPath = Path.Combine(workingRoot, AppConstants.Assets.GuidsJson);
+            var osPath = Path.Combine(workingRoot, AppConstants.Assets.OsJson);
+            var scriptsPath = Path.Combine(workingRoot, AppConstants.Assets.ScriptsJson);
 
             return new FileLocations(osPath, guidsPath, scriptsPath);
         }

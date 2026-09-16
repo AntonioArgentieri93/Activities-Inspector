@@ -1,6 +1,6 @@
 ﻿using NLua;
+using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Exceptions;
-using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,9 +23,9 @@ namespace ProgettoInformaticaForense_Argentieri.Models
                 state = new Lua();
                 state.LoadCLRPackage();
                 state.DoString(@" import ('System', 'SeeShells', 'SeeShells.ShellParser.ShellItems', 'SeeShells.ShellParser') ");
-                state[Constants.PROPERTIES] = properties;
-                state[Constants.SHELL_ITEM] = this;
-                state[Constants.KNOWN_GUIDS] = KnownGuids.dict;
+                state[AppConstants.ShellItems.Properties] = properties;
+                state[AppConstants.ShellItems.ShellItem] = this;
+                state[AppConstants.ShellItems.KnownGuids] = KnownGuids.dict;
                 this.luascript = luascript;
             }
             catch (BadImageFormatException)
@@ -39,7 +39,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         {
             get
             {
-                return GetString(Constants.TYPENAME);
+                return GetString(AppConstants.ShellItems.TypeName);
             }
         }
 
@@ -48,7 +48,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         {
             get
             {
-                return GetString(Constants.NAME);
+                return GetString(AppConstants.ShellItems.Name);
             }
         }
 
@@ -56,7 +56,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         {
             get
             {
-                return GetDate(Constants.MODIFIED_DATE);
+                return GetDate(AppConstants.ShellItems.ModifiedDate);
             }
         }
 
@@ -64,7 +64,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         {
             get
             {
-                return GetDate(Constants.ACCESSED_DATE);
+                return GetDate(AppConstants.ShellItems.AccessedDate);
             }
         }
 
@@ -72,7 +72,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         {
             get
             {
-                return GetDate(Constants.CREATION_DATE);
+                return GetDate(AppConstants.ShellItems.CreationDate);
             }
         }
 

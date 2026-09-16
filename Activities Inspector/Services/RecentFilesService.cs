@@ -1,67 +1,68 @@
 ﻿using CSharpFunctionalExtensions;
+using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public class RecentFilesService : IRecentFilesService
     {
-        private const string FILE_EXTENSION = @"*.lnk";
-
-        public async Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync()
+        public async Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync(CancellationToken cancellationToken = default)
         {
-            return await Task.Run(async () =>
+            try
             {
-                string userName = Environment.UserName;
-
-                var path = $@"C:\Users\{userName}\AppData\Roaming\Microsoft\Windows\Recent";
+                var userName = Environment.UserName;
+                var path = Path.Combine(@"C:\Users", userName, AppConstants.Paths.RecentDirectory);
 
                 var directory = new DirectoryInfo(path);
+                if (!directory.Exists)
+                    return Result.Failure<List<RecentFolderEntry>>($"La cartella Recent non esiste: {path}");
 
-                if (directory.Exists == false) throw new ArgumentException("La cartella non esiste");
+                var files = directory.GetFiles(AppConstants.Paths.RecentExtension);
+                var orderedFiles = files.OrderBy(f => f.LastWriteTime).ToList();
 
-                var tmp = new List<RecentFolderEntry>();
+                var entries = new List<RecentFolderEntry>();
 
-                try
+                foreach (var file in orderedFiles)
                 {
-                    var files = new DirectoryInfo(path).GetFiles(FILE_EXTENSION);
-                    var orderedFiles = files.OrderBy(fl => fl.LastWriteTime).ToList();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    foreach (var file in orderedFiles)
-                    {
-                        var lnkFile = await LoadFileAsync(file.FullName);
+                    var lnkFile = await LoadFileAsync(file.FullName);
+                    if (lnkFile == null || string.IsNullOrEmpty(lnkFile.LocalPath)) continue;
 
-                        if (lnkFile == null) continue;
+                    var actionTime = file.LastWriteTime;
+                    var fileName = Path.GetFileNameWithoutExtension(file.Name);
+                    var dataSource = file.FullName;
+                    var fullPath = lnkFile.LocalPath;
 
-                        if (string.IsNullOrEmpty(lnkFile.LocalPath)) continue;
-
-                        var actionTime = file.LastWriteTime; //Action Time
-                        var fileName = Path.GetFileNameWithoutExtension(file.Name); //Filename
-                        var dataSource = file.FullName; //Data Source
-                        var fullPath = lnkFile.LocalPath; //Full Path
-
-                        tmp.Add(new RecentFolderEntry(actionTime, fileName, dataSource, fullPath));
-                    }
-
-                    return Result.Success(tmp);
+                    entries.Add(new RecentFolderEntry(actionTime, fileName, dataSource, fullPath));
                 }
-                catch (Exception ex)
-                {
-                    return Result.Failure<List<RecentFolderEntry>>(ex.Message);
-                }
-            });
+
+                return Result.Success(entries);
+            }
+            catch (Exception ex) when (!(ex is OperationCanceledException))
+            {
+                return Result.Failure<List<RecentFolderEntry>>(ex.ToString());
+            }
         }
 
-        private async Task<LnkFile> LoadFileAsync(string lnkFile)
+        private Task<LnkFile?> LoadFileAsync(string lnkFilePath, CancellationToken cancellationToken = default)
         {
-            var raw = await File.ReadAllBytesAsync(lnkFile);
-
-            return raw[0] != 0x4c ? null : new LnkFile(raw, lnkFile);
+            try
+            {
+                var raw = File.ReadAllBytes(lnkFilePath);
+                return Task.FromResult<LnkFile?>(raw.Length > 0 && raw[0] == 0x4c ? new LnkFile(raw, lnkFilePath) : null);
+            }
+            catch
+            {
+                return Task.FromResult<LnkFile?>(null);
+            }
         }
     }
 }

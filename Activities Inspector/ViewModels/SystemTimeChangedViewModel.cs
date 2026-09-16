@@ -9,6 +9,7 @@ using ProgettoInformaticaForense_Argentieri.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -82,7 +83,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadSystemTimeChangedCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadSystemTimeChangedCommandAsync()
         {
@@ -91,7 +92,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync();
+                using var cts = new CancellationTokenSource();
+                var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync(cts.Token);
 
                 if (result.IsSuccess)
                 {
@@ -100,23 +102,28 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                     _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(TimeChangedEntries.ToList()));
                 }
+                else
+                {
+                    _dialogService.ShowError(result.Error);
+                }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false & TimeChangedEntries != null;
+            => !IsBusy && TimeChangedEntries != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(TimeChangedEntries, EntryType.SystemTimeChanged);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(TimeChangedEntries, EntryType.SystemTimeChanged, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -127,9 +134,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

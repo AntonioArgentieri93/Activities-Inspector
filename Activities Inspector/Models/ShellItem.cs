@@ -1,4 +1,4 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
 using System;
 using System.Collections.Generic;
 
@@ -72,13 +72,13 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public virtual IDictionary<string, string> GetAllProperties()
         {
             SortedDictionary<string, string> properties = new SortedDictionary<string, string>();
-            AddPairIfNotNull(properties, Constants.SIZE, Size.ToString("X2"));
-            AddPairIfNotNull(properties, Constants.TYPE, Type.ToString("X2"));
-            AddPairIfNotNull(properties, Constants.TYPENAME, TypeName);
-            AddPairIfNotNull(properties, Constants.NAME, Name);
-            AddPairIfNotNull(properties, Constants.MODIFIED_DATE, ModifiedDate);
-            AddPairIfNotNull(properties, Constants.ACCESSED_DATE, AccessedDate);
-            AddPairIfNotNull(properties, Constants.CREATION_DATE, CreationDate);
+            AddPairIfNotNull(properties, AppConstants.ShellItems.Size, Size.ToString("X2"));
+            AddPairIfNotNull(properties, AppConstants.ShellItems.Type, Type.ToString("X2"));
+            AddPairIfNotNull(properties, AppConstants.ShellItems.TypeName, TypeName);
+            AddPairIfNotNull(properties, AppConstants.ShellItems.Name, Name);
+            AddPairIfNotNull(properties, AppConstants.ShellItems.ModifiedDate, ModifiedDate);
+            AddPairIfNotNull(properties, AppConstants.ShellItems.AccessedDate, AccessedDate);
+            AddPairIfNotNull(properties, AppConstants.ShellItems.CreationDate, CreationDate);
             return properties;
         }
 

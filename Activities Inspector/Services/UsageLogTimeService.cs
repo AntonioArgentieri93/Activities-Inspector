@@ -4,43 +4,37 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
 {
     public class UsageLogTimeService : IUsageLogTimeService
     {
-        private const string LOG_FILTER = "System";
+        private const string LogFilter = "System";
 
-        public async Task<Result<List<EventLogEntry>>> GetSystemEventsAsync()
+        public async Task<Result<List<EventLogEntry>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
         {
-            var taskCompletionSource = new TaskCompletionSource<Result<List<EventLogEntry>>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var myLog = new EventLog();
-            myLog.Log = LOG_FILTER;
-
-            var tmp = new List<EventLogEntry>();
-
             try
             {
+                using var myLog = new EventLog { Log = LogFilter };
+                var entries = new List<EventLogEntry>();
+
                 await Task.Run(() =>
                 {
-                    foreach (var @event in myLog.Entries)
+                    foreach (EventLogEntry entry in myLog.Entries)
                     {
-                        var logEntry = (EventLogEntry)@event;
-                        tmp.Add(logEntry);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        entries.Add(entry);
                     }
-                });
+                }, cancellationToken);
 
-                taskCompletionSource.SetResult(Result.Success(tmp));
+                return Result.Success(entries);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                taskCompletionSource.SetResult(Result.Failure<List<EventLogEntry>>(ex.Message));
+                return Result.Failure<List<EventLogEntry>>(ex.ToString());
             }
-
-            return taskCompletionSource.Task.Result;
         }
 
         public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<EventLogEntry> events)
@@ -52,27 +46,14 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
             var intervals = GetIntervals(events).Where(interval => interval.Start != DateTime.MinValue).ToArray();
 
-            TimeSpan duration;
-
             for (var i = 0; i < intervals.Length; i++)
             {
-                if (intervals[i].End != null)
-                {
-                    duration = intervals[i].End.Value.Subtract(intervals[i].Start);
-                }
-                else
-                {
-                    duration = DateTime.Now.Subtract(intervals[i].Start);
-                }
+                var duration = intervals[i].End != null
+                    ? intervals[i].End.Value.Subtract(intervals[i].Start)
+                    : DateTime.Now.Subtract(intervals[i].Start);
 
-                if (machineNames.Count() != 0)
-                {
-                    yield return new UsageInfo(intervals[i], duration, machineNames[i]);
-                }
-                else
-                {
-                    yield return new UsageInfo(intervals[i], duration, string.Empty);
-                }
+                var machineName = machineNames.Length > i ? machineNames[i] : string.Empty;
+                yield return new UsageInfo(intervals[i], duration, machineName);
             }
         }
 
@@ -94,10 +75,8 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                 if (startItem != null)
                 {
-                    var interval = new IntervalEntry(startItem.TimeGenerated, endItem.TimeGenerated);
-                    yield return interval;
+                    yield return new IntervalEntry(startItem.TimeGenerated, endItem.TimeGenerated);
                 }
-                else continue;
             }
 
             var lastStartItem = start.LastOrDefault();

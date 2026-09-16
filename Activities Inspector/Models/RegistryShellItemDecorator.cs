@@ -1,4 +1,5 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
+using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
 
@@ -35,17 +36,17 @@ namespace ProgettoInformaticaForense_Argentieri.Models
             baseDict[AbsolutePathIdentifier] = AbsolutePath;
 
             if (RegKey.RegistryUser != string.Empty)
-                baseDict[Constants.REGISTRY_OWNER] = RegKey.RegistryUser;
+                baseDict[AppConstants.ShellItems.RegistryOwner] = RegKey.RegistryUser;
             if (RegKey.RegistryUser != string.Empty)
-                baseDict[Constants.REGISTRY_SID] = RegKey.RegistrySID;
+                baseDict[AppConstants.ShellItems.RegistrySid] = RegKey.RegistrySID;
             if (RegKey.RegistryPath != string.Empty)
-                baseDict[Constants.REGISTRY_PATH] = RegKey.RegistryPath;
+                baseDict[AppConstants.ShellItems.RegistryPath] = RegKey.RegistryPath;
             if (RegKey.ShellbagPath != string.Empty)
-                baseDict[Constants.SHELLBAG_PATH] = RegKey.ShellbagPath;
+                baseDict[AppConstants.ShellItems.ShellbagPath] = RegKey.ShellbagPath;
             if (RegKey.LastRegistryWriteDate != DateTime.MinValue)
-                baseDict[Constants.LAST_REG_WRITE] = RegKey.LastRegistryWriteDate.ToString();
+                baseDict[AppConstants.ShellItems.LastRegWrite] = RegKey.LastRegistryWriteDate.ToString();
             if (RegKey.SlotModifiedDate != DateTime.MinValue)
-                baseDict[Constants.SLOT_MODIFIED_DATE] = RegKey.SlotModifiedDate.ToString();
+                baseDict[AppConstants.ShellItems.SlotModifiedDate] = RegKey.SlotModifiedDate.ToString();
 
 
             return baseDict;

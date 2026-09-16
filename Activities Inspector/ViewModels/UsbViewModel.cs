@@ -11,6 +11,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management;
+using System.Threading;
 using System.Windows;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
@@ -91,7 +92,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadUsbEntriesCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadUsbEntriesCommandAsync()
         {
@@ -102,13 +103,14 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             {
                 var isAdministrator = Helper.IsAdministrator();
 
-                if(isAdministrator == false)
+                if (!isAdministrator)
                 {
                     _dialogService.ShowInfo("L'applicazione non è stata lanciata con privilegi di amministratore e pertanto " +
                         "le informazioni sugli orari di inserimento e rimozione del dispositivo non saranno disponibili.");
                 }
 
-                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator); 
+                using var cts = new CancellationTokenSource();
+                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator, cts.Token);
 
                 if (result.IsSuccess)
                 {
@@ -125,22 +127,23 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError("Errore durante il caricamento degli elementi per la funzionalità richiesta.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false & UsbEntries != null;
+            => !IsBusy && UsbEntries != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(UsbEntries, EntryType.Usb);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(UsbEntries, EntryType.Usb, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -151,9 +154,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 
@@ -264,7 +267,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             if (strValue.Contains("VID") && strValue.Contains("PID"))
             {
                 var splitResult = strValue.Split("\\");
-                
+
                 if (splitResult.Length != 3) return;
 
                 var desiredValue = splitResult[1];
@@ -275,8 +278,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 var pid = intermediateResult[1].Replace("PID_", string.Empty);
 
                 var device = UsbEntries?.Where(ue => ue.VendorId == vid && ue.ProductId == pid).FirstOrDefault() ?? null;
-                
-                if(device != null)
+
+                if (device != null)
                 {
                     device.Plugged = newIsPlugged;
 
@@ -294,7 +297,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                     Application.Current.Dispatcher.Invoke(new UpdateDelegate(UpdateUsbEntries));
                 }
-                else if(device == null && newIsPlugged)
+                else if (device == null && newIsPlugged)
                 {
                     var plugged = true;
 
@@ -302,10 +305,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     var deviceName = (string)instance.Properties["Caption"].Value;
                     var usbClass = (string)instance.Properties["PNPClass"].Value;
                     var lastConnected = DateTimeOffset.Now.ToLocalTime();
-                    var newEntry = new UsbEntry(plugged, deviceName, serialNumber, 
+                    var newEntry = new UsbEntry(plugged, deviceName, serialNumber,
                         vid, pid, usbClass, lastConnected, null);
 
-                    if(_temp.Any(ue => ue.SerialNumber == newEntry.SerialNumber && ue.VendorId == newEntry.VendorId &&
+                    if (_temp.Any(ue => ue.SerialNumber == newEntry.SerialNumber && ue.VendorId == newEntry.VendorId &&
                         ue.ProductId == newEntry.ProductId) == false)
                     {
                         _temp.Add(newEntry);

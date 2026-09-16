@@ -10,6 +10,7 @@ using RawCopy;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -82,9 +83,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             _messenger.Register<OnSortColumnMessage>(this, HandleOnSortColumnMessage);
         }
 
-
         private bool CanExecuteExecuteLoadSessionEntriesCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadSessionEntriesCommand()
         {
@@ -97,7 +97,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    var getSessionsResult = await _loggedInfoService.GetSessionsAsync();
+                    using var cts = new CancellationTokenSource();
+                    var getSessionsResult = await _loggedInfoService.GetSessionsAsync(cts.Token);
 
                     if (getSessionsResult.IsSuccess)
                     {
@@ -117,22 +118,23 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommand()
-            => IsBusy == false & Sessions != null;
+            => !IsBusy && Sessions != null;
 
         private async void ExecuteExportCommand()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Sessions, EntryType.Sessions);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Sessions, EntryType.Sessions, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -143,9 +145,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

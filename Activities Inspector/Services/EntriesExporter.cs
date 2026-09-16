@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.Services
@@ -12,71 +13,54 @@ namespace ProgettoInformaticaForense_Argentieri.Services
     public class EntriesExporter : IEntriesExporter
     {
         private readonly IEntryFormatter _entryFormatter;
-
-        private const string _exportedDataRootPath = "Output";
+        private const string ExportedDataRootPath = "Output";
 
         public EntriesExporter(IEntryFormatter entryFormatter)
         {
             _entryFormatter = entryFormatter;
-
             InitFileSystem();
         }
 
-        public async Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType)
+        public async Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default)
         {
-            var taskCompletionSource = new TaskCompletionSource<Result>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
             try
             {
-                await Task.Run(() =>
-                {
-                    var fileName = SetFileName(entryType);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    using (var writer = new EntryWriter($"{_exportedDataRootPath}/{fileName}.csv", false, Encoding.Default, _entryFormatter))
-                    {
-                        writer.WriteEntries(entries, entryType);
-                    }
-                });
+                var fileName = SetFileName(entryType);
+                var filePath = Path.Combine(ExportedDataRootPath, $"{fileName}.csv");
 
-                taskCompletionSource.SetResult(Result.Success());
+                using var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter);
+                writer.WriteEntries(entries, entryType);
+
+                return Result.Success();
             }
-            catch(Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                taskCompletionSource.SetResult(Result.Failure(ex.Message));
+                return Result.Failure(ex.ToString());
             }
-
-            return taskCompletionSource.Task.Result;
         }
 
         private void InitFileSystem()
         {
-            if (Directory.Exists(_exportedDataRootPath) == false)
-                Directory.CreateDirectory(_exportedDataRootPath);
+            if (!Directory.Exists(ExportedDataRootPath))
+                Directory.CreateDirectory(ExportedDataRootPath);
         }
 
-        private string SetFileName(EntryType entryType)
+        private static string SetFileName(EntryType entryType)
         {
-            switch (entryType)
+            return entryType switch
             {
-                case EntryType.TimeIntervals:
-                    return Activities_Inspector.Resources.Intervals_FileName;
-                case EntryType.InstalledPrograms:
-                    return Activities_Inspector.Resources.InstalledPrograms_FileName;
-                case EntryType.Recents:
-                    return Activities_Inspector.Resources.Recents_FileName;
-                case EntryType.Prefetch:
-                    return Activities_Inspector.Resources.Prefetch_FileName;
-                case EntryType.ShellBags:
-                    return Activities_Inspector.Resources.ShellBags_FileName;
-                case EntryType.Sessions:
-                    return Activities_Inspector.Resources.Sessions_FileName;
-                case EntryType.SystemTimeChanged:
-                    return Activities_Inspector.Resources.SystemTimeChanged_FileName;
-                case EntryType.Usb:
-                    return Activities_Inspector.Resources.Usb_FileName;
-                default: throw new ArgumentException();
-            }
+                EntryType.TimeIntervals => Activities_Inspector.Resources.Intervals_FileName,
+                EntryType.InstalledPrograms => Activities_Inspector.Resources.InstalledPrograms_FileName,
+                EntryType.Recents => Activities_Inspector.Resources.Recents_FileName,
+                EntryType.Prefetch => Activities_Inspector.Resources.Prefetch_FileName,
+                EntryType.ShellBags => Activities_Inspector.Resources.ShellBags_FileName,
+                EntryType.Sessions => Activities_Inspector.Resources.Sessions_FileName,
+                EntryType.SystemTimeChanged => Activities_Inspector.Resources.SystemTimeChanged_FileName,
+                EntryType.Usb => Activities_Inspector.Resources.Usb_FileName,
+                _ => throw new ArgumentException($"Unknown entry type: {entryType}")
+            };
         }
     }
 }

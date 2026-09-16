@@ -9,6 +9,7 @@ using ProgettoInformaticaForense_Argentieri.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -82,7 +83,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadInstallEntriesCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadInstallEntriesCommandAsync()
         {
@@ -91,7 +92,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync();
+                using var cts = new CancellationTokenSource();
+                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync(cts.Token);
 
                 if (getInstallEntriesResult.IsSuccess)
                 {
@@ -104,22 +106,23 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(getInstallEntriesResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false && InstallEntries != null;
+            => !IsBusy && InstallEntries != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(InstallEntries, EntryType.InstalledPrograms);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(InstallEntries, EntryType.InstalledPrograms, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -130,9 +133,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

@@ -9,6 +9,7 @@ using ProgettoInformaticaForense_Argentieri.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -82,7 +83,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteLoadIntervalsCommand()
-            => IsBusy ? false : true;
+            => !IsBusy;
 
         private async void ExecuteLoadIntervalsCommandAsync()
         {
@@ -91,7 +92,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                var getSystemEventsResult = await _usageLogTimeService.GetSystemEventsAsync();
+                using var cts = new CancellationTokenSource();
+                var getSystemEventsResult = await _usageLogTimeService.GetSystemEventsAsync(cts.Token);
 
                 if (getSystemEventsResult.IsSuccess)
                 {
@@ -105,22 +107,23 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(getSystemEventsResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                _dialogService.ShowError(ex.Message + "\n" + ex.StackTrace);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;
         }
 
         private bool CanExecuteExportCommandAsync()
-            => IsBusy == false & Infos != null;
+            => !IsBusy && Infos != null;
 
         private async void ExecuteExportCommandAsync()
         {
             try
             {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Infos, EntryType.TimeIntervals);
+                using var cts = new CancellationTokenSource();
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Infos, EntryType.TimeIntervals, cts.Token);
 
                 if (exportResult.IsSuccess)
                 {
@@ -131,9 +134,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
         }
 

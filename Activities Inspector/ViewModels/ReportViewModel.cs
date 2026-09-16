@@ -8,6 +8,7 @@ using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
@@ -205,8 +206,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         }
 
         private bool CanExecuteGenerateReportCommandAsync()
-            => !HasErrors && (string.IsNullOrEmpty(InquirerName) == false && string.IsNullOrEmpty(InquirerSurname) == false &&
-                string.IsNullOrEmpty(InquirerQualification) == false && string.IsNullOrEmpty(ObjectDescription) == false);
+            => !HasErrors && !string.IsNullOrEmpty(InquirerName) && !string.IsNullOrEmpty(InquirerSurname) &&
+                !string.IsNullOrEmpty(InquirerQualification) && !string.IsNullOrEmpty(ObjectDescription);
 
         private async void ExecuteGenerateReportCommandAsync()
         {
@@ -222,7 +223,8 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath);
                 
-                var result = await _reportService.CreatePdfFileAsync(content);
+                using var cts = new CancellationTokenSource();
+                var result = await _reportService.CreatePdfFileAsync(content, cts.Token);
 
                 if (result.IsSuccess)
                 {
@@ -233,9 +235,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(result.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _dialogService.ShowError(ex.Message);
+                _dialogService.ShowError(ex.ToString());
             }
 
             IsBusy = false;

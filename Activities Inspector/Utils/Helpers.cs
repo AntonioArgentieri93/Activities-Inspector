@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ProgettoInformaticaForense_Argentieri.Utility
 {
-    public class Helpers
+    public static class Helpers
     {
         public static string GetDescriptionFromEnumValue(Enum value)
         {
@@ -17,15 +17,12 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
             return attribute == null ? value.ToString() : attribute.Description;
         }
 
-        public static IEnumerable<EventLogEntry> GetLogEntries(string filter)
+        public static IEnumerable<EventLogEntry> GetLogEntries(string logName)
         {
-            var eventLog = new EventLog();
-            eventLog.Log = filter;
-
-            foreach (var @event in eventLog.Entries)
+            using var eventLog = new EventLog { Log = logName };
+            foreach (EventLogEntry entry in eventLog.Entries)
             {
-                var logEntry = (EventLogEntry)@event;
-                yield return logEntry;
+                yield return entry;
             }
         }
     }
