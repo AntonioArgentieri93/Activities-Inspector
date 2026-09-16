@@ -145,23 +145,12 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         private static IEnumerable<LogOnEntry> RemoveDuplicates(List<LogOnEntry> entries)
         {
-            var distinctEntries = new List<LogOnEntry>();
+            if (entries == null) throw new ArgumentNullException(nameof(entries));
 
-            for (var i = 0; i < entries.Count; i++)
-            {
-                if (i == entries.Count - 1)
-                {
-                    distinctEntries.Add(entries[i]);
-                    continue;
-                }
-
-                if (!entries[i].Equals(entries[i + 1]))
-                {
-                    distinctEntries.Add(entries[i]);
-                }
-            }
-
-            return distinctEntries;
+            // Distinct preserva l'ordine di prima occorrenza e, grazie a
+            // Equals/GetHashCode basati sul Logon ID, rimuove i duplicati
+            // ovunque si trovino (non solo se adiacenti).
+            return entries.Distinct().ToList();
         }
     }
 }

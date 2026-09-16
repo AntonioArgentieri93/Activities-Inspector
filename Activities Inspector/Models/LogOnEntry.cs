@@ -29,11 +29,22 @@ namespace ProgettoInformaticaForense_Argentieri.Models
 
         public override bool Equals(object obj)
         {
-            if (obj == null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj is LogOnEntry other)
+            {
+                // Due record rappresentano lo stesso logon se condividono
+                // il Logon ID (Index): è anche la chiave usata per accoppiare
+                // logon e logoff. Il solo timestamp non basta, perché due
+                // logon distinti possono avvenire nello stesso secondo.
+                return string.Equals(Index, other.Index, StringComparison.Ordinal);
+            }
 
-            var toCompare = (LogOnEntry)obj;
+            return false;
+        }
 
-            return this.TimeGenerated == toCompare.TimeGenerated ? true : false;
+        public override int GetHashCode()
+        {
+            return Index != null ? Index.GetHashCode() : 0;
         }
     }
 }
