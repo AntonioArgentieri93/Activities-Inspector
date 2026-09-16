@@ -57,15 +57,13 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         private Task<List<string>> GetPrefetchFilesNamesAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var files = Directory.GetFiles(AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchSearchPattern);
-                return Task.FromResult(files.ToList());
-            }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
-            {
-                return Task.FromResult(new List<string>());
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Nessun try/catch qui: gli errori (es. accesso negato alla cartella
+            // Prefetch) devono propagarsi al chiamante come Result.Failure,
+            // non essere mascherati da lista vuota con successo.
+            var files = Directory.GetFiles(AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchSearchPattern);
+            return Task.FromResult(files.ToList());
         }
     }
 }

@@ -6,6 +6,7 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using RawCopy;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -92,19 +93,29 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
             try
             {
-                using var cts = new CancellationTokenSource();
-                var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync(cts.Token);
+                var isAdministrator = Helper.IsAdministrator();
 
-                if (result.IsSuccess)
+                if (isAdministrator)
                 {
-                    var events = result.Value;
-                    TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(result.Value);
+                    using var cts = new CancellationTokenSource();
+                    var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync(cts.Token);
 
-                    _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(TimeChangedEntries.ToList()));
+                    if (result.IsSuccess)
+                    {
+                        var events = result.Value;
+                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(result.Value);
+
+                        _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(TimeChangedEntries.ToList()));
+                    }
+                    else
+                    {
+                        _dialogService.ShowError(result.Error);
+                    }
                 }
                 else
                 {
-                    _dialogService.ShowError(result.Error);
+                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
+                        "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))

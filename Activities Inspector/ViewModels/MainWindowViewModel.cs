@@ -48,8 +48,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             foreach (var mode in viewerModes)
             {
                 var requiresAdminPrivileges = mode == ViewerMode.Prefetch ||
-                    mode == ViewerMode.Sessions || 
+                    mode == ViewerMode.Sessions ||
                     mode == ViewerMode.ShellBags ||
+                    mode == ViewerMode.SystemTimeChanged ||
                     mode == ViewerMode.Usb;
 
                 Items.Add(new LeftNavbarItem(mode, requiresAdminPrivileges));
