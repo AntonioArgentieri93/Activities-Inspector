@@ -1,10 +1,11 @@
+using ProgettoInformaticaForense_Argentieri.Constants;
 using System.Text;
 
 namespace ProgettoInformaticaForense_Argentieri.Utils
 {
     public static class EncodingProvider
     {
-        private static readonly Encoding AnsiEncoding = CodePagesEncodingProvider.Instance.GetEncoding(Constants.AppConstants.Encoding.DefaultCodePage);
+        private static readonly Encoding AnsiEncoding = CodePagesEncodingProvider.Instance.GetEncoding(AppConstants.Encoding.DefaultCodePage);
 
         static EncodingProvider()
         {

@@ -117,7 +117,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 _dialogService.ShowError(ex.ToString());
             }
@@ -144,7 +144,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 _dialogService.ShowError(ex.ToString());
             }

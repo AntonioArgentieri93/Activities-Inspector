@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using ProgettoInformaticaForense_Argentieri.Constants;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Utility;
+using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                 return Result.Success(wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList());
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 return Result.Failure<List<InstallEntry>>(ex.ToString());
             }
@@ -36,7 +37,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             {
                 var entries = new List<InstallEntry>();
 
-                using var rk = Registry.LocalMachine.OpenSubKey(keyPath);
+                using var rk = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(keyPath);
                 if (rk == null) return entries;
 
                 foreach (var skName in rk.GetSubKeyNames())
@@ -57,7 +58,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             {
                 var entries = new List<InstallEntry>();
 
-                using var rk = Registry.CurrentUser.OpenSubKey(keyPath);
+                using var rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyPath);
                 if (rk == null) return entries;
 
                 foreach (var skName in rk.GetSubKeyNames())

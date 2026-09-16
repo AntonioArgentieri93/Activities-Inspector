@@ -1,13 +1,9 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
 using System;
 using System.Collections.Generic;
 
 namespace ProgettoInformaticaForense_Argentieri.Models
 {
-    /// <summary>
-    /// URI Shell Type
-    /// </summary>
-    /// https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#37-uri-shell-item
     public class ShellItem0x61 : ShellItem
     {
         public string Uri { get; protected set; }
@@ -79,12 +75,12 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public override IDictionary<string, string> GetAllProperties()
         {
             var ret = base.GetAllProperties();
-            AddPairIfNotNull(ret, Constants.URI, Uri);
-            AddPairIfNotNull(ret, Constants.FTP_HOST_NAME, FTPHostname);
-            AddPairIfNotNull(ret, Constants.FTP_USER_NAME, FTPUsername);
-            AddPairIfNotNull(ret, Constants.FTP_PASSWORD, FTPPassword);
-            AddPairIfNotNull(ret, Constants.FLAGS, Flags);
-            AddPairIfNotNull(ret, Constants.CONNECTION_DATE, ConnectionDate);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Uri, Uri);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.FtpHostName, FTPHostname);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.FtpUserName, FTPUsername);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.FtpPassword, FTPPassword);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Flags, Flags);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.ConnectionDate, ConnectionDate);
             return ret;
         }
     }

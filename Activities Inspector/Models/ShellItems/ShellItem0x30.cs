@@ -1,4 +1,5 @@
-﻿using ProgettoInformaticaForense_Argentieri.Exceptions;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
+using ProgettoInformaticaForense_Argentieri.Exceptions;
 using ProgettoInformaticaForense_Argentieri.Utils;
 using System;
 using System.Collections.Generic;
@@ -6,15 +7,9 @@ using System.Linq;
 
 namespace ProgettoInformaticaForense_Argentieri.Models
 {
-    /// <summary>
-    /// File Entry Shell Item
-    /// </summary>
-    //Reference for File Entry Shell Types:
-    //https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#34-file-entry-shell-item
     public class ShellItem0x30 : ShellItemWithExtensions
     {
         public uint FileSize { get; protected set; }
-        //https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#71-file-attribute-flags
         public ushort FileAttributes { get; protected set; }
         public byte Flags { get; protected set; }
         public ushort ExtensionOffset { get; protected set; }
@@ -87,11 +82,11 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public override IDictionary<string, string> GetAllProperties()
         {
             var ret = base.GetAllProperties();
-            AddPairIfNotNull(ret, Constants.FLAGS, Flags);
-            AddPairIfNotNull(ret, Constants.FILE_SIZE, FileSize);
-            AddPairIfNotNull(ret, Constants.FILE_ATTRIBUTES, FileAttributes);
-            AddPairIfNotNull(ret, Constants.EXTENSION_OFFSET, ExtensionOffset);
-            AddPairIfNotNull(ret, Constants.SHORT_NAME, ShortName);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Flags, Flags);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.FileSize, FileSize);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.FileAttributes, FileAttributes);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.ExtensionOffset, ExtensionOffset);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.ShortName, ShortName);
             return ret;
         }
     }

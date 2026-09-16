@@ -35,7 +35,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
                 return Result.Success();
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 return Result.Failure(ex.ToString());
             }

@@ -127,7 +127,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError("Errore durante il caricamento degli elementi per la funzionalità richiesta.");
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 _dialogService.ShowError(ex.ToString());
             }
@@ -154,7 +154,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     _dialogService.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!(ex is OperationCanceledException))
             {
                 _dialogService.ShowError(ex.ToString());
             }

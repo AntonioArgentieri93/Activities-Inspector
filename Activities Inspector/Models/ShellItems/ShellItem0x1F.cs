@@ -1,4 +1,5 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
+using ProgettoInformaticaForense_Argentieri.Utils;
 using System.Collections.Generic;
 
 namespace ProgettoInformaticaForense_Argentieri.Models
@@ -72,8 +73,8 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public override IDictionary<string, string> GetAllProperties()
         {
             var dict = base.GetAllProperties();
-            AddPairIfNotNull(dict, Constants.GUID, guid);
-            AddPairIfNotNull(dict, Constants.FOLDER_ID, folder_id);
+            AddPairIfNotNull(dict, AppConstants.ShellItems.Guid, guid);
+            AddPairIfNotNull(dict, AppConstants.ShellItems.FolderId, folder_id);
             return dict;
         }
     }

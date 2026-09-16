@@ -1,12 +1,8 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+﻿using ProgettoInformaticaForense_Argentieri.Constants;
 using System.Collections.Generic;
 
 namespace ProgettoInformaticaForense_Argentieri.Models
 {
-    /// <summary>
-    /// Network Location Shell Item
-    /// </summary>
-    /// https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#35-network-location-shell-item
     public class ShellItem0x40 : ShellItem
     {
         public byte Flags { get; protected set; }
@@ -35,10 +31,10 @@ namespace ProgettoInformaticaForense_Argentieri.Models
         public override IDictionary<string, string> GetAllProperties()
         {
             var ret =  base.GetAllProperties();
-            AddPairIfNotNull(ret, Constants.FLAGS, Flags);
-            AddPairIfNotNull(ret, Constants.LOCATION, Location);
-            AddPairIfNotNull(ret, Constants.DESCRIPTION, Description);
-            AddPairIfNotNull(ret, Constants.COMMENTS, Comments);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Flags, Flags);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Location, Location);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Description, Description);
+            AddPairIfNotNull(ret, AppConstants.ShellItems.Comments, Comments);
             return ret;
         }
     }
