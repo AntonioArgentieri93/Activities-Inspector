@@ -59,7 +59,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
         {
             try
             {
-                var files = Directory.GetFiles(AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchExtension);
+                var files = Directory.GetFiles(AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchSearchPattern);
                 return Task.FromResult(files.ToList());
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))

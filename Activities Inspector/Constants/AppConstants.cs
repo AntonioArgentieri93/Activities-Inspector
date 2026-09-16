@@ -8,6 +8,7 @@ namespace ProgettoInformaticaForense_Argentieri.Constants
         {
             public const string PrefetchDirectory = @"C:\Windows\Prefetch";
             public const string PrefetchExtension = ".pf";
+            public const string PrefetchSearchPattern = "*.pf";
             public const string SystemHivePath = @"C:\Windows\System32\config\SYSTEM";
             public const string RegistrySystemPath = @"SYSTEM";
             public const string RecentDirectory = @"AppData\Roaming\Microsoft\Windows\Recent";
