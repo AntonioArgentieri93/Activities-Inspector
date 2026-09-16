@@ -10,10 +10,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class RecentFolderViewModel : ViewModelBase
+    public class RecentFolderViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -33,21 +34,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadRecentFolderEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadRecentFolderEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -56,26 +46,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadRecentFolderEntriesCommand;
         public RelayCommand LoadRecentFolderEntriesCommand => _loadRecentFolderEntriesCommand
-            ?? (_loadRecentFolderEntriesCommand = new RelayCommand(ExecuteLoadRecentFolderEntriesCommandAsync,
+            ?? (_loadRecentFolderEntriesCommand = new RelayCommand(ExecuteLoadRecentFolderEntriesCommand,
                 CanExecuteLoadRecentFolderEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IRecentFilesService _recentFilesService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public RecentFolderViewModel(IRecentFilesService recentFilesService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _recentFilesService = recentFilesService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -85,15 +74,17 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadRecentFolderEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadRecentFolderEntriesCommandAsync()
+        private void ExecuteLoadRecentFolderEntriesCommand()
+            => Forget(LoadRecentFolderEntriesAsync());
+
+        private async Task LoadRecentFolderEntriesAsync()
         {
             if (RecentFolderEntries != null) RecentFolderEntries.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
-                using var cts = new CancellationTokenSource();
-                var getRecentFilesResult = await _recentFilesService.GetRecentFilesAsync(cts.Token);
+                var getRecentFilesResult = await _recentFilesService.GetRecentFilesAsync(token);
 
                 if (getRecentFilesResult.IsSuccess)
                 {
@@ -103,39 +94,55 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowError(getRecentFilesResult.Error);
+                    Dialogs.ShowError(getRecentFilesResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && RecentFolderEntries != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(RecentFolderEntries, EntryType.Recents, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(RecentFolderEntries, EntryType.Recents, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

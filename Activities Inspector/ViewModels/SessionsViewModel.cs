@@ -11,10 +11,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class SessionsViewModel : ViewModelBase
+    public class SessionsViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -34,21 +35,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadSessionEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadSessionEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -57,26 +47,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadSessionEntriesCommand;
         public RelayCommand LoadSessionEntriesCommand => _loadSessionEntriesCommand
-            ?? (_loadSessionEntriesCommand = new RelayCommand(ExecuteLoadSessionEntriesCommand,
+            ?? (_loadSessionEntriesCommand = new RelayCommand(ExecuteLoadSessionEntries,
                 CanExecuteExecuteLoadSessionEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
+            ?? (_exportCommand = new RelayCommand(ExecuteExport,
                 CanExecuteExportCommand));
 
         #endregion
 
         private readonly ILoggedInfoService _loggedInfoService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public SessionsViewModel(ILoggedInfoService loggedInfoService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _loggedInfoService = loggedInfoService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -86,10 +75,13 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteExecuteLoadSessionEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadSessionEntriesCommand()
+        private void ExecuteLoadSessionEntries()
+            => Forget(LoadSessionEntriesAsync());
+
+        private async Task LoadSessionEntriesAsync()
         {
             if (Sessions != null) Sessions.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
@@ -97,8 +89,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    using var cts = new CancellationTokenSource();
-                    var getSessionsResult = await _loggedInfoService.GetSessionsAsync(cts.Token);
+                    var getSessionsResult = await _loggedInfoService.GetSessionsAsync(token);
 
                     if (getSessionsResult.IsSuccess)
                     {
@@ -109,45 +100,61 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     }
                     else
                     {
-                        _dialogService.ShowError(getSessionsResult.Error);
+                        Dialogs.ShowError(getSessionsResult.Error);
                     }
                 }
                 else
                 {
-                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
+                    Dialogs.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommand()
             => !IsBusy && Sessions != null;
 
-        private async void ExecuteExportCommand()
+        private void ExecuteExport()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Sessions, EntryType.Sessions, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Sessions, EntryType.Sessions, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

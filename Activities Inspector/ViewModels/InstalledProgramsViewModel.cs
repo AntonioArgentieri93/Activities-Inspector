@@ -10,10 +10,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class InstalledProgramsViewModel : ViewModelBase
+    public class InstalledProgramsViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -33,21 +34,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadInstallEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadInstallEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -56,26 +46,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadInstallEntriesCommand;
         public RelayCommand LoadInstallEntriesCommand => _loadInstallEntriesCommand
-            ?? (_loadInstallEntriesCommand = new RelayCommand(ExecuteLoadInstallEntriesCommandAsync,
+            ?? (_loadInstallEntriesCommand = new RelayCommand(ExecuteLoadInstallEntriesCommand,
                 CanExecuteLoadInstallEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IInstallEntriesBuilder _installEntriesBuilder;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public InstalledProgramsViewModel(IInstallEntriesBuilder installEntriesBuilder, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _installEntriesBuilder = installEntriesBuilder;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -85,15 +74,17 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadInstallEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadInstallEntriesCommandAsync()
+        private void ExecuteLoadInstallEntriesCommand()
+            => Forget(LoadInstallEntriesAsync());
+
+        private async Task LoadInstallEntriesAsync()
         {
             if (InstallEntries != null) InstallEntries.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
-                using var cts = new CancellationTokenSource();
-                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync(cts.Token);
+                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync(token);
 
                 if (getInstallEntriesResult.IsSuccess)
                 {
@@ -103,39 +94,55 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowError(getInstallEntriesResult.Error);
+                    Dialogs.ShowError(getInstallEntriesResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && InstallEntries != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(InstallEntries, EntryType.InstalledPrograms, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(InstallEntries, EntryType.InstalledPrograms, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

@@ -66,6 +66,11 @@
             <Button Command="{Binding LoadRecentFolderEntriesCommand}"
                     Content="{x:Static resx:Resources.MainWindows_LoadCommand_Content}"
                     Style="{StaticResource Button_Style}"/>
+
+            <Button Command="{Binding CancelCommand}"
+                    Content="Annulla"
+                    Style="{StaticResource Button_Style}"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
         <Grid Width="{Binding ActualWidth, ElementName=MainGrid}"

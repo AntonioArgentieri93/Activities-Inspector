@@ -12,11 +12,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class UsbViewModel : ViewModelBase
+    public class UsbViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -36,21 +37,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadUsbEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadUsbEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -59,18 +49,17 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadUsbEntriesCommand;
         public RelayCommand LoadUsbEntriesCommand => _loadUsbEntriesCommand
-            ?? (_loadUsbEntriesCommand = new RelayCommand(ExecuteLoadUsbEntriesCommandAsync,
+            ?? (_loadUsbEntriesCommand = new RelayCommand(ExecuteLoadUsbEntriesCommand,
                 CanExecuteLoadUsbEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IUsbTrackingService _usbTrackingService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
@@ -78,9 +67,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         public UsbViewModel(IUsbTrackingService usbTrackingService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _usbTrackingService = usbTrackingService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -94,10 +83,13 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadUsbEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadUsbEntriesCommandAsync()
+        private void ExecuteLoadUsbEntriesCommand()
+            => Forget(LoadUsbEntriesAsync());
+
+        private async Task LoadUsbEntriesAsync()
         {
             if (UsbEntries != null) UsbEntries.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
@@ -105,12 +97,11 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (!isAdministrator)
                 {
-                    _dialogService.ShowInfo("L'applicazione non è stata lanciata con privilegi di amministratore e pertanto " +
+                    Dialogs.ShowInfo("L'applicazione non è stata lanciata con privilegi di amministratore e pertanto " +
                         "le informazioni sugli orari di inserimento e rimozione del dispositivo non saranno disponibili.");
                 }
 
-                using var cts = new CancellationTokenSource();
-                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator, cts.Token);
+                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator, token);
 
                 if (result.IsSuccess)
                 {
@@ -124,39 +115,55 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowError("Errore durante il caricamento degli elementi per la funzionalità richiesta.");
+                    Dialogs.ShowError("Errore durante il caricamento degli elementi per la funzionalità richiesta.");
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && UsbEntries != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(UsbEntries, EntryType.Usb, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(UsbEntries, EntryType.Usb, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

@@ -9,10 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class ReportViewModel : ValidationViewModelBase
+    public class ReportViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -105,16 +106,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             } 
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set 
-            {
-                Set(nameof(IsBusy), ref _isBusy, value);
-                IsEnabled = !value;
-            } 
+            GenerateReportCommand.RaiseCanExecuteChanged();
+            IsEnabled = !IsBusy;
         }
 
         private string _other;
@@ -152,12 +147,11 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _generateReportCommand;
         public RelayCommand GenerateReportCommand => _generateReportCommand
-            ?? (_generateReportCommand = new RelayCommand(ExecuteGenerateReportCommandAsync, CanExecuteGenerateReportCommandAsync));
+            ?? (_generateReportCommand = new RelayCommand(ExecuteGenerateReportCommand, CanExecuteGenerateReportCommandAsync));
 
         #endregion
 
         private readonly IReportService _reportService;
-        private readonly IDialogService _dialogService;
         private readonly IWindowFactory _windowFactory;
         private readonly IMessenger _messenger;
 
@@ -172,9 +166,9 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         public ReportViewModel(IReportService reportService, IDialogService dialogService,
             IWindowFactory windowFactory, IMessenger messenger)
+            : base(dialogService)
         {
             _reportService = reportService;
-            _dialogService = dialogService;
             _windowFactory = windowFactory;
             _messenger = messenger;
 
@@ -199,38 +193,46 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !HasErrors && !string.IsNullOrEmpty(InquirerName) && !string.IsNullOrEmpty(InquirerSurname) &&
                 !string.IsNullOrEmpty(InquirerQualification) && !string.IsNullOrEmpty(ObjectDescription);
 
-        private async void ExecuteGenerateReportCommandAsync()
+        private void ExecuteGenerateReportCommand()
+            => Forget(GenerateReportAsync());
+
+        private async Task GenerateReportAsync()
         {
+            var destinationPath = Dialogs.SelectReportDestination();
+
+            if (string.IsNullOrEmpty(destinationPath)) return;
+
+            var token = BeginOperation();
+
             try
             {
-                var destinationPath = _dialogService.SelectReportDestination();
-
-                if (string.IsNullOrEmpty(destinationPath)) return;
-
-                IsBusy = true;
 
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath);
                 
-                using var cts = new CancellationTokenSource();
-                var result = await _reportService.CreatePdfFileAsync(content, cts.Token);
+                var result = await _reportService.CreatePdfFileAsync(content, token);
 
                 if (result.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ReportWindows_OperationComplete_Info);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ReportWindows_OperationComplete_Info);
                 }
                 else
                 {
-                    _dialogService.ShowError(result.Error);
+                    Dialogs.ShowError(result.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private void HandleOnUsageInfosChangedMessage(OnUsageInfosChangedMessage message)

@@ -10,10 +10,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class TimeIntervalsViewModel : ViewModelBase
+    public class TimeIntervalsViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -33,21 +34,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadIntervalsCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadIntervalsCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -56,26 +46,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadIntervalsCommand;
         public RelayCommand LoadIntervalsCommand => _loadIntervalsCommand
-            ?? (_loadIntervalsCommand = new RelayCommand(ExecuteLoadIntervalsCommandAsync,
+            ?? (_loadIntervalsCommand = new RelayCommand(ExecuteLoadIntervalsCommand,
                 CanExecuteLoadIntervalsCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IUsageLogTimeService _usageLogTimeService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public TimeIntervalsViewModel(IUsageLogTimeService usageLogTimeService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _usageLogTimeService = usageLogTimeService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -85,15 +74,17 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadIntervalsCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadIntervalsCommandAsync()
+        private void ExecuteLoadIntervalsCommand()
+            => Forget(LoadIntervalsAsync());
+
+        private async Task LoadIntervalsAsync()
         {
             if (Infos != null) Infos.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
-                using var cts = new CancellationTokenSource();
-                var getSystemEventsResult = await _usageLogTimeService.GetSystemEventsAsync(cts.Token);
+                var getSystemEventsResult = await _usageLogTimeService.GetSystemEventsAsync(token);
 
                 if (getSystemEventsResult.IsSuccess)
                 {
@@ -104,39 +95,55 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                 }
                 else
                 {
-                    _dialogService.ShowError(getSystemEventsResult.Error);
+                    Dialogs.ShowError(getSystemEventsResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && Infos != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Infos, EntryType.TimeIntervals, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Infos, EntryType.TimeIntervals, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

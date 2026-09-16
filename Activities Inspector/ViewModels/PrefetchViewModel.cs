@@ -11,10 +11,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class PrefetchViewModel : ViewModelBase
+    public class PrefetchViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -34,21 +35,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadPrefetchInfoEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadPrefetchInfoEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -57,26 +47,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadPrefetchInfoEntriesCommand;
         public RelayCommand LoadPrefetchInfoEntriesCommand => _loadPrefetchInfoEntriesCommand
-            ?? (_loadPrefetchInfoEntriesCommand = new RelayCommand(ExecuteLoadPrefetchInfoEntriesCommandAsync,
+            ?? (_loadPrefetchInfoEntriesCommand = new RelayCommand(ExecuteLoadPrefetchInfoEntriesCommand,
                 CanExecuteLoadPrefetchInfoEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IPrefetchFileInfoBuilderService _prefetchFileInfoBuilderService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public PrefetchViewModel(IPrefetchFileInfoBuilderService prefetchFileInfoBuilderService,
             IDialogService dialogService, IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _prefetchFileInfoBuilderService = prefetchFileInfoBuilderService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -86,10 +75,13 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadPrefetchInfoEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadPrefetchInfoEntriesCommandAsync()
+        private void ExecuteLoadPrefetchInfoEntriesCommand()
+            => Forget(LoadPrefetchInfoEntriesAsync());
+
+        private async Task LoadPrefetchInfoEntriesAsync()
         {
             if (PrefetchEntries != null) PrefetchEntries.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
@@ -97,8 +89,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    using var cts = new CancellationTokenSource();
-                    var getPrefetchFileInfosResult = await _prefetchFileInfoBuilderService.GetPrefetchFileInfosAsync(cts.Token);
+                    var getPrefetchFileInfosResult = await _prefetchFileInfoBuilderService.GetPrefetchFileInfosAsync(token);
 
                     if (getPrefetchFileInfosResult.IsSuccess)
                     {
@@ -108,45 +99,61 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     }
                     else
                     {
-                        _dialogService.ShowError(getPrefetchFileInfosResult.Error);
+                        Dialogs.ShowError(getPrefetchFileInfosResult.Error);
                     }
                 }
                 else
                 {
-                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
+                    Dialogs.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && PrefetchEntries != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(PrefetchEntries, EntryType.Prefetch, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(PrefetchEntries, EntryType.Prefetch, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 

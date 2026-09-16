@@ -12,11 +12,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class ShellBagsViewModel : ViewModelBase
+    public class ShellBagsViewModel : CancellableViewModelBase
     {
         #region Proprietà
 
@@ -36,21 +37,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             }
         }
 
-        private bool _isBusy;
-
-        public bool IsBusy
+        protected override void OnIsBusyChanged()
         {
-            get => _isBusy;
-            set
-            {
-                var changed = Set(nameof(IsBusy), ref _isBusy, value);
-
-                if (changed)
-                {
-                    LoadShellBagsEntriesCommand.RaiseCanExecuteChanged();
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
-            }
+            LoadShellBagsEntriesCommand.RaiseCanExecuteChanged();
+            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -59,26 +49,25 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private RelayCommand _loadShellBagsEntriesCommand;
         public RelayCommand LoadShellBagsEntriesCommand => _loadShellBagsEntriesCommand
-            ?? (_loadShellBagsEntriesCommand = new RelayCommand(ExecuteLoadShellBagsEntriesCommandAsync,
+            ?? (_loadShellBagsEntriesCommand = new RelayCommand(ExecuteLoadShellBagsEntriesCommand,
                 CanExecuteLoadShellBagsEntriesCommand));
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommandAsync,
+            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
                 CanExecuteExportCommandAsync));
 
         #endregion
 
         private readonly IShellBagsParserService _shellBagsParserService;
-        private readonly IDialogService _dialogService;
         private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public ShellBagsViewModel(IShellBagsParserService shellBagsParserService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
+            : base(dialogService)
         {
             _shellBagsParserService = shellBagsParserService;
-            _dialogService = dialogService;
             _entriesExporter = entriesExporter;
             _messenger = messenger;
 
@@ -88,10 +77,13 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private bool CanExecuteLoadShellBagsEntriesCommand()
             => !IsBusy;
 
-        private async void ExecuteLoadShellBagsEntriesCommandAsync()
+        private void ExecuteLoadShellBagsEntriesCommand()
+            => Forget(LoadShellBagsEntriesAsync());
+
+        private async Task LoadShellBagsEntriesAsync()
         {
             if (ShellBagsEntries != null) ShellBagsEntries.Clear();
-            IsBusy = true;
+            var token = BeginOperation();
 
             try
             {
@@ -99,8 +91,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
                 if (isAdministrator)
                 {
-                    using var cts = new CancellationTokenSource();
-                    var shellbagsResult = await _shellBagsParserService.ParseShellBagsAsync(cts.Token);
+                    var shellbagsResult = await _shellBagsParserService.ParseShellBagsAsync(token);
 
                     if (shellbagsResult.IsSuccess)
                     {
@@ -115,45 +106,61 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
                     }
                     else
                     {
-                        _dialogService.ShowError(shellbagsResult.Error);
+                        Dialogs.ShowError(shellbagsResult.Error);
                     }
                 }
                 else
                 {
-                    _dialogService.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
+                    Dialogs.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
                         "Riavviare l'applicazione in Modalità Amministratore.");
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
             }
-
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         private bool CanExecuteExportCommandAsync()
             => !IsBusy && ShellBagsEntries != null;
 
-        private async void ExecuteExportCommandAsync()
+        private void ExecuteExportCommand()
+            => Forget(ExportAsync());
+
+        private async Task ExportAsync()
         {
+            var token = BeginOperation();
+
             try
             {
-                using var cts = new CancellationTokenSource();
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(ShellBagsEntries, EntryType.ShellBags, cts.Token);
+                var exportResult = await _entriesExporter.SaveEntriesDataAsync(ShellBagsEntries, EntryType.ShellBags, token);
 
                 if (exportResult.IsSuccess)
                 {
-                    _dialogService.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
                 }
                 else
                 {
-                    _dialogService.ShowError(exportResult.Error);
+                    Dialogs.ShowError(exportResult.Error);
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (OperationCanceledException)
             {
-                _dialogService.ShowError(ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                Dialogs.ShowError(ex.ToString());
+            }
+            finally
+            {
+                EndOperation();
             }
         }
 
