@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -22,6 +23,11 @@ namespace ProgettoInformaticaForense_Argentieri
                     Activities_Inspector.Resources.AppName,
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            ViewModelLocator.CleanUp();
         }
 
         private static async Task<DateTime?> GetNetworkTime(string ntpServer = "time.windows.com")

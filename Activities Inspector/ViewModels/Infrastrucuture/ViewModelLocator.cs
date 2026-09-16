@@ -39,13 +39,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure
             builder.RegisterType<UsbTrackingService>().As<IUsbTrackingService>().SingleInstance();
             builder.RegisterType<NetService>().As<INetService>().SingleInstance();
             builder.RegisterType<WindowFactory>().As<IWindowFactory>().SingleInstance();
-            builder.RegisterType<ConfigParser>().As<IConfigParser>().SingleInstance();
             builder.RegisterType<ReportService>().As<IReportService>().SingleInstance();
             builder.RegisterInstance(Messenger.Default).As<IMessenger>().SingleInstance();
 
             _container = builder.Build();
-
-            _container.Resolve<ReportViewModel>();
         }
 
         public MainWindowViewModel MainViewModel => _container.Resolve<MainWindowViewModel>();

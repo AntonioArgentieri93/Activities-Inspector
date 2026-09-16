@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewmodel="clr-namespace:ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure"
              Startup="Application_StartupAsync"
+             Exit="Application_Exit"
              StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>

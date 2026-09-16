@@ -156,15 +156,10 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         #endregion
 
-        private readonly INetService _netService;
         private readonly IReportService _reportService;
         private readonly IDialogService _dialogService;
         private readonly IWindowFactory _windowFactory;
         private readonly IMessenger _messenger;
-
-        private string _machineName;
-        private List<string> _privateIpAddresses;
-        private string _publicIpAddress;
 
         private UsageInfo[] _usageInfos;
         private InstallEntry[] _installEntries;
@@ -175,18 +170,13 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
 
-        public ReportViewModel(INetService netService, IReportService reportService, IDialogService dialogService,
+        public ReportViewModel(IReportService reportService, IDialogService dialogService,
             IWindowFactory windowFactory, IMessenger messenger)
         {
-            _netService = netService;
             _reportService = reportService;
             _dialogService = dialogService;
             _windowFactory = windowFactory;
             _messenger = messenger;
-
-            _machineName = System.Net.Dns.GetHostName();
-            _privateIpAddresses = _netService.GetAvailablePrivateIPs().ToList();
-            _publicIpAddress = _netService.GetPublicIPAddress();
 
             IsBusy = false;
 
