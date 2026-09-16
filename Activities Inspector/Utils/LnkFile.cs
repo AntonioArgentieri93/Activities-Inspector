@@ -84,111 +84,7 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
 
                 foreach (var shellItem in shellItemsRaw)
                 {
-                    if (shellItem.Length >= 0x28)
-                    {
-                        var sig1 = BitConverter.ToInt64(shellItem, 0x8);
-                        var sig2 = BitConverter.ToInt64(shellItem, 0x18);
-
-                        if (sig1 == 0 && sig2 == 0)
-                        {
-                            //double check
-                            if (shellItem[0x28] == 0x2f || shellItem[0x26] == 0x2f || shellItem[0x1a] == 0x2f ||
-                                shellItem[0x1c] == 0x2f)
-                            // forward slash in date or N / A
-                            {
-                                //zip?
-                                var zz = new ShellBagZipContents(shellItem);
-
-                                TargetIDs.Add(zz);
-                                continue;
-                            }
-                        }
-                    }
-
-                    switch (shellItem[2])
-                    {
-                        case 0x1f:
-                            var f = new ShellBag0X1F(shellItem);
-                            TargetIDs.Add(f);
-                            break;
-                        case 0x22:
-                        case 0x23:
-                            var two3 = new ShellBag0X23(shellItem);
-                            TargetIDs.Add(two3);
-                            break;
-                        case 0x2f:
-                            var ff = new ShellBag0X2F(shellItem);
-                            TargetIDs.Add(ff);
-                            break;
-                        case 0x2e:
-                            var ee = new ShellBag0X2E(shellItem);
-                            TargetIDs.Add(ee);
-                            break;
-
-                        case 0xb1:
-                        case 0x31:
-                        case 0x35:
-
-                            var d = new RecentFolder.ShellBags.ShellBag0X31(shellItem);
-                            TargetIDs.Add(d);
-                            break;
-
-                        case 0x32:
-                        case 0x36:
-                            var d2 = new ShellBag0X32(shellItem);
-                            TargetIDs.Add(d2);
-                            break;
-                        case 0x00:
-                            var v0 = new ShellBag0X00(shellItem);
-                            TargetIDs.Add(v0);
-                            break;
-                        case 0x01:
-                            var one = new ShellBag0X01(shellItem);
-                            TargetIDs.Add(one);
-                            break;
-                        case 0x71:
-                            var sevenone = new ShellBag0X71(shellItem);
-                            TargetIDs.Add(sevenone);
-                            break;
-                        case 0x61:
-                            var sixone = new ShellBag0X61(shellItem);
-                            TargetIDs.Add(sixone);
-                            break;
-
-                        case 0xC3:
-                            var c3 = new ShellBag0Xc3(shellItem);
-                            TargetIDs.Add(c3);
-                            break;
-
-                        case 0x74:
-                        case 0x77:
-                            var sev = new ShellBag0X74(shellItem);
-                            TargetIDs.Add(sev);
-                            break;
-
-                        case 0xae:
-                        case 0xaa:
-                        case 0x79:
-                            var ae = new ShellBagZipContents(shellItem);
-                            TargetIDs.Add(ae);
-                            break;
-
-                        case 0x41:
-                        case 0x42:
-                        case 0x43:
-                        case 0x46:
-                        case 0x47:
-                            var forty = new ShellBag0X40(shellItem);
-                            TargetIDs.Add(forty);
-                            break;
-                        case 0x4C:
-                            var fc = new ShellBag0X4C(shellItem);
-                            TargetIDs.Add(fc);
-                            break;
-                        default:
-                            throw new Exception(
-                                $"Unknown shell item ID: 0x{shellItem[2]:X}. Please send to saericzimmerman@gmail.com so support can be added.");
-                    }
+                    TargetIDs.Add(ShellItemFactory.Create(shellItem));
                 }
 
                 index += shellItemSize;
@@ -271,84 +167,31 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
                 index += locationItemSize;
             }
 
+            var isUnicode = (Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode;
+
             if ((Header.DataFlags & LnkHeader.DataFlag.HasName) == LnkHeader.DataFlag.HasName)
             {
-                var nameLen = BitConverter.ToInt16(rawBytes, index);
-                index += 2;
-                if ((Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode)
-                {
-                    Name = Encoding.Unicode.GetString(rawBytes, index, nameLen * 2);
-                    index += nameLen;
-                }
-                else
-                {
-                    Name = CodePagesEncodingProvider.Instance.GetEncoding(1252).GetString(rawBytes, index, nameLen);
-                }
-                index += nameLen;
+                Name = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
             }
 
             if ((Header.DataFlags & LnkHeader.DataFlag.HasRelativePath) == LnkHeader.DataFlag.HasRelativePath)
             {
-                var relLen = BitConverter.ToInt16(rawBytes, index);
-                index += 2;
-                if ((Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode)
-                {
-                    RelativePath = Encoding.Unicode.GetString(rawBytes, index, relLen * 2);
-                    index += relLen;
-                }
-                else
-                {
-                    RelativePath = CodePagesEncodingProvider.Instance.GetEncoding(1252).GetString(rawBytes, index, relLen);
-                }
-                index += relLen;
+                RelativePath = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
             }
 
             if ((Header.DataFlags & LnkHeader.DataFlag.HasWorkingDir) == LnkHeader.DataFlag.HasWorkingDir)
             {
-                var workLen = BitConverter.ToInt16(rawBytes, index);
-                index += 2;
-                if ((Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode)
-                {
-                    WorkingDirectory = Encoding.Unicode.GetString(rawBytes, index, workLen * 2);
-                    index += workLen;
-                }
-                else
-                {
-                    WorkingDirectory = CodePagesEncodingProvider.Instance.GetEncoding(1252).GetString(rawBytes, index, workLen);
-                }
-                index += workLen;
+                WorkingDirectory = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
             }
 
             if ((Header.DataFlags & LnkHeader.DataFlag.HasArguments) == LnkHeader.DataFlag.HasArguments)
             {
-                var argLen = BitConverter.ToInt16(rawBytes, index);
-                index += 2;
-                if ((Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode)
-                {
-                    Arguments = Encoding.Unicode.GetString(rawBytes, index, argLen * 2);
-                    index += argLen;
-                }
-                else
-                {
-                    Arguments = CodePagesEncodingProvider.Instance.GetEncoding(1252).GetString(rawBytes, index, argLen);
-                }
-                index += argLen;
+                Arguments = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
             }
 
             if ((Header.DataFlags & LnkHeader.DataFlag.HasIconLocation) == LnkHeader.DataFlag.HasIconLocation)
             {
-                var icoLen = BitConverter.ToInt16(rawBytes, index);
-                index += 2;
-                if ((Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode)
-                {
-                    IconLocation = Encoding.Unicode.GetString(rawBytes, index, icoLen * 2);
-                    index += icoLen;
-                }
-                else
-                {
-                    IconLocation = CodePagesEncodingProvider.Instance.GetEncoding(1252).GetString(rawBytes, index, icoLen);
-                }
-                index += icoLen;
+                IconLocation = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
             }
 
 
@@ -379,70 +222,28 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
 
             foreach (var extraBlock in extraByteBlocks)
             {
-                try
-                {
-                    var sig = (ExtraDataTypes)BitConverter.ToInt32(extraBlock, 4);
-
-                    switch (sig)
-                    {
-                        case ExtraDataTypes.TrackerDataBlock:
-                            var tb = new TrackerDataBaseBlock(extraBlock);
-                            ExtraBlocks.Add(tb);
-                            break;
-                        case ExtraDataTypes.ConsoleDataBlock:
-                            var cdb = new ConsoleDataBlock(extraBlock);
-                            ExtraBlocks.Add(cdb);
-                            break;
-                        case ExtraDataTypes.ConsoleFeDataBlock:
-                            var cfeb = new ConsoleFeDataBlock(extraBlock);
-                            ExtraBlocks.Add(cfeb);
-                            break;
-                        case ExtraDataTypes.DarwinDataBlock:
-                            var db = new DarwinDataBlock(extraBlock);
-                            ExtraBlocks.Add(db);
-                            break;
-                        case ExtraDataTypes.EnvironmentVariableDataBlock:
-                            var eb = new EnvironmentVariableDataBlock(extraBlock);
-                            ExtraBlocks.Add(eb);
-                            break;
-                        case ExtraDataTypes.IconEnvironmentDataBlock:
-                            var ib = new IconEnvironmentDataBlock(extraBlock);
-                            ExtraBlocks.Add(ib);
-                            break;
-                        case ExtraDataTypes.KnownFolderDataBlock:
-                            var kf = new KnownFolderDataBlock(extraBlock);
-                            ExtraBlocks.Add(kf);
-                            break;
-                        case ExtraDataTypes.PropertyStoreDataBlock:
-                            var ps = new PropertyStoreDataBlock(extraBlock);
-
-                            ExtraBlocks.Add(ps);
-                            break;
-                        case ExtraDataTypes.ShimDataBlock:
-                            var sd = new KnownFolderDataBlock(extraBlock);
-                            ExtraBlocks.Add(sd);
-                            break;
-                        case ExtraDataTypes.SpecialFolderDataBlock:
-                            var sf = new SpecialFolderDataBlock(extraBlock);
-                            ExtraBlocks.Add(sf);
-                            break;
-                        case ExtraDataTypes.VistaAndAboveIdListDataBlock:
-                            var vid = new VistaAndAboveIdListDataBlock(extraBlock);
-                            ExtraBlocks.Add(vid);
-                            break;
-                        default:
-                            throw new Exception(
-                                $"Unknown extra data block signature: 0x{sig:X}. Please send lnk file to saericzimmerman@gmail.com so support can be added");
-                    }
-                }
-                catch (Exception e)
-                {
-                    var dmg = new DamagedDataBlock(extraBlock, e.Message);
-                    ExtraBlocks.Add(dmg);
-
-                }
-
+                ExtraBlocks.Add(ExtraDataBlockFactory.Create(extraBlock));
             }
+        }
+
+        private static string ReadLengthPrefixedString(byte[] rawBytes, ref int index, bool isUnicode)
+        {
+            var length = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+
+            string value;
+            if (isUnicode)
+            {
+                value = Encoding.Unicode.GetString(rawBytes, index, length * 2);
+                index += length;
+            }
+            else
+            {
+                value = Utils.EncodingProvider.Ansi.GetString(rawBytes, index, length);
+            }
+            index += length;
+
+            return value;
         }
 
         public List<ShellBag> TargetIDs { get; }

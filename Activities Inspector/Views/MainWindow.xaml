@@ -24,7 +24,8 @@
                 <Image Source="../Assets/shield.png" 
                        Visibility="{Binding RequiresAdminPrivileges, Converter={StaticResource BoolToVisibilityConverter}}"
                        Width="20" 
-                       Height="20" />
+                       Height="20"
+                       Margin="8,0,5,0" />
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
@@ -32,7 +33,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.18*"
-                              MinWidth="240"/>
+                              MinWidth="270"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
