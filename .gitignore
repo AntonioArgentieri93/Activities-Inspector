@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# WPF / MSBuild generated files accidentally emitted at solution root
+# (temporary markup-compilation projects and auto-generated sources)
+*_wpftmp*
+*.g.cs
+*.g.i.cs
+GeneratedInternalTypeHelper*
+*.AssemblyAttributes.cs
