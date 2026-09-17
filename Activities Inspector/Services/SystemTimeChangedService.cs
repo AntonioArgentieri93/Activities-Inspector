@@ -78,7 +78,8 @@ namespace Activities_Inspector.Services
                 foreach (EventLogEntry entry in eventLog.Entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (entry.InstanceId == AppConstants.EventLog.SystemTimeChangedEventId)
+                    if (entry.InstanceId == AppConstants.EventLog.SystemTimeChangedEventId &&
+                        entry.Source == AppConstants.EventLog.SecurityProviderName)
                         entries.Add(entry);
                 }
 

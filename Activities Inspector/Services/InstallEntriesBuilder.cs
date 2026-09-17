@@ -87,7 +87,9 @@ namespace Activities_Inspector.Services
             return Task.Run(() =>
             {
                 var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
-                var installedPrograms = events.Where(ev => ev.InstanceId == 11707).ToList();
+                var installedPrograms = events.Where(ev =>
+                    ev.InstanceId == AppConstants.EventLog.MsiInstallEventId &&
+                    ev.Source == AppConstants.EventLog.MsiInstallerProviderName).ToList();
 
                 var entries = new List<InstallEntry>();
 

@@ -32,9 +32,12 @@ namespace Activities_Inspector.Constants
         {
             public const string SecurityLog = "Security";
             public const string ApplicationLog = "Application";
+            public const string SecurityProviderName = "Microsoft-Windows-Security-Auditing";
+            public const string MsiInstallerProviderName = "MsiInstaller";
             public const int LogonEventId = 4624;
             public const int LogoffEventId = 4647;
             public const int SystemTimeChangedEventId = 4616;
+            public const int MsiInstallEventId = 11707;
         }
 
         public static class Prefetch

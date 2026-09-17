@@ -93,7 +93,9 @@ namespace Activities_Inspector.Services
 
         private IEnumerable<LogOnEntry> GetLogOnEntries(List<EventLogEntry> systemEvents)
         {
-            var logOnEntries = systemEvents.Where(ev => ev.InstanceId == AppConstants.EventLog.LogonEventId).ToList();
+            var logOnEntries = systemEvents.Where(ev =>
+                ev.InstanceId == AppConstants.EventLog.LogonEventId &&
+                ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
 
             var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
 
@@ -109,7 +111,9 @@ namespace Activities_Inspector.Services
 
         private IEnumerable<LogoffEntry> GetLogOffEntries(List<EventLogEntry> systemEvents)
         {
-            var logOffEntries = systemEvents.Where(ev => ev.InstanceId == AppConstants.EventLog.LogoffEventId).ToList();
+            var logOffEntries = systemEvents.Where(ev =>
+                ev.InstanceId == AppConstants.EventLog.LogoffEventId &&
+                ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
 
             foreach (var entry in logOffEntries)
             {
