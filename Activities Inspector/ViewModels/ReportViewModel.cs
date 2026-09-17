@@ -173,6 +173,10 @@ namespace Activities_Inspector.ViewModels
             _messenger = messenger;
 
             IsBusy = false;
+            // Necessario: la base notifica OnIsBusyChanged solo su cambio
+            // effettivo, quindi l'assegnazione qui sopra è no-op e IsEnabled
+            // resterebbe false per sempre (finestra disabilitata).
+            IsEnabled = true;
 
             _messenger.Register<OnUsageInfosChangedMessage>(this, HandleOnUsageInfosChangedMessage);
             _messenger.Register<OnInstallEntriesChangedMessage>(this, HandleOnInstallEntriesChangedMessage);
