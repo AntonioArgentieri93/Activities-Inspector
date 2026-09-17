@@ -62,12 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="ActivitiesInspector_Licensing">
-      <HintPath>..\..\..\..\source\repos\ActivitiesInspector_License\ActivitiesInspector_Licensing\bin\Debug\netcoreapp3.1\ActivitiesInspector_Licensing.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Assets\icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
