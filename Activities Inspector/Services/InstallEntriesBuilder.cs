@@ -3,7 +3,6 @@ using Microsoft.Win32;
 using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
-using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +22,8 @@ namespace Activities_Inspector.Services
                 var users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                 var events = await GetFromEventsAsync(cancellationToken);
 
-                return Result.Success(wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList());
+                var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList();
+                return Result.Success(DedupeEntries(all));
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
@@ -44,8 +44,11 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     using var sk = rk.OpenSubKey(skName);
-                    if (sk != null)
-                        entries.Add(BuildInstallEntry(sk));
+                    if (sk == null) continue;
+
+                    var entry = BuildInstallEntry(sk);
+                    if (entry != null)
+                        entries.Add(entry);
                 }
 
                 return entries;
@@ -65,8 +68,11 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     using var sk = rk.OpenSubKey(skName);
-                    if (sk != null)
-                        entries.Add(BuildInstallEntry(sk));
+                    if (sk == null) continue;
+
+                    var entry = BuildInstallEntry(sk);
+                    if (entry != null)
+                        entries.Add(entry);
                 }
 
                 return entries;
@@ -109,10 +115,51 @@ namespace Activities_Inspector.Services
         }
 
         private static InstallEntry BuildInstallEntry(RegistryKey registryKey)
-            => new InstallEntry(
-                registryKey.GetValue("DisplayName")?.ToString(),
+        {
+            var displayName = registryKey.GetValue("DisplayName")?.ToString();
+
+            if (!ShouldInclude(
+                displayName,
+                registryKey.GetValue("SystemComponent")?.ToString(),
+                registryKey.GetValue("ParentKeyName")?.ToString(),
+                registryKey.GetValue("ReleaseType")?.ToString()))
+            {
+                return null;
+            }
+
+            return new InstallEntry(
+                displayName,
                 registryKey.ToString(),
                 registryKey.GetValue("InstallLocation")?.ToString(),
                 DateBuilder.BuildDateTimeFromString(registryKey.GetValue("InstallDate")?.ToString()));
+        }
+
+        internal static bool ShouldInclude(string displayName, string systemComponent, string parentKeyName, string releaseType)
+        {
+            if (string.IsNullOrWhiteSpace(displayName)) return false;
+            if (string.Equals(systemComponent, "1", StringComparison.Ordinal)) return false;
+            if (!string.IsNullOrEmpty(parentKeyName)) return false;
+            return !IsUpdateRelease(releaseType);
+        }
+
+        private static bool IsUpdateRelease(string releaseType)
+        {
+            if (string.IsNullOrEmpty(releaseType)) return false;
+
+            return releaseType.Equals("Hotfix", StringComparison.OrdinalIgnoreCase)
+                || releaseType.Equals("Security Update", StringComparison.OrdinalIgnoreCase)
+                || releaseType.Equals("Update", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static List<InstallEntry> DedupeEntries(List<InstallEntry> entries)
+        {
+            if (entries == null) return new List<InstallEntry>();
+
+            return entries
+                .Where(e => !string.IsNullOrEmpty(e.FileName))
+                .GroupBy(e => e.FileName, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.OrderByDescending(e => e.InstallDate.HasValue).First())
+                .ToList();
+        }
     }
 }
