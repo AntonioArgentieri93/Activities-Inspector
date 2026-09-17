@@ -48,13 +48,18 @@ namespace Activities_Inspector.ViewModels
             foreach (var mode in viewerModes)
             {
                 var requiresAdminPrivileges = mode == ViewerMode.Prefetch ||
-                    mode == ViewerMode.Sessions ||
+                    mode == ViewerMode.Sessions || 
                     mode == ViewerMode.ShellBags ||
                     mode == ViewerMode.SystemTimeChanged ||
                     mode == ViewerMode.Usb;
 
                 Items.Add(new LeftNavbarItem(mode, requiresAdminPrivileges));
             }
+
+            // Selezione iniziale coerente con la pagina mostrata di default
+            // nel Frame (TimeIntervals): senza questa, all'avvio nessuna
+            // voce del menu laterale risulta selezionata.
+            SelectedItem = Items.FirstOrDefault(item => item.ViewerMode == ViewerMode.TimeIntervals);
         }
     }
 }
