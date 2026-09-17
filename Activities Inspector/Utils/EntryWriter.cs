@@ -16,13 +16,18 @@ namespace Activities_Inspector.Utils
             _entryFormatter = entryFormatter;
         }
 
-        public void WriteEntries(IEnumerable<Entry> entries, EntryType entryType)
+        public void WriteEntries(IEnumerable<Entry> entries, EntryType entryType, string footerNote = null)
         {
             WriteLine(BuildHeader(entryType));
 
             foreach(var entry in entries)
             {
                 WriteLine(_entryFormatter.AsCsv(entry));
+            }
+
+            if (!string.IsNullOrEmpty(footerNote))
+            {
+                WriteLine(footerNote);
             }
         }
 

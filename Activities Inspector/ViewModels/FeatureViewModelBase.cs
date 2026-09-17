@@ -45,6 +45,7 @@ namespace Activities_Inspector.ViewModels
 
         protected abstract EntryType EntryType { get; }
         protected virtual bool RequiresAdmin => false;
+        protected virtual string ExportFooterNote => null;
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
@@ -62,7 +63,7 @@ namespace Activities_Inspector.ViewModels
 
             try
             {
-                var result = await Exporter.SaveEntriesDataAsync(Entries, EntryType, token);
+                var result = await Exporter.SaveEntriesDataAsync(Entries, EntryType, token, ExportFooterNote);
 
                 if (result.IsSuccess)
                 {

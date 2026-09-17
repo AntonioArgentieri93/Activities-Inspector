@@ -21,7 +21,7 @@ namespace Activities_Inspector.Services
             InitFileSystem();
         }
 
-        public async Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default)
+        public async Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace Activities_Inspector.Services
                 var filePath = Path.Combine(ExportedDataRootPath, $"{fileName}.csv");
 
                 using var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter);
-                writer.WriteEntries(entries, entryType);
+                writer.WriteEntries(entries, entryType, footerNote);
 
                 return Result.Success();
             }
