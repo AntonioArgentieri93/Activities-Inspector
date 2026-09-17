@@ -25,6 +25,9 @@ namespace Activities_Inspector.Utils
                 case (int)Version.Win10:
                     Version = Version.Win10;
                     break;
+                case (int)Version.Win11:
+                    Version = Version.Win11;
+                    break;
             }
 
             index += 4; //version
