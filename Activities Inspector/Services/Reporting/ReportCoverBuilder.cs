@@ -28,6 +28,40 @@ namespace Activities_Inspector.Services.Reporting
             InsertMainHeader(section);
             AddCover(content.ProvisioningType, content.Other, content.InquirerSurname, content.InquirerName,
                 content.InquirerQualification, content.ObjectDescription, section);
+            AddTableOfContents(section);
+        }
+
+        public static void ConfigureTablesSection(Section section)
+        {
+            section.PageSetup.PageFormat = PageFormat.A4;
+            section.PageSetup.Orientation = Orientation.Landscape;
+            section.PageSetup.TopMargin = Unit.FromCentimeter(1);
+            section.PageSetup.BottomMargin = Unit.FromCentimeter(1);
+            section.PageSetup.LeftMargin = Unit.FromCentimeter(1);
+            section.PageSetup.RightMargin = Unit.FromCentimeter(1);
+        }
+
+        public void AddTableOfContents(Section section)
+        {
+            ReportFormatting.AddNewPage(section);
+
+            var title = section.AddParagraph("Indice");
+            title.Format.OutlineLevel = OutlineLevel.Level1;
+            ReportFormatting.OverrideParagraphDefaultStyle(title, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            foreach (var entry in ReportSectionCatalog.All)
+            {
+                var paragraph = section.AddParagraph();
+                ReportFormatting.OverrideParagraphDefaultStyle(paragraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                        Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+                paragraph.Format.AddTabStop(Unit.FromMillimeter(170), TabAlignment.Right, TabLeader.Dots);
+
+                var link = paragraph.AddHyperlink(entry.Key);
+                link.AddText(entry.Title);
+                paragraph.AddTab();
+                paragraph.AddPageRefField(entry.Key);
+            }
         }
 
         private static void SetPageProperties(Document document, Section section)

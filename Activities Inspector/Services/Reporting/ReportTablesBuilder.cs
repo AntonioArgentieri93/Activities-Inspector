@@ -12,25 +12,27 @@ namespace Activities_Inspector.Services.Reporting
     {
         public static void AddContents(UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries,
             PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
-            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section)
+            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            AddUsageInfos(usageInfos, section);
-            AddInstalledPrograms(installedPrograms, section);
-            AddRecentFolderEntries(recentFolderEntries, section);
-            AddPrefetchInfoEntries(prefetchInfoEntries, section);
-            AddShellbagsEntries(shellBagEntries, section);
-            AddSessionEntries(sessionEntries, section);
-            AddSystemTimeChangedEntries(systemTimeChangedEntries, section);
-            AddUsbEntries(usbEntries,section);
+            AddUsageInfos(usageInfos, section, totalWidthMm);
+            AddInstalledPrograms(installedPrograms, section, totalWidthMm);
+            AddRecentFolderEntries(recentFolderEntries, section, totalWidthMm);
+            AddPrefetchInfoEntries(prefetchInfoEntries, section, totalWidthMm);
+            AddShellbagsEntries(shellBagEntries, section, totalWidthMm);
+            AddSessionEntries(sessionEntries, section, totalWidthMm);
+            AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm);
+            AddUsbEntries(usbEntries, section, totalWidthMm);
         }
 
-        public static void AddUsageInfos(UsageInfo[] usageInfos, Section section)
+        public static void AddUsageInfos(UsageInfo[] usageInfos, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (usageInfos == null || usageInfos.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Orari di accensione e spegnimento");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.UsageTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.UsageKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -43,6 +45,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (usageInfos == null || usageInfos.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -60,7 +68,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Avvio anomalo"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var info in usageInfos)
             {
@@ -91,13 +99,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddInstalledPrograms(InstallEntry[] installedPrograms, Section section)
+        public static void AddInstalledPrograms(InstallEntry[] installedPrograms, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (installedPrograms == null || installedPrograms.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Programmi installati");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.InstalledTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.InstalledKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -112,6 +121,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (installedPrograms == null || installedPrograms.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -128,7 +143,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Data"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in installedPrograms)
             {
@@ -151,13 +166,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddRecentFolderEntries(RecentFolderEntry[] recentFolderEntries, Section section)
+        public static void AddRecentFolderEntries(RecentFolderEntry[] recentFolderEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (recentFolderEntries == null || recentFolderEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("File recenti");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.RecentsTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.RecentsKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -171,6 +187,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (recentFolderEntries == null || recentFolderEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -188,7 +210,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Elementi saltati"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in recentFolderEntries)
             {
@@ -212,13 +234,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddPrefetchInfoEntries(PrefetchInfoEntry[] prefetchInfoEntries, Section section)
+        public static void AddPrefetchInfoEntries(PrefetchInfoEntry[] prefetchInfoEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (prefetchInfoEntries == null || prefetchInfoEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Prefetch");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.PrefetchTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.PrefetchKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -232,6 +255,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (prefetchInfoEntries == null || prefetchInfoEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -250,7 +279,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Esecuzioni"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in prefetchInfoEntries)
             {
@@ -275,13 +304,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddShellbagsEntries(ShellBagEntry[] shellBagEntries, Section section)
+        public static void AddShellbagsEntries(ShellBagEntry[] shellBagEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (shellBagEntries == null || shellBagEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Shellbags");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.ShellbagsTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.ShellbagsKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -298,6 +328,12 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
 
+            if (shellBagEntries == null || shellBagEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
+
             var table = section.AddTable();
 
             table.Borders.Top.Width = 1;
@@ -312,7 +348,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Percorso nel registro"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in shellBagEntries)
             {
@@ -334,13 +370,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddSessionEntries(SessionEntry[] sessionEntries, Section section)
+        public static void AddSessionEntries(SessionEntry[] sessionEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (sessionEntries == null || sessionEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("LogOn/LogOff");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.SessionsTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.SessionsKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -353,6 +390,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (sessionEntries == null || sessionEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -375,7 +418,7 @@ namespace Activities_Inspector.Services.Reporting
                 "ID sessione"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in sessionEntries)
             {
@@ -417,13 +460,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddSystemTimeChangedEntries(SystemTimeChangedEntry[] systemTimeChangedEntries, Section section)
+        public static void AddSystemTimeChangedEntries(SystemTimeChangedEntry[] systemTimeChangedEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (systemTimeChangedEntries == null || systemTimeChangedEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Modifiche all'ora di Sistema");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.TimeChangedTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.TimeChangedKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -436,7 +480,7 @@ namespace Activities_Inspector.Services.Reporting
                 "nel momento in cui la discrepanza fra i due orari è maggiore di 1 minuto il software comunica con una possibile manomissione.\n" +
                 "Il messaggio in questione può comparire anche nel momento in cui non è possibile interrogare il server di riferimento " +
                 "perchè il PC non è connesso alla rete oppure il server non è raggiungibile. \n" +
-                "Se la tabella dei risultati è vuota allora è molto probabile che non vi siano state alterazioni da parte dell’utente " +
+                "Se non viene riportato alcun elemento allora e' molto probabile che non vi siano state alterazioni da parte dell'utente " +
                 "o che tali log siano stati eliminati dall’utente svuotando il registro eventi. \n" +
                 "La tabella dei risultati riporta il nome dell’utente che ha fatto l’eventuale modifica, " +
                 "l’ora in cui è stato effettuata l’operazione, l’ora iniziale del PC prima della modifica e " +
@@ -445,6 +489,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (systemTimeChangedEntries == null || systemTimeChangedEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -461,7 +511,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Nuovo orario"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in systemTimeChangedEntries)
             {
@@ -477,13 +527,14 @@ namespace Activities_Inspector.Services.Reporting
             }
         }
 
-        public static void AddUsbEntries(UsbEntry[] usbEntries, Section section)
+        public static void AddUsbEntries(UsbEntry[] usbEntries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
         {
-            if (usbEntries == null || usbEntries.Length == 0) return;
-
             ReportFormatting.AddNewPage(section);
 
-            var promiseParagraph = section.AddParagraph("Periferiche USB");
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.UsbTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.UsbKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
@@ -502,6 +553,12 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (usbEntries == null || usbEntries.Length == 0)
+            {
+                ReportFormatting.AddNoResultsNote(section);
+                return;
+            }
 
             var table = section.AddTable();
 
@@ -522,7 +579,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Ultima rimozione"
             };
 
-            ReportFormatting.AddHeaderToTable(table, headerLabels);
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
 
             foreach (var item in usbEntries)
             {

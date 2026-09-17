@@ -27,11 +27,18 @@ namespace Activities_Inspector.Services
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var document = new Document();
-                var section = document.AddSection();
+                var coverSection = document.AddSection();
 
-                _coverBuilder.BuildCover(content, document, section);
+                _coverBuilder.BuildCover(content, document, coverSection);
+
+                var tablesSection = document.AddSection();
+                ReportCoverBuilder.ConfigureTablesSection(tablesSection);
                 ReportTablesBuilder.AddContents(content.UsageInfos, content.InstallEntries, content.RecentFolderEntries, content.PrefetchInfoEntries, content.ShellBagEntries,
-                    content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, section);
+                    content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, tablesSection,
+                    ReportFormatting.LandscapeContentWidthMillimeters);
+
+                ReportFormatting.AddFooterWithPageNumbers(coverSection);
+                ReportFormatting.AddFooterWithPageNumbers(tablesSection);
 
                 var doc = FinalizeDocument(document);
 

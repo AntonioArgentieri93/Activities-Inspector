@@ -6,8 +6,50 @@ using Table = MigraDocCore.DocumentObjectModel.Tables.Table;
 
 namespace Activities_Inspector.Services.Reporting
 {
+    internal static class ReportSectionCatalog
+    {
+        internal const string UsageKey = "usage";
+        internal const string UsageTitle = "Orari di accensione e spegnimento";
+
+        internal const string InstalledKey = "installed";
+        internal const string InstalledTitle = "Programmi installati";
+
+        internal const string RecentsKey = "recents";
+        internal const string RecentsTitle = "File recenti";
+
+        internal const string PrefetchKey = "prefetch";
+        internal const string PrefetchTitle = "Prefetch";
+
+        internal const string ShellbagsKey = "shellbags";
+        internal const string ShellbagsTitle = "Shellbags";
+
+        internal const string SessionsKey = "sessions";
+        internal const string SessionsTitle = "LogOn/LogOff";
+
+        internal const string TimeChangedKey = "timechanged";
+        internal const string TimeChangedTitle = "Modifiche all'ora di Sistema";
+
+        internal const string UsbKey = "usb";
+        internal const string UsbTitle = "Periferiche USB";
+
+        internal static readonly (string Key, string Title)[] All =
+        {
+            (UsageKey, UsageTitle),
+            (InstalledKey, InstalledTitle),
+            (RecentsKey, RecentsTitle),
+            (PrefetchKey, PrefetchTitle),
+            (ShellbagsKey, ShellbagsTitle),
+            (SessionsKey, SessionsTitle),
+            (TimeChangedKey, TimeChangedTitle),
+            (UsbKey, UsbTitle)
+        };
+    }
+
     internal static class ReportFormatting
     {
+        internal const double PortraitContentWidthMillimeters = 192;
+        internal const double LandscapeContentWidthMillimeters = 277; // A4 landscape meno margini da 1 cm
+        internal const string NoResultsNoteText = "Nessun elemento rilevato per questa funzionalita'.";
         internal static void OverrideParagraphDefaultStyle(Paragraph paragraph, Unit size, Unit marginLeft,
             Unit spaceBefore, Unit marginRight, Unit spaceAfter, string name = "Arial",
             bool bold = false, ParagraphAlignment horizontalAlignment = ParagraphAlignment.Left, Underline underline = Underline.None)
@@ -32,10 +74,10 @@ namespace Activities_Inspector.Services.Reporting
             pageBreak.Format.PageBreakBefore = true;
         }
 
-        internal static void AddHeaderToTable(Table table, List<string> labels)
+        internal static void AddHeaderToTable(Table table, List<string> labels, double totalWidthMm = PortraitContentWidthMillimeters)
         {
             var columnsNumber = labels.Count;
-            var columnWidth = (float)192 / columnsNumber;
+            var columnWidth = (float)totalWidthMm / columnsNumber;
 
             for (var i=0; i<columnsNumber; i++)
             {
@@ -43,6 +85,7 @@ namespace Activities_Inspector.Services.Reporting
             }
 
             var row = table.AddRow();
+            row.HeadingFormat = true;
 
             for (var i = 0; i < columnsNumber; i++)
             {
@@ -50,10 +93,31 @@ namespace Activities_Inspector.Services.Reporting
 
                 var paragraph = cell.AddParagraph(labels[i]);
 
-                OverrideParagraphDefaultStyle(paragraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                OverrideParagraphDefaultStyle(paragraph, 9, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,
                     horizontalAlignment: ParagraphAlignment.Center);
             }
+        }
+
+        internal static void AddFooterWithPageNumbers(Section section)
+        {
+            var paragraph = section.Footers.Primary.AddParagraph();
+            paragraph.AddText("Activities Inspector - Pagina ");
+            paragraph.AddPageField();
+            paragraph.AddText(" di ");
+            paragraph.AddNumPagesField();
+
+            OverrideParagraphDefaultStyle(paragraph, 8, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                horizontalAlignment: ParagraphAlignment.Center);
+        }
+
+        internal static void AddNoResultsNote(Section section)
+        {
+            var note = section.AddParagraph(NoResultsNoteText);
+            OverrideParagraphDefaultStyle(note, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+            note.Format.Font.Italic = true;
         }
 
         internal static void AddRowValuesToTable(Table table, List<string> values)
@@ -70,6 +134,8 @@ namespace Activities_Inspector.Services.Reporting
                 paragraph.Format.Alignment = ParagraphAlignment.Left;
                 paragraph.Format.SpaceBefore = 0;
                 paragraph.Format.SpaceAfter = 0;
+                paragraph.Format.Font.Size = 9;
+                paragraph.Format.Font.Name = "Arial";
                 cell.Format.LeftIndent = 0; // Il contenuto della cella non ha margini a sx
             }
         }

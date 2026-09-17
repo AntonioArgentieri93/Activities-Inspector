@@ -1,8 +1,11 @@
 using Activities_Inspector.Models;
+using Activities_Inspector.Services;
 using Activities_Inspector.Services.Reporting;
 using MigraDocCore.DocumentObjectModel;
+using MigraDocCore.DocumentObjectModel.Fields;
 using MigraDocCore.DocumentObjectModel.Tables;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -153,13 +156,86 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
-        public void Empty_Data_Adds_No_Table()
+        public void Empty_Data_Adds_Explicit_Note_And_No_Table()
         {
             var document = new Document();
             var section = document.AddSection();
             ReportTablesBuilder.AddUsageInfos(new UsageInfo[0], section);
 
             Assert.Empty(section.Elements.OfType<Table>());
+            Assert.Contains(ReportFormatting.NoResultsNoteText, ParagraphTexts(section));
+        }
+
+        [Fact]
+        public void All_Sections_Present_Even_When_Empty()
+        {
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddContents(
+                new UsageInfo[0], new InstallEntry[0], new RecentFolderEntry[0], new PrefetchInfoEntry[0],
+                new ShellBagEntry[0], new SessionEntry[0], new SystemTimeChangedEntry[0], new UsbEntry[0], section);
+
+            Assert.Empty(section.Elements.OfType<Table>());
+            Assert.Equal(ReportSectionCatalog.All.Length, ParagraphTexts(section).Count(t => t == ReportFormatting.NoResultsNoteText));
+            Assert.Equal(
+                ReportSectionCatalog.All.Select(e => e.Key).OrderBy(k => k),
+                section.Elements.OfType<Paragraph>().SelectMany(p => p.Elements.OfType<BookmarkField>()).Select(b => b.Name).OrderBy(n => n));
+        }
+
+        [Fact]
+        public void Header_Row_Repeats_On_Each_Page()
+        {
+            var infos = new[]
+            {
+                new UsageInfo(
+                    new IntervalEntry(new DateTime(2024, 1, 15, 8, 0, 0), new DateTime(2024, 1, 15, 18, 0, 0)),
+                    TimeSpan.FromHours(10), "PC")
+            };
+
+            var table = BuildTable(s => ReportTablesBuilder.AddUsageInfos(infos, s));
+
+            Assert.True(table.Rows[0].HeadingFormat);
+        }
+
+        [Fact]
+        public void Table_Of_Contents_Lists_All_Sections_With_Page_References()
+        {
+            var document = new Document();
+            var section = document.AddSection();
+            new ReportCoverBuilder(new FakeNetService()).AddTableOfContents(section);
+
+            var expectedKeys = ReportSectionCatalog.All.Select(e => e.Key).OrderBy(k => k).ToArray();
+            var paragraphs = section.Elements.OfType<Paragraph>().ToArray();
+
+            Assert.Equal(
+                expectedKeys,
+                paragraphs.SelectMany(p => p.Elements.OfType<Hyperlink>()).Select(h => h.Name).OrderBy(n => n));
+            Assert.Equal(
+                expectedKeys,
+                paragraphs.SelectMany(p => p.Elements.OfType<PageRefField>()).Select(f => f.Name).OrderBy(n => n));
+        }
+
+        [Fact]
+        public void Footer_Contains_Page_Numbers()
+        {
+            var document = new Document();
+            var section = document.AddSection();
+            ReportFormatting.AddFooterWithPageNumbers(section);
+
+            Assert.NotEmpty(section.Footers.Primary.Elements);
+        }
+
+        private static List<string> ParagraphTexts(Section section)
+        {
+            return section.Elements.OfType<Paragraph>()
+                .Select(p => string.Concat(p.Elements.OfType<Text>().Select(t => t.Content)))
+                .ToList();
+        }
+
+        private sealed class FakeNetService : INetService
+        {
+            public IEnumerable<string> GetAvailablePrivateIPs() => Enumerable.Empty<string>();
+            public string GetPublicIPAddress() => string.Empty;
         }
     }
 }
