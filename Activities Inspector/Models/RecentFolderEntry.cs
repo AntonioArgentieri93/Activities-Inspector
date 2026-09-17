@@ -9,6 +9,8 @@ namespace Activities_Inspector.Models
         public string DataSource { get; set; }
         public string FullPath { get; set; }
 
+        public int SkippedShellItems { get; set; }
+
         public RecentFolderEntry(DateTime actionTime, string fileName, string dataSource, string fullPath)
         {
             ActionTime = actionTime;

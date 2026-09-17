@@ -7,7 +7,7 @@ namespace ActivitiesInspector.UnitTests.Utils
     {
         [Theory]
         [InlineData("abc", true)]
-        [InlineData("  ", true)]
+        [InlineData("  ", false)]
         [InlineData("", false)]
         [InlineData(null, false)]
         public void IsValidStringInput(string input, bool expected)

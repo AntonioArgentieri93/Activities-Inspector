@@ -41,7 +41,11 @@ namespace Activities_Inspector.Services
                     var dataSource = file.FullName;
                     var fullPath = lnkFile.LocalPath;
 
-                    entries.Add(new RecentFolderEntry(actionTime, fileName, dataSource, fullPath));
+                    var entry = new RecentFolderEntry(actionTime, fileName, dataSource, fullPath)
+                    {
+                        SkippedShellItems = lnkFile.SkippedShellItems
+                    };
+                    entries.Add(entry);
                 }
 
                 return Result.Success(entries);

@@ -84,7 +84,16 @@ namespace Activities_Inspector.Utils
 
                 foreach (var shellItem in shellItemsRaw)
                 {
-                    TargetIDs.Add(ShellItemFactory.Create(shellItem));
+                    try
+                    {
+                        TargetIDs.Add(ShellItemFactory.Create(shellItem));
+                    }
+                    catch
+                    {
+                        // Un singolo item malformato o di tipo sconosciuto non
+                        // deve invalidare l'intero file: lo si salta e si conta.
+                        SkippedShellItems++;
+                    }
                 }
 
                 index += shellItemSize;
@@ -247,6 +256,9 @@ namespace Activities_Inspector.Utils
         }
 
         public List<ShellBag> TargetIDs { get; }
+
+        public int SkippedShellItems { get; private set; }
+
         public List<ExtraDataBase> ExtraBlocks { get; }
 
 
