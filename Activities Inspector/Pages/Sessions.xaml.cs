@@ -52,6 +52,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Sessions_AccessType):
                     propertyType = SessionPropertyType.AccessType;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Sessions_SessionId):
+                    propertyType = SessionPropertyType.Index;
+                    break;
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Sessions_Note):
                     propertyType = SessionPropertyType.Note;
                     break;
@@ -90,6 +93,7 @@ namespace Activities_Inspector.Pages
         Duration,
         NetworkAddress,
         AccessType,
-        Note
+        Note,
+        Index
     }
 }

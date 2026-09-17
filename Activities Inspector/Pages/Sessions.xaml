@@ -31,17 +31,18 @@
 
         <DataTemplate DataType="{x:Type models:SessionEntry}">
             <Grid Width="{Binding ActualWidth, ElementName=MainGrid}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding UserName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
 
@@ -77,6 +78,10 @@
                            ToolTip="{Binding Note}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="8"/>
+                <TextBlock Text="{Binding Index}"
+                           ToolTip="{Binding Index}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="9"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -111,6 +116,7 @@
               x:Name="Header"
               Grid.Row="1">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -161,6 +167,10 @@
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="8"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_SessionId}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="9"  />
         </Grid>
 
         <ListBox ItemsSource="{Binding Sessions}"

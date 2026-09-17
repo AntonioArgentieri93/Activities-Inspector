@@ -34,6 +34,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddUsageInfos(infos, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(5, table.Rows[0].Cells.Count);
+            Assert.Equal(5, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -48,6 +50,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddInstalledPrograms(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(4, table.Rows[0].Cells.Count);
+            Assert.Equal(4, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -62,6 +66,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddRecentFolderEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(5, table.Rows[0].Cells.Count);
+            Assert.Equal(5, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -76,6 +82,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddPrefetchInfoEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(6, table.Rows[0].Cells.Count);
+            Assert.Equal(6, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -90,6 +98,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddShellbagsEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(3, table.Rows[0].Cells.Count);
+            Assert.Equal(3, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -107,6 +117,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddSessionEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(10, table.Rows[0].Cells.Count);
+            Assert.Equal(10, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -120,6 +132,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddSystemTimeChangedEntries(entries, s));
 
             Assert.Equal(2, table.Rows.Count);
+            Assert.Equal(4, table.Rows[0].Cells.Count);
+            Assert.Equal(4, table.Rows[1].Cells.Count);
         }
 
         [Fact]
@@ -134,6 +148,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddUsbEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
+            Assert.Equal(8, table.Rows[0].Cells.Count);
+            Assert.Equal(8, table.Rows[1].Cells.Count);
         }
 
         [Fact]

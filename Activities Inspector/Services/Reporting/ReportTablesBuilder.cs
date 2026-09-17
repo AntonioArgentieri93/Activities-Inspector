@@ -371,7 +371,8 @@ namespace Activities_Inspector.Services.Reporting
                 "Durata",
                 "Indirizzo di rete",
                 "Tipo di accesso",
-                "Note"
+                "Note",
+                "ID sessione"
             };
 
             ReportFormatting.AddHeaderToTable(table, headerLabels);
@@ -408,7 +409,8 @@ namespace Activities_Inspector.Services.Reporting
                     duration ?? string.Empty,
                     item.NetworkAddress ?? string.Empty,
                     item.AccessType ?? string.Empty,
-                    item.Note ?? string.Empty
+                    item.Note ?? string.Empty,
+                    item.Index ?? string.Empty
                 };
 
                 ReportFormatting.AddRowValuesToTable(table, rowValues);

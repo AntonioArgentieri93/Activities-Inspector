@@ -135,7 +135,7 @@ namespace Activities_Inspector.Services
             var accessType = AccessTypeBuilder.BuildStringSessionType(sessionEntry.AccessType);
 
             return string.Format(
-                "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8}",
+                "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8} ; {9}",
                 sessionEntry.UserName,
                 sessionEntry.Group,
                 sessionEntry.MachineName,
@@ -144,7 +144,8 @@ namespace Activities_Inspector.Services
                 duration,
                 sessionEntry.NetworkAddress,
                 accessType,
-                sessionEntry.Note ?? string.Empty);
+                sessionEntry.Note ?? string.Empty,
+                sessionEntry.Index ?? string.Empty);
         }
 
         private string BuildSystemTimeChangedEntry(SystemTimeChangedEntry systemTimeChangedEntry)

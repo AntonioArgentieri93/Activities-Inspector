@@ -647,6 +647,15 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ID sessione.
+        /// </summary>
+        public static string MainWindows_Sessions_SessionId {
+            get {
+                return ResourceManager.GetString("MainWindows_Sessions_SessionId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prima esecuzione.
         /// </summary>
         public static string MainWindows_Prefetch_FirstRunTime {
