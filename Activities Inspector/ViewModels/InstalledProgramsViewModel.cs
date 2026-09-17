@@ -6,7 +6,9 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using CSharpFunctionalExtensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -14,30 +16,23 @@ using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class InstalledProgramsViewModel : CancellableViewModelBase
+    public class InstalledProgramsViewModel : FeatureViewModelBase<InstallEntry>
     {
         #region Proprietà
 
-        private ObservableCollection<InstallEntry> _installEntries;
-
         public ObservableCollection<InstallEntry> InstallEntries
         {
-            get => _installEntries;
+            get => Entries;
             set
             {
-                var changed = Set(nameof(InstallEntries), ref _installEntries, value);
-
-                if (changed)
-                {
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
+                Entries = value;
+                RaisePropertyChanged(nameof(InstallEntries));
             }
         }
 
         protected override void OnIsBusyChanged()
         {
             LoadInstallEntriesCommand.RaiseCanExecuteChanged();
-            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -49,23 +44,16 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             ?? (_loadInstallEntriesCommand = new RelayCommand(ExecuteLoadInstallEntriesCommand,
                 CanExecuteLoadInstallEntriesCommand));
 
-        private RelayCommand _exportCommand;
-        public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
-                CanExecuteExportCommandAsync));
-
         #endregion
 
         private readonly IInstallEntriesBuilder _installEntriesBuilder;
-        private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public InstalledProgramsViewModel(IInstallEntriesBuilder installEntriesBuilder, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService)
+            : base(dialogService, entriesExporter)
         {
             _installEntriesBuilder = installEntriesBuilder;
-            _entriesExporter = entriesExporter;
             _messenger = messenger;
 
             _messenger.Register<OnSortColumnMessage>(this, HandleOnSortColumnMessage);
@@ -75,122 +63,28 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !IsBusy;
 
         private void ExecuteLoadInstallEntriesCommand()
-            => Forget(LoadInstallEntriesAsync());
+            => Forget(LoadAsync());
 
-        private async Task LoadInstallEntriesAsync()
+        protected override EntryType EntryType => EntryType.InstalledPrograms;
+
+        protected override async Task<Result<List<InstallEntry>>> LoadEntriesAsync(CancellationToken token)
         {
-            if (InstallEntries != null) InstallEntries.Clear();
-            var token = BeginOperation();
-
-            try
-            {
-                var getInstallEntriesResult = await _installEntriesBuilder.GetInstallEntriesAsync(token);
-
-                if (getInstallEntriesResult.IsSuccess)
-                {
-                    InstallEntries = new ObservableCollection<InstallEntry>(getInstallEntriesResult.Value);
-
-                    _messenger.Send(new OnInstallEntriesChangedMessage(InstallEntries.ToList()));
-                }
-                else
-                {
-                    Dialogs.ShowError(getInstallEntriesResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+            return await _installEntriesBuilder.GetInstallEntriesAsync(token);
         }
 
-        private bool CanExecuteExportCommandAsync()
-            => !IsBusy && InstallEntries != null;
-
-        private void ExecuteExportCommand()
-            => Forget(ExportAsync());
-
-        private async Task ExportAsync()
+        protected override void SetEntries(ObservableCollection<InstallEntry> entries)
         {
-            var token = BeginOperation();
+            InstallEntries = entries;
+        }
 
-            try
-            {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(InstallEntries, EntryType.InstalledPrograms, token);
-
-                if (exportResult.IsSuccess)
-                {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
-                }
-                else
-                {
-                    Dialogs.ShowError(exportResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+        protected override void PublishEntries(List<InstallEntry> entries)
+        {
+            _messenger.Send(new OnInstallEntriesChangedMessage(entries));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {
-            if (InstallEntries == null || InstallEntries.Count == 0) return;
-
-            var propertyType = (InstalledProgramsPropertyType)message.NewPropertyType;
-            var isAscending = message.NewIsAscending;
-
-            if (isAscending)
-            {
-                switch (propertyType)
-                {
-                    case InstalledProgramsPropertyType.FileName:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderBy(d => d.FileName));
-                        break;
-                    case InstalledProgramsPropertyType.DataSource:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderBy(d => d.DataSource));
-                        break;
-                    case InstalledProgramsPropertyType.FullPath:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderBy(d => d.FullPath));
-                        break;
-                    case InstalledProgramsPropertyType.InstallDate:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderBy(d => d.InstallDate));
-                        break;
-                }
-            }
-            else
-            {
-                switch (propertyType)
-                {
-                    case InstalledProgramsPropertyType.FileName:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderByDescending(d => d.FileName));
-                        break;
-                    case InstalledProgramsPropertyType.DataSource:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderByDescending(d => d.DataSource));
-                        break;
-                    case InstalledProgramsPropertyType.FullPath:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderByDescending(d => d.FullPath));
-                        break;
-                    case InstalledProgramsPropertyType.InstallDate:
-                        InstallEntries = new ObservableCollection<InstallEntry>(InstallEntries.OrderByDescending(d => d.InstallDate));
-                        break;
-                }
-            }
-
-            _messenger.Send(new OnInstallEntriesChangedMessage(InstallEntries.ToList()));
+            ApplySort(message.NewPropertyType, message.NewIsAscending);
         }
     }
 }

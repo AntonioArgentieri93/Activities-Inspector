@@ -6,7 +6,9 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using CSharpFunctionalExtensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -14,30 +16,23 @@ using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class TimeIntervalsViewModel : CancellableViewModelBase
+    public class TimeIntervalsViewModel : FeatureViewModelBase<UsageInfo>
     {
         #region Proprietà
 
-        private ObservableCollection<UsageInfo> _infos;
-
         public ObservableCollection<UsageInfo> Infos
         {
-            get => _infos;
+            get => Entries;
             set
             {
-                var changed = Set(nameof(Infos), ref _infos, value);
-
-                if (changed)
-                {
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
+                Entries = value;
+                RaisePropertyChanged(nameof(Infos));
             }
         }
 
         protected override void OnIsBusyChanged()
         {
             LoadIntervalsCommand.RaiseCanExecuteChanged();
-            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -49,23 +44,16 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             ?? (_loadIntervalsCommand = new RelayCommand(ExecuteLoadIntervalsCommand,
                 CanExecuteLoadIntervalsCommand));
 
-        private RelayCommand _exportCommand;
-        public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
-                CanExecuteExportCommandAsync));
-
         #endregion
 
         private readonly IUsageLogTimeService _usageLogTimeService;
-        private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public TimeIntervalsViewModel(IUsageLogTimeService usageLogTimeService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService)
+            : base(dialogService, entriesExporter)
         {
             _usageLogTimeService = usageLogTimeService;
-            _entriesExporter = entriesExporter;
             _messenger = messenger;
 
             _messenger.Register<OnSortColumnMessage>(this, HandleOnSortColumnMessage);
@@ -75,76 +63,28 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !IsBusy;
 
         private void ExecuteLoadIntervalsCommand()
-            => Forget(LoadIntervalsAsync());
+            => Forget(LoadAsync());
 
-        private async Task LoadIntervalsAsync()
+        protected override EntryType EntryType => EntryType.TimeIntervals;
+
+        protected override async Task<Result<List<UsageInfo>>> LoadEntriesAsync(CancellationToken token)
         {
-            if (Infos != null) Infos.Clear();
-            var token = BeginOperation();
+            var eventsResult = await _usageLogTimeService.GetSystemEventsAsync(token);
 
-            try
-            {
-                var getSystemEventsResult = await _usageLogTimeService.GetSystemEventsAsync(token);
+            if (!eventsResult.IsSuccess)
+                return Result.Failure<List<UsageInfo>>(eventsResult.Error);
 
-                if (getSystemEventsResult.IsSuccess)
-                {
-                    var events = getSystemEventsResult.Value;
-                    Infos = new ObservableCollection<UsageInfo>(_usageLogTimeService.BuildUsageInfo(events).ToList());
-
-                    _messenger.Send(new OnUsageInfosChangedMessage(Infos.ToList()));
-                }
-                else
-                {
-                    Dialogs.ShowError(getSystemEventsResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+            return Result.Success(_usageLogTimeService.BuildUsageInfo(eventsResult.Value).ToList());
         }
 
-        private bool CanExecuteExportCommandAsync()
-            => !IsBusy && Infos != null;
-
-        private void ExecuteExportCommand()
-            => Forget(ExportAsync());
-
-        private async Task ExportAsync()
+        protected override void SetEntries(ObservableCollection<UsageInfo> entries)
         {
-            var token = BeginOperation();
+            Infos = entries;
+        }
 
-            try
-            {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(Infos, EntryType.TimeIntervals, token);
-
-                if (exportResult.IsSuccess)
-                {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
-                }
-                else
-                {
-                    Dialogs.ShowError(exportResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+        protected override void PublishEntries(List<UsageInfo> entries)
+        {
+            _messenger.Send(new OnUsageInfosChangedMessage(entries));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

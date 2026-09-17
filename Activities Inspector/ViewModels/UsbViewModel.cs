@@ -6,8 +6,10 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using CSharpFunctionalExtensions;
 using RawCopy;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management;
@@ -17,30 +19,23 @@ using System.Windows;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class UsbViewModel : CancellableViewModelBase
+    public class UsbViewModel : FeatureViewModelBase<UsbEntry>
     {
         #region Proprietà
 
-        private ObservableCollection<UsbEntry> _usbEntries;
-
         public ObservableCollection<UsbEntry> UsbEntries
         {
-            get => _usbEntries;
+            get => Entries;
             set
             {
-                var changed = Set(nameof(UsbEntries), ref _usbEntries, value);
-
-                if (changed)
-                {
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
+                Entries = value;
+                RaisePropertyChanged(nameof(UsbEntries));
             }
         }
 
         protected override void OnIsBusyChanged()
         {
             LoadUsbEntriesCommand.RaiseCanExecuteChanged();
-            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -52,25 +47,18 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             ?? (_loadUsbEntriesCommand = new RelayCommand(ExecuteLoadUsbEntriesCommand,
                 CanExecuteLoadUsbEntriesCommand));
 
-        private RelayCommand _exportCommand;
-        public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
-                CanExecuteExportCommandAsync));
-
         #endregion
 
         private readonly IUsbTrackingService _usbTrackingService;
-        private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         private ObservableCollection<UsbEntry> _temp;
 
         public UsbViewModel(IUsbTrackingService usbTrackingService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService)
+            : base(dialogService, entriesExporter)
         {
             _usbTrackingService = usbTrackingService;
-            _entriesExporter = entriesExporter;
             _messenger = messenger;
 
             UsbEntries = new ObservableCollection<UsbEntry>();
@@ -84,152 +72,42 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !IsBusy;
 
         private void ExecuteLoadUsbEntriesCommand()
-            => Forget(LoadUsbEntriesAsync());
+            => Forget(LoadAsync());
 
-        private async Task LoadUsbEntriesAsync()
+        protected override EntryType EntryType => EntryType.Usb;
+
+        protected override bool CheckAccess()
         {
-            if (UsbEntries != null) UsbEntries.Clear();
-            var token = BeginOperation();
-
-            try
+            if (!Helper.IsAdministrator())
             {
-                var isAdministrator = Helper.IsAdministrator();
-
-                if (!isAdministrator)
-                {
-                    Dialogs.ShowInfo("L'applicazione non è stata lanciata con privilegi di amministratore e pertanto " +
-                        "le informazioni sugli orari di inserimento e rimozione del dispositivo non saranno disponibili.");
-                }
-
-                var result = await _usbTrackingService.BuildUsbEntriesAsync(isAdministrator, token);
-
-                if (result.IsSuccess)
-                {
-                    UsbEntries = new ObservableCollection<UsbEntry>(result.Value);
-                    foreach (var usbEntry in result.Value)
-                    {
-                        SyncUsbEntries(new ObservableCollection<UsbEntry>(result.Value), _temp);
-                    }
-
-                    _messenger.Send(new OnUsbEntriesChangedMessage(result.Value));
-                }
-                else
-                {
-                    Dialogs.ShowError("Errore durante il caricamento degli elementi per la funzionalità richiesta.");
-                }
+                Dialogs.ShowInfo("L'applicazione non è stata lanciata con privilegi di amministratore e pertanto " +
+                    "le informazioni sugli orari di inserimento e rimozione del dispositivo non saranno disponibili.");
             }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+
+            return true;
         }
 
-        private bool CanExecuteExportCommandAsync()
-            => !IsBusy && UsbEntries != null;
-
-        private void ExecuteExportCommand()
-            => Forget(ExportAsync());
-
-        private async Task ExportAsync()
+        protected override async Task<Result<List<UsbEntry>>> LoadEntriesAsync(CancellationToken token)
         {
-            var token = BeginOperation();
+            return await _usbTrackingService.BuildUsbEntriesAsync(Helper.IsAdministrator(), token);
+        }
 
-            try
-            {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(UsbEntries, EntryType.Usb, token);
+        protected override void SetEntries(ObservableCollection<UsbEntry> entries)
+        {
+            UsbEntries = entries;
+        }
 
-                if (exportResult.IsSuccess)
-                {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
-                }
-                else
-                {
-                    Dialogs.ShowError(exportResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+        protected override void PublishEntries(List<UsbEntry> entries)
+        {
+            // SyncUsbEntries è idempotente: una singola chiamata equivale
+            // al ciclo originale che la invocava N volte con gli stessi dati.
+            SyncUsbEntries(new ObservableCollection<UsbEntry>(entries), _temp);
+            _messenger.Send(new OnUsbEntriesChangedMessage(entries));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {
-            if (UsbEntries == null || UsbEntries.Count == 0) return;
-
-            var propertyType = (UsbPropertyType)message.NewPropertyType;
-            var isAscending = message.NewIsAscending;
-
-            if (isAscending)
-            {
-                switch (propertyType)
-                {
-                    case UsbPropertyType.DeviceName:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.DeviceName));
-                        break;
-                    case UsbPropertyType.SerialNumber:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.SerialNumber));
-                        break;
-                    case UsbPropertyType.VendorId:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.VendorId));
-                        break;
-                    case UsbPropertyType.ProductId:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.ProductId));
-                        break;
-                    case UsbPropertyType.UsbClass:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.UsbClass));
-                        break;
-                    case UsbPropertyType.LastConnected:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.LastConnected));
-                        break;
-                    case UsbPropertyType.LastRemoved:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderBy(d => d.LastRemoved));
-                        break;
-                }
-            }
-            else
-            {
-                switch (propertyType)
-                {
-                    case UsbPropertyType.DeviceName:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.DeviceName));
-                        break;
-                    case UsbPropertyType.SerialNumber:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.SerialNumber));
-                        break;
-                    case UsbPropertyType.VendorId:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.VendorId));
-                        break;
-                    case UsbPropertyType.ProductId:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.ProductId));
-                        break;
-                    case UsbPropertyType.UsbClass:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.UsbClass));
-                        break;
-                    case UsbPropertyType.LastConnected:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.LastConnected));
-                        break;
-                    case UsbPropertyType.LastRemoved:
-                        UsbEntries = new ObservableCollection<UsbEntry>(UsbEntries.OrderByDescending(d => d.LastRemoved));
-                        break;
-                }
-            }
-
-            _messenger.Send(new OnUsbEntriesChangedMessage(UsbEntries.ToList()));
+            ApplySort(message.NewPropertyType, message.NewIsAscending);
         }
 
         #region Registrazione eventi

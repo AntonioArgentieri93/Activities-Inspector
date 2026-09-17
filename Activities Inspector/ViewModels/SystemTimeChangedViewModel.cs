@@ -6,8 +6,10 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using CSharpFunctionalExtensions;
 using RawCopy;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -15,30 +17,23 @@ using System.Threading.Tasks;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class SystemTimeChangedViewModel : CancellableViewModelBase
+    public class SystemTimeChangedViewModel : FeatureViewModelBase<SystemTimeChangedEntry>
     {
         #region Proprietà
 
-        private ObservableCollection<SystemTimeChangedEntry> _timeChangedEntries;
-
         public ObservableCollection<SystemTimeChangedEntry> TimeChangedEntries
         {
-            get => _timeChangedEntries;
+            get => Entries;
             set
             {
-                var changed = Set(nameof(TimeChangedEntries), ref _timeChangedEntries, value);
-
-                if (changed)
-                {
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
+                Entries = value;
+                RaisePropertyChanged(nameof(TimeChangedEntries));
             }
         }
 
         protected override void OnIsBusyChanged()
         {
             LoadSystemTimeChangedCommand.RaiseCanExecuteChanged();
-            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -50,23 +45,16 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             ?? (_loadSystemTimeChangedCommand = new RelayCommand(ExecuteLoadSystemTimeChangedCommand,
                 CanExecuteLoadSystemTimeChangedCommand));
 
-        private RelayCommand _exportCommand;
-        public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
-                CanExecuteExportCommandAsync));
-
         #endregion
 
         private readonly ISystemTimeChangedService _timeChangedService;
-        private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public SystemTimeChangedViewModel(ISystemTimeChangedService timeChangedService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService)
+            : base(dialogService, entriesExporter)
         {
             _timeChangedService = timeChangedService;
-            _entriesExporter = entriesExporter;
             _messenger = messenger;
 
             _messenger.Register<OnSortColumnMessage>(this, HandleOnSortColumnMessage);
@@ -76,133 +64,29 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !IsBusy;
 
         private void ExecuteLoadSystemTimeChangedCommand()
-            => Forget(LoadSystemTimeChangedAsync());
+            => Forget(LoadAsync());
 
-        private async Task LoadSystemTimeChangedAsync()
+        protected override EntryType EntryType => EntryType.SystemTimeChanged;
+        protected override bool RequiresAdmin => true;
+
+        protected override async Task<Result<List<SystemTimeChangedEntry>>> LoadEntriesAsync(CancellationToken token)
         {
-            if (TimeChangedEntries != null) TimeChangedEntries.Clear();
-            var token = BeginOperation();
-
-            try
-            {
-                var isAdministrator = Helper.IsAdministrator();
-
-                if (isAdministrator)
-                {
-                    var result = await _timeChangedService.GetSystemTimeChangedEntriesAsync(token);
-
-                    if (result.IsSuccess)
-                    {
-                        var events = result.Value;
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(result.Value);
-
-                        _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(TimeChangedEntries.ToList()));
-                    }
-                    else
-                    {
-                        Dialogs.ShowError(result.Error);
-                    }
-                }
-                else
-                {
-                    Dialogs.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
-                        "Riavviare l'applicazione in Modalità Amministratore.");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+            return await _timeChangedService.GetSystemTimeChangedEntriesAsync(token);
         }
 
-        private bool CanExecuteExportCommandAsync()
-            => !IsBusy && TimeChangedEntries != null;
-
-        private void ExecuteExportCommand()
-            => Forget(ExportAsync());
-
-        private async Task ExportAsync()
+        protected override void SetEntries(ObservableCollection<SystemTimeChangedEntry> entries)
         {
-            var token = BeginOperation();
+            TimeChangedEntries = entries;
+        }
 
-            try
-            {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(TimeChangedEntries, EntryType.SystemTimeChanged, token);
-
-                if (exportResult.IsSuccess)
-                {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
-                }
-                else
-                {
-                    Dialogs.ShowError(exportResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+        protected override void PublishEntries(List<SystemTimeChangedEntry> entries)
+        {
+            _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(entries));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {
-            if (TimeChangedEntries == null || TimeChangedEntries.Count == 0) return;
-
-            var propertyType = (SystemTimeChangedPropertyType)message.NewPropertyType;
-            var isAscending = message.NewIsAscending;
-
-            if (isAscending)
-            {
-                switch (propertyType)
-                {
-                    case SystemTimeChangedPropertyType.AccountName:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderBy(d => d.AccountName));
-                        break;
-                    case SystemTimeChangedPropertyType.TimeGenerated:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderBy(d => d.TimeGenerated));
-                        break;
-                    case SystemTimeChangedPropertyType.OldTime:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderBy(d => d.OldTime));
-                        break;
-                    case SystemTimeChangedPropertyType.NewTime:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderBy(d => d.NewTime));
-                        break;
-                }
-            }
-            else
-            {
-                switch (propertyType)
-                {
-                    case SystemTimeChangedPropertyType.AccountName:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderByDescending(d => d.AccountName));
-                        break;
-                    case SystemTimeChangedPropertyType.TimeGenerated:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderByDescending(d => d.TimeGenerated));
-                        break;
-                    case SystemTimeChangedPropertyType.OldTime:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderByDescending(d => d.OldTime));
-                        break;
-                    case SystemTimeChangedPropertyType.NewTime:
-                        TimeChangedEntries = new ObservableCollection<SystemTimeChangedEntry>(TimeChangedEntries.OrderByDescending(d => d.NewTime));
-                        break;
-                }
-            }
-
-            _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(TimeChangedEntries.ToList()));
+            ApplySort(message.NewPropertyType, message.NewIsAscending);
         }
     }
 }

@@ -6,6 +6,7 @@ using ProgettoInformaticaForense_Argentieri.Messages;
 using ProgettoInformaticaForense_Argentieri.Models;
 using ProgettoInformaticaForense_Argentieri.Pages;
 using ProgettoInformaticaForense_Argentieri.Services;
+using CSharpFunctionalExtensions;
 using ProgettoInformaticaForense_Argentieri.Utils;
 using RawCopy;
 using System;
@@ -17,30 +18,23 @@ using System.Threading;
 
 namespace ProgettoInformaticaForense_Argentieri.ViewModels
 {
-    public class ShellBagsViewModel : CancellableViewModelBase
+    public class ShellBagsViewModel : FeatureViewModelBase<ShellBagEntry>
     {
         #region Proprietà
 
-        private ObservableCollection<ShellBagEntry> _shellBagsEntries;
-
         public ObservableCollection<ShellBagEntry> ShellBagsEntries
         {
-            get => _shellBagsEntries;
+            get => Entries;
             set
             {
-                var changed = Set(nameof(ShellBagsEntries), ref _shellBagsEntries, value);
-
-                if (changed)
-                {
-                    ExportCommand.RaiseCanExecuteChanged();
-                }
+                Entries = value;
+                RaisePropertyChanged(nameof(ShellBagsEntries));
             }
         }
 
         protected override void OnIsBusyChanged()
         {
             LoadShellBagsEntriesCommand.RaiseCanExecuteChanged();
-            ExportCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -52,23 +46,16 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             ?? (_loadShellBagsEntriesCommand = new RelayCommand(ExecuteLoadShellBagsEntriesCommand,
                 CanExecuteLoadShellBagsEntriesCommand));
 
-        private RelayCommand _exportCommand;
-        public RelayCommand ExportCommand => _exportCommand
-            ?? (_exportCommand = new RelayCommand(ExecuteExportCommand,
-                CanExecuteExportCommandAsync));
-
         #endregion
 
         private readonly IShellBagsParserService _shellBagsParserService;
-        private readonly IEntriesExporter _entriesExporter;
         private readonly IMessenger _messenger;
 
         public ShellBagsViewModel(IShellBagsParserService shellBagsParserService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService)
+            : base(dialogService, entriesExporter)
         {
             _shellBagsParserService = shellBagsParserService;
-            _entriesExporter = entriesExporter;
             _messenger = messenger;
 
             _messenger.Register<OnSortColumnMessage>(this, HandleOnSortColumnMessage);
@@ -78,90 +65,31 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
             => !IsBusy;
 
         private void ExecuteLoadShellBagsEntriesCommand()
-            => Forget(LoadShellBagsEntriesAsync());
+            => Forget(LoadAsync());
 
-        private async Task LoadShellBagsEntriesAsync()
+        protected override EntryType EntryType => EntryType.ShellBags;
+        protected override bool RequiresAdmin => true;
+
+        protected override async Task<Result<List<ShellBagEntry>>> LoadEntriesAsync(CancellationToken token)
         {
-            if (ShellBagsEntries != null) ShellBagsEntries.Clear();
-            var token = BeginOperation();
+            var shellbagsResult = await _shellBagsParserService.ParseShellBagsAsync(token);
 
-            try
-            {
-                var isAdministrator = Helper.IsAdministrator();
+            if (!shellbagsResult.IsSuccess)
+                return Result.Failure<List<ShellBagEntry>>(shellbagsResult.Error);
 
-                if (isAdministrator)
-                {
-                    var shellbagsResult = await _shellBagsParserService.ParseShellBagsAsync(token);
-
-                    if (shellbagsResult.IsSuccess)
-                    {
-                        var shellBags = shellbagsResult.Value;
-                        var entries = GetShellBagsEntries(shellBags)
-                            .Where(sb => sb.AbsolutePath != string.Empty)
-                            .ToList();
-
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(entries);
-
-                        _messenger.Send(new OnShellBagEntriesChangedMessage(ShellBagsEntries.ToList()));
-                    }
-                    else
-                    {
-                        Dialogs.ShowError(shellbagsResult.Error);
-                    }
-                }
-                else
-                {
-                    Dialogs.ShowInfo("Per eseguire questa funzionalità occorre essere amministratori. " +
-                        "Riavviare l'applicazione in Modalità Amministratore.");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+            return Result.Success(GetShellBagsEntries(shellbagsResult.Value)
+                .Where(sb => sb.AbsolutePath != string.Empty)
+                .ToList());
         }
 
-        private bool CanExecuteExportCommandAsync()
-            => !IsBusy && ShellBagsEntries != null;
-
-        private void ExecuteExportCommand()
-            => Forget(ExportAsync());
-
-        private async Task ExportAsync()
+        protected override void SetEntries(ObservableCollection<ShellBagEntry> entries)
         {
-            var token = BeginOperation();
+            ShellBagsEntries = entries;
+        }
 
-            try
-            {
-                var exportResult = await _entriesExporter.SaveEntriesDataAsync(ShellBagsEntries, EntryType.ShellBags, token);
-
-                if (exportResult.IsSuccess)
-                {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
-                }
-                else
-                {
-                    Dialogs.ShowError(exportResult.Error);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                Dialogs.ShowError(ex.ToString());
-            }
-            finally
-            {
-                EndOperation();
-            }
+        protected override void PublishEntries(List<ShellBagEntry> entries)
+        {
+            _messenger.Send(new OnShellBagEntriesChangedMessage(entries));
         }
 
         private static IEnumerable<ShellBagEntry> GetShellBagsEntries(List<IShellItem> shellBags)
@@ -180,43 +108,7 @@ namespace ProgettoInformaticaForense_Argentieri.ViewModels
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {
-            if (ShellBagsEntries == null || ShellBagsEntries.Count == 0) return;
-
-            var propertyType = (ShellBagsPropertyType)message.NewPropertyType;
-            var isAscending = message.NewIsAscending;
-
-            if (isAscending)
-            {
-                switch (propertyType)
-                {
-                    case ShellBagsPropertyType.AbsolutePath:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderBy(d => d.AbsolutePath));
-                        break;
-                    case ShellBagsPropertyType.LastRegistryWriteDate:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderBy(d => d.LastRegistryWriteDate));
-                        break;
-                    case ShellBagsPropertyType.RegistryPath:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderBy(d => d.RegistryPath));
-                        break;
-                }
-            }
-            else
-            {
-                switch (propertyType)
-                {
-                    case ShellBagsPropertyType.AbsolutePath:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderByDescending(d => d.AbsolutePath));
-                        break;
-                    case ShellBagsPropertyType.LastRegistryWriteDate:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderByDescending(d => d.LastRegistryWriteDate));
-                        break;
-                    case ShellBagsPropertyType.RegistryPath:
-                        ShellBagsEntries = new ObservableCollection<ShellBagEntry>(ShellBagsEntries.OrderByDescending(d => d.RegistryPath));
-                        break;
-                }
-            }
-
-            _messenger.Send(new OnShellBagEntriesChangedMessage(ShellBagsEntries.ToList()));
+            ApplySort(message.NewPropertyType, message.NewIsAscending);
         }
     }
 }
