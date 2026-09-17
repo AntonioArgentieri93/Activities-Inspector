@@ -278,7 +278,8 @@ namespace Activities_Inspector.Services
                 "Accensione",
                 "Spegnimento",
                 "Durata",
-                "Nome macchina"
+                "Nome macchina",
+                "Avvio anomalo"
             };
 
             AddHeaderToTable(table, headerLabels);
@@ -304,7 +305,8 @@ namespace Activities_Inspector.Services
                     DateBuilder.BuildFromDateTime(info.Interval.Start) ?? string.Empty,
                     endInterval ?? string.Empty,
                     duration ?? string.Empty,
-                    info.MachineName ?? string.Empty
+                    info.MachineName ?? string.Empty,
+                    info.Interval.StartedAfterCrash ? "Sì" : "No"
                 };
 
                 AddRowValuesToTable(table, rowValues);
@@ -404,7 +406,8 @@ namespace Activities_Inspector.Services
                 "Nome file",
                 "Sorgente",
                 "Percorso",
-                "Data"
+                "Data",
+                "Elementi saltati"
             };
 
             AddHeaderToTable(table, headerLabels);
@@ -423,7 +426,8 @@ namespace Activities_Inspector.Services
                     item.FileName ?? string.Empty,
                     item.DataSource ?? string.Empty,
                     item.FullPath ?? string.Empty,
-                    actionTime ?? string.Empty
+                    actionTime ?? string.Empty,
+                    item.SkippedShellItems.ToString()
                 };
 
                 AddRowValuesToTable(table, rowValues);
@@ -462,8 +466,8 @@ namespace Activities_Inspector.Services
             {
                 "Nome file",
                 "Sorgente",
-                "Estensione",
-                "Data ultima esecuzione"
+                "Percorso",
+                "Data"
             };
 
             AddHeaderToTable(table, headerLabels);

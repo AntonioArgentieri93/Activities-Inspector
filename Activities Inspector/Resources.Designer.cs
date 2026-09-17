@@ -611,6 +611,24 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avvio anomalo.
+        /// </summary>
+        public static string MainWindows_TimeIntervals_StartedAfterCrash {
+            get {
+                return ResourceManager.GetString("MainWindows_TimeIntervals_StartedAfterCrash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elementi saltati.
+        /// </summary>
+        public static string MainWindows_RecentFolder_SkippedItems {
+            get {
+                return ResourceManager.GetString("MainWindows_RecentFolder_SkippedItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accensione.
         /// </summary>
         public static string MainWindows_TimeIntervals_Start {

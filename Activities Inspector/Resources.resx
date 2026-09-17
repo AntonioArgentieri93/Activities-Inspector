@@ -247,6 +247,12 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="MainWindows_TimeIntervals_MachineName" xml:space="preserve">
     <value>Nome macchina</value>
   </data>
+  <data name="MainWindows_TimeIntervals_StartedAfterCrash" xml:space="preserve">
+    <value>Avvio anomalo</value>
+  </data>
+  <data name="MainWindows_RecentFolder_SkippedItems" xml:space="preserve">
+    <value>Elementi saltati</value>
+  </data>
   <data name="MainWindows_TimeIntervals_Start" xml:space="preserve">
     <value>Accensione</value>
   </data>

@@ -40,6 +40,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_TimeIntervals_MachineName):
                     propertyType = UsageInfoPropertyType.MachineName;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_TimeIntervals_StartedAfterCrash):
+                    propertyType = UsageInfoPropertyType.StartedAfterCrash;
+                    break;
                 default:
                     throw new ArgumentException("Il valore di 'cellName' non corrisponde a nessuna delle proprietà della classe.");
             }
@@ -70,6 +73,7 @@ namespace Activities_Inspector.Pages
         IntervalStart,
         IntervalEnd,
         Duration,
-        MachineName
+        MachineName,
+        StartedAfterCrash
     }
 }

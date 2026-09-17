@@ -33,6 +33,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding FileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -47,6 +48,10 @@
                 <TextBlock Text="{Binding ActionTime, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
+                <TextBlock Text="{Binding SkippedShellItems}"
+                           ToolTip="{Binding SkippedShellItems}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="4"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -85,6 +90,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_RecentFolder_FileName}" 
                        Style="{StaticResource HeaderFieldStyle}"
@@ -102,6 +108,10 @@
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="3"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_RecentFolder_SkippedItems}" 
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="4"  />
         </Grid>
 
         <ListBox ItemsSource="{Binding RecentFolderEntries}"

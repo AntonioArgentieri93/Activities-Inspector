@@ -74,11 +74,12 @@ namespace Activities_Inspector.Services
             var duration = GetDuration(usageInfo.Duration);
 
             return string.Format(
-                "{0} ; {1} ; {2} ; {3}",
+                "{0} ; {1} ; {2} ; {3} ; {4}",
                 usageInfo.Interval.Start.ToString("dd/M/yyyy HH:mm:ss") + $"GMT+{offset.Hours}",
                 endInterval,
                 duration,
-                usageInfo.MachineName);
+                usageInfo.MachineName,
+                usageInfo.Interval.StartedAfterCrash ? "Sì" : "No");
         }
 
         private string BuildInstallEntryFormat(InstallEntry installEntry)
@@ -91,11 +92,12 @@ namespace Activities_Inspector.Services
 
         private string BuildRecentFolderEntryFormat(RecentFolderEntry recentFolderEntry)
             => string.Format(
-                "{0} ; {1} ; {2} ; {3}",
+                "{0} ; {1} ; {2} ; {3} ; {4}",
                 recentFolderEntry.FileName,
                 recentFolderEntry.DataSource,
                 recentFolderEntry.FullPath,
-                DateBuilder.BuildFromDateTime(recentFolderEntry.ActionTime));
+                DateBuilder.BuildFromDateTime(recentFolderEntry.ActionTime),
+                recentFolderEntry.SkippedShellItems);
 
         private string BuildPrefetchInfoEntryFormat(PrefetchInfoEntry prefetchInfoEntry)
             => string.Format(

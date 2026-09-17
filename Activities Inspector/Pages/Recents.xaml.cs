@@ -40,6 +40,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_RecentFolder_ActionTime):
                     propertyType = RecentsFolderEntryPropertyType.ActionTime;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_RecentFolder_SkippedItems):
+                    propertyType = RecentsFolderEntryPropertyType.SkippedShellItems;
+                    break;
                 default:
                     throw new ArgumentException("Il valore di 'cellName' non corrisponde a nessuna delle proprietà della classe.");
             }
@@ -70,6 +73,7 @@ namespace Activities_Inspector.Pages
         ActionTime,
         FileName,
         DataSource,
-        FullPath
+        FullPath,
+        SkippedShellItems
     }
 }

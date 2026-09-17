@@ -110,6 +110,9 @@ namespace Activities_Inspector.ViewModels
                     case UsageInfoPropertyType.MachineName:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderBy(d => d.MachineName));
                         break;
+                    case UsageInfoPropertyType.StartedAfterCrash:
+                        Infos = new ObservableCollection<UsageInfo>(Infos.OrderBy(d => d.Interval.StartedAfterCrash));
+                        break;
                 }
             }
             else
@@ -127,6 +130,9 @@ namespace Activities_Inspector.ViewModels
                         break;
                     case UsageInfoPropertyType.MachineName:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderByDescending(d => d.MachineName));
+                        break;
+                    case UsageInfoPropertyType.StartedAfterCrash:
+                        Infos = new ObservableCollection<UsageInfo>(Infos.OrderByDescending(d => d.Interval.StartedAfterCrash));
                         break;
                 }
             }
