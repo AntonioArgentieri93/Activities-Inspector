@@ -5,6 +5,8 @@ using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +24,8 @@ namespace Activities_Inspector.Services
                 var users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                 var events = await GetFromEventsAsync(cancellationToken);
 
-                var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList();
+                var startMenu = await GetFromStartMenuAsync(cancellationToken);
+                var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
                 return Result.Success(DedupeEntries(all));
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
@@ -158,8 +161,130 @@ namespace Activities_Inspector.Services
             return entries
                 .Where(e => !string.IsNullOrEmpty(e.FileName))
                 .GroupBy(e => e.FileName, StringComparer.OrdinalIgnoreCase)
-                .Select(g => g.OrderByDescending(e => e.InstallDate.HasValue).First())
+                .Select(MergeGroup)
                 .ToList();
+        }
+
+        private static InstallEntry MergeGroup(IGrouping<string, InstallEntry> group)
+        {
+            // Si tiene la riga con percorso registry (prova dell'installazione)
+            // e le si innesta la data migliore: così "senza percorso" resta
+            // sinonimo di "senza chiave" (stealth o disinstallato).
+            var merged = group.FirstOrDefault(e => !string.IsNullOrEmpty(e.FullPath))
+                ?? group.First();
+
+            var dated = group.FirstOrDefault(e => e.InstallDate.HasValue);
+            if (dated != null)
+                merged.InstallDate = dated.InstallDate;
+
+            return merged;
+        }
+
+        private Task<List<InstallEntry>> GetFromStartMenuAsync(CancellationToken cancellationToken)
+        {
+            return Task.Run(() =>
+            {
+                var entries = new List<InstallEntry>();
+
+                foreach (var root in StartMenuDirectories())
+                {
+                    foreach (var lnkPath in EnumerateLnkFiles(root))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        InstallEntry entry = null;
+
+                        try
+                        {
+                            entry = BuildStartMenuEntry(lnkPath);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        if (entry != null)
+                            entries.Add(entry);
+                    }
+                }
+
+                return entries;
+            }, cancellationToken);
+        }
+
+        private static IEnumerable<string> StartMenuDirectories()
+        {
+            var candidates = new[]
+            {
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
+                    "Programs"),
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                    "Programs")
+            };
+
+            return candidates.Where(Directory.Exists);
+        }
+
+        internal static IEnumerable<string> EnumerateLnkFiles(string root)
+        {
+            var stack = new Stack<string>();
+            stack.Push(root);
+
+            while (stack.Count > 0)
+            {
+                var dir = stack.Pop();
+
+                string[] subDirs = Array.Empty<string>();
+                string[] files = Array.Empty<string>();
+
+                try
+                {
+                    subDirs = Directory.GetDirectories(dir);
+                    files = Directory.GetFiles(dir, "*.lnk");
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var file in files)
+                    yield return file;
+
+                foreach (var subDir in subDirs)
+                    stack.Push(subDir);
+            }
+        }
+
+        internal static InstallEntry BuildStartMenuEntry(string lnkPath)
+        {
+            var raw = File.ReadAllBytes(lnkPath);
+            if (raw.Length == 0 || raw[0] != 0x4c) return null;
+
+            var lnkFile = new LnkFile(raw, lnkPath);
+            var target = RecentFilesService.ResolveTargetPath(
+                lnkFile.LocalPath,
+                lnkFile.NetworkShareInfo?.NetworkShareName,
+                lnkFile.CommonPath);
+
+            if (string.IsNullOrEmpty(target) || !File.Exists(target)) return null;
+
+            FileVersionInfo info;
+            try
+            {
+                info = FileVersionInfo.GetVersionInfo(target);
+            }
+            catch
+            {
+                return null;
+            }
+
+            var name = !string.IsNullOrWhiteSpace(info.ProductName) ? info.ProductName
+                : !string.IsNullOrWhiteSpace(info.FileDescription) ? info.FileDescription
+                : Path.GetFileNameWithoutExtension(target);
+
+            return new InstallEntry(name, lnkPath, target, null);
         }
     }
 }

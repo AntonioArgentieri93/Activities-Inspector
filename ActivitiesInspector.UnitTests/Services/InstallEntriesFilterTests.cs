@@ -53,7 +53,7 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
-        public void Dedupe_Prefers_Dated_Entry()
+        public void Dedupe_Enriches_Path_With_Event_Date()
         {
             var entries = new List<InstallEntry>
             {
@@ -64,6 +64,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var result = InstallEntriesBuilder.DedupeEntries(entries);
 
             var single = Assert.Single(result);
+            Assert.Equal("HKLM", single.DataSource);
+            Assert.Equal("C:\\App", single.FullPath);
             Assert.Equal(new DateTime(2024, 1, 15), single.InstallDate);
         }
 
