@@ -52,6 +52,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Sessions_AccessType):
                     propertyType = SessionPropertyType.AccessType;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Sessions_Note):
+                    propertyType = SessionPropertyType.Note;
+                    break;
                 default:
                     throw new ArgumentException("Il valore di 'cellName' non corrisponde a nessuna delle proprietà della classe.");
             }
@@ -86,6 +89,7 @@ namespace Activities_Inspector.Pages
         LogOffTime,
         Duration,
         NetworkAddress,
-        AccessType
+        AccessType,
+        Note
     }
 }

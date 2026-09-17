@@ -629,6 +629,33 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Note.
+        /// </summary>
+        public static string MainWindows_Sessions_Note {
+            get {
+                return ResourceManager.GetString("MainWindows_Sessions_Note", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prima esecuzione.
+        /// </summary>
+        public static string MainWindows_Prefetch_FirstRunTime {
+            get {
+                return ResourceManager.GetString("MainWindows_Prefetch_FirstRunTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Esecuzioni.
+        /// </summary>
+        public static string MainWindows_Prefetch_RunCount {
+            get {
+                return ResourceManager.GetString("MainWindows_Prefetch_RunCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accensione.
         /// </summary>
         public static string MainWindows_TimeIntervals_Start {

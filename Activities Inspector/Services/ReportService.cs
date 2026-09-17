@@ -467,7 +467,9 @@ namespace Activities_Inspector.Services
                 "Nome file",
                 "Sorgente",
                 "Percorso",
-                "Data"
+                "Data",
+                "Prima esecuzione",
+                "Esecuzioni"
             };
 
             AddHeaderToTable(table, headerLabels);
@@ -486,7 +488,9 @@ namespace Activities_Inspector.Services
                     item.ExecutableFileName ?? string.Empty,
                     item.SourceFileName ?? string.Empty,
                     item.Extension ?? string.Empty,
-                    lastRunTime ?? string.Empty
+                    lastRunTime ?? string.Empty,
+                    DateBuilder.BuildFromDateTime(item.FirstRunTime) ?? string.Empty,
+                    item.RunCount.ToString()
                 };
 
                 AddRowValuesToTable(table, rowValues);
@@ -588,7 +592,8 @@ namespace Activities_Inspector.Services
                 "Ora disconnessione",
                 "Durata",
                 "Indirizzo di rete",
-                "Tipo di accesso"
+                "Tipo di accesso",
+                "Note"
             };
 
             AddHeaderToTable(table, headerLabels);
@@ -599,7 +604,7 @@ namespace Activities_Inspector.Services
                 var logOffTime = string.Empty;
                 var duration = string.Empty;
 
-                if (item.LogOnTime != null)
+                if (item.LogOnTime != DateTime.MinValue)
                 {
                     logOnTime = DateBuilder.BuildFromDateTime(item.LogOnTime);
                 }
@@ -624,7 +629,8 @@ namespace Activities_Inspector.Services
                     logOffTime ?? string.Empty,
                     duration ?? string.Empty,
                     item.NetworkAddress ?? string.Empty,
-                    item.AccessType ?? string.Empty
+                    item.AccessType ?? string.Empty,
+                    item.Note ?? string.Empty
                 };
 
                 AddRowValuesToTable(table, rowValues);

@@ -5,6 +5,9 @@ namespace Activities_Inspector.Models
     public class LogoffEntry : LogEntry
     {
         public DateTime TimeGenerated { get; set; }
+        public string AccountName { get; set; }
+        public string DomainName { get; set; }
+        public string MachineName { get; set; }
 
         public LogoffEntry(string index, DateTime timeGenerated) : base(index)
         {

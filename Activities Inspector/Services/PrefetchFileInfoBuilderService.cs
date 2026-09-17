@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,10 +42,9 @@ namespace Activities_Inspector.Services
                     if (lastRunTimes.Count == 0) continue;
 
                     var fileInfo = new FileInfo(executableFilename);
-                    var extension = fileInfo.Extension;
-                    var lastRunTime = lastRunTimes.Last();
-
-                    entries.Add(new PrefetchInfoEntry(executableFilename, sourceFileName, lastRunTime.LocalDateTime, extension));
+                    var entry = BuildEntry(pf, executableFilename, sourceFileName, fileInfo.Extension);
+                    if (entry != null)
+                        entries.Add(entry);
                 }
 
                 return Result.Success(entries);
@@ -53,6 +53,18 @@ namespace Activities_Inspector.Services
             {
                 return Result.Failure<List<PrefetchInfoEntry>>(ex.ToString());
             }
+        }
+
+        internal static PrefetchInfoEntry BuildEntry(IPrefetch pf, string executableFilename, string sourceFileName, string extension)
+        {
+            if (pf.LastRunTimes.Count == 0) return null;
+
+            return new PrefetchInfoEntry(executableFilename, sourceFileName,
+                pf.LastRunTimes.Last().LocalDateTime, extension)
+            {
+                FirstRunTime = pf.LastRunTimes.First().LocalDateTime,
+                RunCount = pf.RunCount
+            };
         }
 
         private Task<List<string>> GetPrefetchFilesNamesAsync(CancellationToken cancellationToken = default)

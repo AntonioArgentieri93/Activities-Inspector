@@ -101,11 +101,13 @@ namespace Activities_Inspector.Services
 
         private string BuildPrefetchInfoEntryFormat(PrefetchInfoEntry prefetchInfoEntry)
             => string.Format(
-                "{0} ; {1} ; {2} ; {3}",
+                "{0} ; {1} ; {2} ; {3} ; {4} ; {5}",
                 prefetchInfoEntry.ExecutableFileName,
                 prefetchInfoEntry.SourceFileName,
                 DateBuilder.BuildFromDateTime(prefetchInfoEntry.LastRunTime),
-                prefetchInfoEntry.Extension);
+                prefetchInfoEntry.Extension,
+                DateBuilder.BuildFromDateTime(prefetchInfoEntry.FirstRunTime),
+                prefetchInfoEntry.RunCount);
 
         private string BuildShellBagEntry(ShellBagEntry shellBagEntry)
             => string.Format(
@@ -133,15 +135,16 @@ namespace Activities_Inspector.Services
             var accessType = AccessTypeBuilder.BuildStringSessionType(sessionEntry.AccessType);
 
             return string.Format(
-                "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7}",
+                "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8}",
                 sessionEntry.UserName,
                 sessionEntry.Group,
                 sessionEntry.MachineName,
-                sessionEntry.LogOnTime,
+                sessionEntry.LogOnTime == DateTime.MinValue ? string.Empty : sessionEntry.LogOnTime.ToString(),
                 logOffTime,
                 duration,
                 sessionEntry.NetworkAddress,
-                accessType);
+                accessType,
+                sessionEntry.Note ?? string.Empty);
         }
 
         private string BuildSystemTimeChangedEntry(SystemTimeChangedEntry systemTimeChangedEntry)

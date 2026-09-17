@@ -12,6 +12,7 @@ namespace Activities_Inspector.Models
         public TimeSpan? Duration { get; set; }
         public string NetworkAddress { get; set; }
         public string AccessType { get; set; }
+        public string Note { get; set; }
 
         public SessionEntry(string index, string userName, string group, string machineName,
             DateTime logOnTime, DateTime? logOffTime, TimeSpan? duration, string networdAddress, string accessType) : base(index)

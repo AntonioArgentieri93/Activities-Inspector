@@ -103,6 +103,28 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
+        public void Start_Is_Consumed_At_Most_Once()
+        {
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
+            {
+                (T0, "M1", true, false),
+                (T1, "M1", true, false),
+                (T2, "M1", false, false),
+                (T2.AddHours(1), "M1", false, false)
+            };
+
+            var pairs = UsageLogTimeService.PairIntervals(points)
+                .Where(p => p.Interval.Start != DateTime.MinValue)
+                .ToList();
+
+            Assert.Equal(3, pairs.Count);
+            Assert.Equal(T1, pairs[0].Interval.Start);
+            Assert.Equal(T0, pairs[1].Interval.Start);
+            Assert.Equal(T1, pairs[2].Interval.Start);
+            Assert.Null(pairs[2].Interval.End);
+        }
+
+        [Fact]
         public void End_Without_Start_Produces_No_Pair()
         {
             var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>

@@ -250,6 +250,15 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="MainWindows_TimeIntervals_StartedAfterCrash" xml:space="preserve">
     <value>Avvio anomalo</value>
   </data>
+  <data name="MainWindows_Sessions_Note" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="MainWindows_Prefetch_FirstRunTime" xml:space="preserve">
+    <value>Prima esecuzione</value>
+  </data>
+  <data name="MainWindows_Prefetch_RunCount" xml:space="preserve">
+    <value>Esecuzioni</value>
+  </data>
   <data name="MainWindows_RecentFolder_SkippedItems" xml:space="preserve">
     <value>Elementi saltati</value>
   </data>

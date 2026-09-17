@@ -13,6 +13,8 @@ namespace Activities_Inspector.Converters
 
             var dateTime = ((DateTime)value);
 
+            if (dateTime == DateTime.MinValue) return string.Empty;
+
             return DateBuilder.BuildFromDateTime(dateTime);
         }
 

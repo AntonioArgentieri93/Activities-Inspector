@@ -46,6 +46,22 @@ namespace Activities_Inspector.Services
 
                         logOnEntries.Remove(selectedLogOnEntry);
                     }
+                    else
+                    {
+                        sessionsList.Add(new SessionEntry(
+                            index: logOffEntry.Index,
+                            userName: logOffEntry.AccountName,
+                            group: logOffEntry.DomainName,
+                            machineName: logOffEntry.MachineName,
+                            logOnTime: DateTime.MinValue,
+                            logOffTime: logOffEntry.TimeGenerated,
+                            duration: null,
+                            networdAddress: string.Empty,
+                            accessType: string.Empty)
+                        {
+                            Note = "Accesso non trovato nel log"
+                        });
+                    }
                 }
 
                 foreach (var logOnEntry in logOnEntries)
@@ -121,7 +137,14 @@ namespace Activities_Inspector.Services
 
             foreach (var entry in logOffEntries)
             {
-                yield return new LogoffEntry(entry.ReplacementStrings[3], entry.TimeGenerated);
+                if (entry.ReplacementStrings.Length < 4) continue;
+
+                yield return new LogoffEntry(entry.ReplacementStrings[3], entry.TimeGenerated)
+                {
+                    AccountName = entry.ReplacementStrings[1],
+                    DomainName = entry.ReplacementStrings[2],
+                    MachineName = entry.MachineName
+                };
             }
         }
 

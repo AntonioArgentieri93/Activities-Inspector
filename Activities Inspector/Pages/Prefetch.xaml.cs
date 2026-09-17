@@ -40,6 +40,12 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Prefetch_LastRunTime):
                     propertyType = PrefetchPropertyType.LastRunTime;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Prefetch_FirstRunTime):
+                    propertyType = PrefetchPropertyType.FirstRunTime;
+                    break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_Prefetch_RunCount):
+                    propertyType = PrefetchPropertyType.RunCount;
+                    break;
                 default:
                     throw new ArgumentException("Il valore di 'cellName' non corrisponde a nessuna delle proprietà della classe.");
             }
@@ -70,6 +76,8 @@ namespace Activities_Inspector.Pages
         ExecutableFileName,
         SourceFileName,
         Extension,
-        LastRunTime
+        LastRunTime,
+        FirstRunTime,
+        RunCount
     }
 }

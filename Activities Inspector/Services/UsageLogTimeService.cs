@@ -114,14 +114,25 @@ namespace Activities_Inspector.Services
             var ends = points.Where(p => !p.IsStart).OrderBy(p => p.Time).ToList();
 
             var result = new List<(IntervalEntry Interval, string MachineName)>();
+            var consumed = new HashSet<int>();
 
             foreach (var end in ends)
             {
-                var candidates = starts.Where(s => s.Time < end.Time).ToList();
+                var candidateIndex = -1;
 
-                if (candidates.Count > 0)
+                for (var i = starts.Count - 1; i >= 0; i--)
                 {
-                    var start = candidates[candidates.Count - 1];
+                    if (!consumed.Contains(i) && starts[i].Time < end.Time)
+                    {
+                        candidateIndex = i;
+                        break;
+                    }
+                }
+
+                if (candidateIndex >= 0)
+                {
+                    consumed.Add(candidateIndex);
+                    var start = starts[candidateIndex];
                     var interval = new IntervalEntry(start.Time, end.Time)
                     {
                         StartedAfterCrash = start.IsCrashBoot
