@@ -26,26 +26,28 @@ namespace Activities_Inspector.Services
             {
                 var prefetchFileNames = await GetPrefetchFilesNamesAsync(cancellationToken);
 
-                var entries = new List<PrefetchInfoEntry>();
-
-                foreach (var fileName in prefetchFileNames)
+                // Parsing CPU-bound su thread pool: senza questo, centinaia
+                // di file verrebbero parsati sullo UI thread (freeze + spinner
+                // mai renderizzato).
+                var entries = await Task.Run(() =>
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var list = new List<PrefetchInfoEntry>();
 
-                    var pf = _parser.Open(fileName);
-                    if (pf == null) continue;
+                    foreach (var fileName in prefetchFileNames)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    var executableFilename = pf.Header.ExecutableFilename;
-                    var sourceFileName = pf.SourceFilename;
-                    var lastRunTimes = pf.LastRunTimes;
+                        var pf = _parser.Open(fileName);
+                        if (pf == null) continue;
 
-                    if (lastRunTimes.Count == 0) continue;
+                        var fileInfo = new FileInfo(pf.Header.ExecutableFilename);
+                        var entry = BuildEntry(pf, pf.Header.ExecutableFilename, pf.SourceFilename, fileInfo.Extension);
+                        if (entry != null)
+                            list.Add(entry);
+                    }
 
-                    var fileInfo = new FileInfo(executableFilename);
-                    var entry = BuildEntry(pf, executableFilename, sourceFileName, fileInfo.Extension);
-                    if (entry != null)
-                        entries.Add(entry);
-                }
+                    return list;
+                }, cancellationToken);
 
                 return Result.Success(entries);
             }

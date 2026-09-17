@@ -49,10 +49,11 @@
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
                 <fa:ImageAwesome Icon="Solid_ExclamationTriangle"
-                                 HorizontalAlignment="Center"
+                                 HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
                                  Foreground="DarkRed"
                                  Width="16"
+                                 Margin="5,0,0,0"
                                  ToolTip="Avvio dopo un arresto anomalo"
                                  Visibility="{Binding Interval.StartedAfterCrash, Converter={StaticResource BoolToVisibilityConverter}}"
                                  Grid.Column="4"/>

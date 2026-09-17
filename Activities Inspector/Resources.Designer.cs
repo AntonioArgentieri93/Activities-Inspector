@@ -629,6 +629,15 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Numero di elementi del collegamento che non è stato possibile interpretare. Il file è stato comunque analizzato.
+        /// </summary>
+        public static string MainWindows_RecentFolder_SkippedItems_Tooltip {
+            get {
+                return ResourceManager.GetString("MainWindows_RecentFolder_SkippedItems_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note.
         /// </summary>
         public static string MainWindows_Sessions_Note {

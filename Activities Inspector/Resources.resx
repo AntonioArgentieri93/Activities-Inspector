@@ -262,6 +262,9 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="MainWindows_RecentFolder_SkippedItems" xml:space="preserve">
     <value>Elementi saltati</value>
   </data>
+  <data name="MainWindows_RecentFolder_SkippedItems_Tooltip" xml:space="preserve">
+    <value>Numero di elementi del collegamento che non è stato possibile interpretare. Il file è stato comunque analizzato.</value>
+  </data>
   <data name="MainWindows_TimeIntervals_Start" xml:space="preserve">
     <value>Accensione</value>
   </data>
@@ -368,13 +371,13 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
     <value>Batch (4)</value>
   </data>
   <data name="Sessions_AccessType_Batch_Tooltip" xml:space="preserve">
-    <value>Il tipo di accesso batch viene utilizzato dai server batch, in cui i processi possono essere esecutori per conto di un utente senza l'intervento diretto.</value>
+    <value>Accesso di un'attività pianificata, senza utente presente.</value>
   </data>
   <data name="Sessions_AccessType_CachedInteractive" xml:space="preserve">
     <value>Cached Interactive (11)</value>
   </data>
   <data name="Sessions_AccessType_CachedInteractive_Tooltip" xml:space="preserve">
-    <value>Un utente ha eseguito l'accesso al computer con credenziali di rete archiviate localmente nel computer. Il controller di dominio non è stato contattato per verificare le credenziali.</value>
+    <value>Accesso con credenziali memorizzate (rete non raggiungibile).</value>
   </data>
   <data name="Sessions_AccessType_CachedRemoteInteractive" xml:space="preserve">
     <value>Cached Remote Interactive (12)</value>
@@ -392,25 +395,25 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
     <value>Interactive (2)</value>
   </data>
   <data name="Sessions_AccessType_Interactive_Tooltip" xml:space="preserve">
-    <value>Un utente ha eseguito l'accesso al computer.</value>
+    <value>Accesso diretto al computer, davanti allo schermo.</value>
   </data>
   <data name="Sessions_AccessType_NetworkCleartext" xml:space="preserve">
     <value>Network Cleartext (8)</value>
   </data>
   <data name="Sessions_AccessType_NetworkClearText_Tooltip" xml:space="preserve">
-    <value>Un utente ha eseguito l'accesso al computer dalla rete. La password dell'utente è stata passata al pacchetto di autenticazione nel formato non crittografato. L'autenticazione incorporata in pacchetto tutte le credenziali hash prima di inviarle attraverso la rete. Le credenziali non attraversano la rete in testo normale (detto anche testo non crittografato).</value>
+    <value>Accesso dalla rete.</value>
   </data>
   <data name="Sessions_AccessType_NewCredentials" xml:space="preserve">
     <value>New Credentials (9)</value>
   </data>
   <data name="Sessions_AccessType_NewCredentials_Tooltip" xml:space="preserve">
-    <value>Un chiamante ha clonato il token corrente e specificato nuove credenziali per le connessioni in uscita. La nuova sessione di accesso ha la stessa identità locale, ma utilizza credenziali diverse per altre connessioni di rete.</value>
+    <value>Accesso con credenziali diverse per le risorse di rete.</value>
   </data>
   <data name="Sessions_AccessType_RemoteInteractive" xml:space="preserve">
     <value>Remote Interactive (10)</value>
   </data>
   <data name="Sessions_AccessType_RemoteInteractive_Tooltip" xml:space="preserve">
-    <value>Un utente ha eseguito l'accesso a questo computer in remoto utilizzando Servizi terminal o Desktop remoto.</value>
+    <value>Accesso in Desktop remoto.</value>
   </data>
   <data name="Sessions_AccessType_Unlock" xml:space="preserve">
     <value>Unlock (7)</value>

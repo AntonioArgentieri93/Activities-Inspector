@@ -109,6 +109,7 @@
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="3"  />
             <TextBlock Text="{x:Static resx:Resources.MainWindows_RecentFolder_SkippedItems}" 
+                       ToolTip="{x:Static resx:Resources.MainWindows_RecentFolder_SkippedItems_Tooltip}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="4"  />
