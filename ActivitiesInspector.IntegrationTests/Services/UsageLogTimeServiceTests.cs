@@ -17,6 +17,7 @@ namespace ActivitiesInspector.IntegrationTests.Services
 
             Assert.True(events.IsSuccess);
             var infos = service.BuildUsageInfo(events.Value).ToList();
+            Assert.NotEmpty(infos);
             Assert.All(infos, info => Assert.False(string.IsNullOrEmpty(info.MachineName)));
         }
     }

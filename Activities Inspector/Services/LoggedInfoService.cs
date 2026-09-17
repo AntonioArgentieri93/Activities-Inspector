@@ -93,9 +93,11 @@ namespace Activities_Inspector.Services
 
         private IEnumerable<LogOnEntry> GetLogOnEntries(List<EventLogEntry> systemEvents)
         {
+#pragma warning disable CS0618 // EventID, non InstanceId: vedi nota in UsageLogTimeService.IsStartEvent.
             var logOnEntries = systemEvents.Where(ev =>
-                ev.InstanceId == AppConstants.EventLog.LogonEventId &&
+                ev.EventID == AppConstants.EventLog.LogonEventId &&
                 ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
+#pragma warning restore CS0618
 
             var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
 
@@ -111,9 +113,11 @@ namespace Activities_Inspector.Services
 
         private IEnumerable<LogoffEntry> GetLogOffEntries(List<EventLogEntry> systemEvents)
         {
+#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
             var logOffEntries = systemEvents.Where(ev =>
-                ev.InstanceId == AppConstants.EventLog.LogoffEventId &&
+                ev.EventID == AppConstants.EventLog.LogoffEventId &&
                 ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
+#pragma warning restore CS0618
 
             foreach (var entry in logOffEntries)
             {
@@ -142,7 +146,7 @@ namespace Activities_Inspector.Services
                 try
                 {
                     parsed = new LogOnEntry(
-                        eventId: (int)entry.InstanceId,
+                        eventId: entry.EventID,
                         machineName: entry.MachineName,
                         index: entry.ReplacementStrings[7],
                         timeGenerated: entry.TimeGenerated,

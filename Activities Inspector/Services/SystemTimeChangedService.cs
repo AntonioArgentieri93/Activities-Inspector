@@ -78,9 +78,11 @@ namespace Activities_Inspector.Services
                 foreach (EventLogEntry entry in eventLog.Entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (entry.InstanceId == AppConstants.EventLog.SystemTimeChangedEventId &&
+#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
+                    if (entry.EventID == AppConstants.EventLog.SystemTimeChangedEventId &&
                         entry.Source == AppConstants.EventLog.SecurityProviderName)
                         entries.Add(entry);
+#pragma warning restore CS0618
                 }
 
                 return entries;

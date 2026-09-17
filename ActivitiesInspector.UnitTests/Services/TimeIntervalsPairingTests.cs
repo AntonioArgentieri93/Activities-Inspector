@@ -17,11 +17,11 @@ namespace ActivitiesInspector.UnitTests.Services
         {
             // Scenario del bug: due boot su macchine diverse, la chiusura
             // deve portare il nome della macchina che l'ha aperta.
-            var points = new List<(DateTime Time, string Machine, bool IsStart)>
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
             {
-                (T0, "M1", true),
-                (T1, "M2", true),
-                (T2, "M2", false)
+                (T0, "M1", true, false),
+                (T1, "M2", true, false),
+                (T2, "M2", false, false)
             };
 
             var pairs = UsageLogTimeService.PairIntervals(points);
@@ -35,9 +35,9 @@ namespace ActivitiesInspector.UnitTests.Services
         [Fact]
         public void Open_Interval_Keeps_Last_Start_Machine()
         {
-            var points = new List<(DateTime Time, string Machine, bool IsStart)>
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
             {
-                (T0, "M1", true)
+                (T0, "M1", true, false)
             };
 
             var pairs = UsageLogTimeService.PairIntervals(points);
@@ -51,11 +51,11 @@ namespace ActivitiesInspector.UnitTests.Services
         [Fact]
         public void Unsorted_Input_Pairs_By_Time()
         {
-            var points = new List<(DateTime Time, string Machine, bool IsStart)>
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
             {
-                (T2, "M1", false),
-                (T1, "M1", true),
-                (T0, "M1", true)
+                (T2, "M1", false, false),
+                (T1, "M1", true, false),
+                (T0, "M1", true, false)
             };
 
             var pairs = UsageLogTimeService.PairIntervals(points);
@@ -68,18 +68,46 @@ namespace ActivitiesInspector.UnitTests.Services
         public void Empty_Input_Yields_Filterable_Sentinel()
         {
             var pairs = UsageLogTimeService.PairIntervals(
-                new List<(DateTime Time, string Machine, bool IsStart)>());
+                new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>());
 
             var single = Assert.Single(pairs);
             Assert.Equal(DateTime.MinValue, single.Interval.Start);
         }
 
         [Fact]
+        public void Crash_Boot_Flags_Interval()
+        {
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
+            {
+                (T1, "M2", true, true),
+                (T2, "M2", false, false)
+            };
+
+            var pairs = UsageLogTimeService.PairIntervals(points);
+
+            Assert.True(pairs[0].Interval.StartedAfterCrash);
+        }
+
+        [Fact]
+        public void Normal_Boot_Does_Not_Flag()
+        {
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
+            {
+                (T1, "M2", true, false),
+                (T2, "M2", false, false)
+            };
+
+            var pairs = UsageLogTimeService.PairIntervals(points);
+
+            Assert.False(pairs[0].Interval.StartedAfterCrash);
+        }
+
+        [Fact]
         public void End_Without_Start_Produces_No_Pair()
         {
-            var points = new List<(DateTime Time, string Machine, bool IsStart)>
+            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
             {
-                (T2, "M1", false)
+                (T2, "M1", false, false)
             };
 
             var pairs = UsageLogTimeService.PairIntervals(points)

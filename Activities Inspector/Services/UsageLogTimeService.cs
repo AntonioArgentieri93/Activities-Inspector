@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
 using System;
 using System.Collections.Generic;
@@ -43,10 +44,18 @@ namespace Activities_Inspector.Services
 
             var points = events
                 .Where(IsStartEvent)
-                .Select(ev => (Time: ev.TimeGenerated, Machine: ev.MachineName, IsStart: true))
+                .Select(ev => (
+                    Time: ev.TimeGenerated,
+                    Machine: ev.MachineName,
+                    IsStart: true,
+                    IsCrashBoot: ev.InstanceId == AppConstants.EventLog.UnexpectedShutdownEventId))
                 .Concat(events
                     .Where(IsEndEvent)
-                    .Select(ev => (Time: ev.TimeGenerated, Machine: ev.MachineName, IsStart: false)))
+                    .Select(ev => (
+                        Time: ev.TimeGenerated,
+                        Machine: ev.MachineName,
+                        IsStart: false,
+                        IsCrashBoot: false)))
                 .ToList();
 
             var pairs = PairIntervals(points)
@@ -65,20 +74,41 @@ namespace Activities_Inspector.Services
 
         private static bool IsStartEvent(EventLogEntry ev)
         {
-            return (ev.InstanceId == 1 || ev.InstanceId == 41)
-                && ev.CategoryNumber != 5
+            if (ev.CategoryNumber == 5)
+                return false;
+
+            // NOTA: si usa EventID (obsoleto) e non InstanceId: per gli eventi
+            // scritti dai servizi (es. 6005/6006) InstanceId contiene anche i
+            // bit di severity (es. 2147489653), quindi il match esatto richiede
+            // EventID. Verificato empiricamente sul log di sistema.
+#pragma warning disable CS0618
+            bool isBoot = ev.EventID == AppConstants.EventLog.BootEventId
+                && ev.Source == AppConstants.EventLog.EventLogProviderName
                 && ev.EntryType == EventLogEntryType.Information;
+
+            // Il 41 (unexpected shutdown) è di livello Critical, non Information.
+            bool isCrash = ev.EventID == AppConstants.EventLog.UnexpectedShutdownEventId
+                && ev.Source == AppConstants.EventLog.KernelPowerProviderName;
+#pragma warning restore CS0618
+
+            return isBoot || isCrash;
         }
 
         private static bool IsEndEvent(EventLogEntry ev)
         {
-            return (ev.InstanceId == 6006 || ev.InstanceId == 42)
-                && ev.CategoryNumber != 5
-                && ev.EntryType == EventLogEntryType.Information;
+            if (ev.CategoryNumber == 5 || ev.EntryType != EventLogEntryType.Information)
+                return false;
+
+#pragma warning disable CS0618
+            return (ev.EventID == AppConstants.EventLog.ShutdownEventId &&
+                    ev.Source == AppConstants.EventLog.EventLogProviderName)
+                || (ev.EventID == AppConstants.EventLog.SleepEventId &&
+                    ev.Source == AppConstants.EventLog.KernelPowerProviderName);
+#pragma warning restore CS0618
         }
 
         internal static List<(IntervalEntry Interval, string MachineName)> PairIntervals(
-            List<(DateTime Time, string Machine, bool IsStart)> points)
+            List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)> points)
         {
             var starts = points.Where(p => p.IsStart).OrderBy(p => p.Time).ToList();
             var ends = points.Where(p => !p.IsStart).OrderBy(p => p.Time).ToList();
@@ -92,7 +122,11 @@ namespace Activities_Inspector.Services
                 if (candidates.Count > 0)
                 {
                     var start = candidates[candidates.Count - 1];
-                    result.Add((new IntervalEntry(start.Time, end.Time), start.Machine));
+                    var interval = new IntervalEntry(start.Time, end.Time)
+                    {
+                        StartedAfterCrash = start.IsCrashBoot
+                    };
+                    result.Add((interval, start.Machine));
                 }
             }
 
@@ -103,7 +137,11 @@ namespace Activities_Inspector.Services
             else
             {
                 var last = starts[starts.Count - 1];
-                result.Add((new IntervalEntry(last.Time, null), last.Machine));
+                var openInterval = new IntervalEntry(last.Time, null)
+                {
+                    StartedAfterCrash = last.IsCrashBoot
+                };
+                result.Add((openInterval, last.Machine));
             }
 
             return result;

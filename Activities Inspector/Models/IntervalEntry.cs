@@ -7,6 +7,8 @@ namespace Activities_Inspector.Models
         public DateTime Start { get; set; }
         public DateTime? End { get; set; }
 
+        public bool StartedAfterCrash { get; set; }
+
         public IntervalEntry(DateTime start, DateTime? end)
         {
             Start = start;

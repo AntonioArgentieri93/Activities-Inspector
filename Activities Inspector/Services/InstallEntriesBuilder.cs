@@ -87,9 +87,11 @@ namespace Activities_Inspector.Services
             return Task.Run(() =>
             {
                 var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
+#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
                 var installedPrograms = events.Where(ev =>
-                    ev.InstanceId == AppConstants.EventLog.MsiInstallEventId &&
+                    ev.EventID == AppConstants.EventLog.MsiInstallEventId &&
                     ev.Source == AppConstants.EventLog.MsiInstallerProviderName).ToList();
+#pragma warning restore CS0618
 
                 var entries = new List<InstallEntry>();
 

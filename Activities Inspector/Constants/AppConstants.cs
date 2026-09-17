@@ -38,6 +38,12 @@ namespace Activities_Inspector.Constants
             public const int LogoffEventId = 4647;
             public const int SystemTimeChangedEventId = 4616;
             public const int MsiInstallEventId = 11707;
+            public const int BootEventId = 6005;
+            public const int ShutdownEventId = 6006;
+            public const int UnexpectedShutdownEventId = 41;
+            public const int SleepEventId = 42;
+            public const string EventLogProviderName = "EventLog";
+            public const string KernelPowerProviderName = "Microsoft-Windows-Kernel-Power";
         }
 
         public static class Prefetch
