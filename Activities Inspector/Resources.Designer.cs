@@ -917,6 +917,24 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unlock (7).
+        /// </summary>
+        public static string Sessions_AccessType_Unlock {
+            get {
+                return ResourceManager.GetString("Sessions_AccessType_Unlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Un utente ha sbloccato la workstation.
+        /// </summary>
+        public static string Sessions_AccessType_Unlock_Tooltip {
+            get {
+                return ResourceManager.GetString("Sessions_AccessType_Unlock_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sessioni.
         /// </summary>
         public static string Sessions_FileName {

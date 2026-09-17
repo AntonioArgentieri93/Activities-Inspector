@@ -18,6 +18,8 @@ namespace Activities_Inspector.Converters
                     return Activities_Inspector.Resources.Sessions_AccessType_Batch_Tooltip;
                 case "8":
                     return Activities_Inspector.Resources.Sessions_AccessType_NetworkClearText_Tooltip;
+                case "7":
+                    return Activities_Inspector.Resources.Sessions_AccessType_Unlock_Tooltip;
                 case "9":
                     return Activities_Inspector.Resources.Sessions_AccessType_NewCredentials_Tooltip;
                 case "10":
@@ -29,7 +31,7 @@ namespace Activities_Inspector.Converters
                 case "13":
                     return Activities_Inspector.Resources.Sessions_AccessType_CachedUnlock_Tooltip;
 
-                default: throw new ArgumentException(nameof(value));
+                default: return value;
             }
         }
 

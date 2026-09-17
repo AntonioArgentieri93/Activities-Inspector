@@ -14,6 +14,8 @@ namespace Activities_Inspector.Utils
                     return Activities_Inspector.Resources.Sessions_AccessType_Batch;
                 case "8":
                     return Activities_Inspector.Resources.Sessions_AccessType_NetworkCleartext;
+                case "7":
+                    return Activities_Inspector.Resources.Sessions_AccessType_Unlock;
                 case "9":
                     return Activities_Inspector.Resources.Sessions_AccessType_NewCredentials;
                 case "10":
@@ -25,7 +27,7 @@ namespace Activities_Inspector.Utils
                 case "13":
                     return Activities_Inspector.Resources.Sessions_AccessType_CachedUnlock;
 
-                default: throw new ArgumentException(nameof(value));
+                default: return value;
             }
         }
     }

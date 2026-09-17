@@ -403,6 +403,12 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="Sessions_AccessType_RemoteInteractive_Tooltip" xml:space="preserve">
     <value>Un utente ha eseguito l'accesso a questo computer in remoto utilizzando Servizi terminal o Desktop remoto.</value>
   </data>
+  <data name="Sessions_AccessType_Unlock" xml:space="preserve">
+    <value>Unlock (7)</value>
+  </data>
+  <data name="Sessions_AccessType_Unlock_Tooltip" xml:space="preserve">
+    <value>Un utente ha sbloccato la workstation.</value>
+  </data>
   <data name="Sessions_FileName" xml:space="preserve">
     <value>Sessioni</value>
   </data>
