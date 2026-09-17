@@ -160,6 +160,7 @@ namespace Activities_Inspector.ViewModels
         private RecentFolderEntry[] _recentFolderEntries;
         private PrefetchInfoEntry[] _prefetchInfoEntries;
         private ShellBagEntry[] _shellBagEntries;
+        private bool _shellBagsPartial;
         private SessionEntry[] _sessionEntries;
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
@@ -213,7 +214,8 @@ namespace Activities_Inspector.ViewModels
 
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
-                    _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath);
+                    _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
+                    _shellBagsPartial);
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 
@@ -262,6 +264,7 @@ namespace Activities_Inspector.ViewModels
         private void HandleOnShellBagEntriesChangedMessage(OnShellBagEntriesChangedMessage message)
         {
             _shellBagEntries = message.NewShellBagEntries.ToArray();
+            _shellBagsPartial = message.IsPartial;
         }
 
         private void HandleOnSessionEntriesChangedMessage(OnSessionEntriesChangedMessage message)

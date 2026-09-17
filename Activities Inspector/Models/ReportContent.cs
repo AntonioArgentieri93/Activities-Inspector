@@ -19,12 +19,14 @@ namespace Activities_Inspector.Models
         public SystemTimeChangedEntry[] SystemTimeChangedEntries { get; }
         public UsbEntry[] UsbEntries { get; }
         public string DestinationPath { get; }
+        public bool ShellBagsPartial { get; }
 
         public ReportContent(ProvisioningType provisioningType, string other, string inquirerSurname,
             string inquirerName, string inquirerQualification, string objectDescription, UsageInfo[] usageInfos,
             InstallEntry[] installEntries, RecentFolderEntry[] recentFolderEntries,PrefetchInfoEntry[] prefetchInfoEntries, 
             ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries, 
-            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, string destinationPath)
+            SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, string destinationPath,
+            bool shellBagsPartial = false)
         {
             this.ProvisioningType = provisioningType;
             this.Other = other;
@@ -41,6 +43,7 @@ namespace Activities_Inspector.Models
             this.SystemTimeChangedEntries = systemTimeChangedEntries;
             this.UsbEntries = usbEntries;   
             this.DestinationPath = destinationPath; 
+            this.ShellBagsPartial = shellBagsPartial;
         }
     }
 }

@@ -50,6 +50,7 @@ namespace Activities_Inspector.ViewModels
 
         private readonly IShellBagsParserService _shellBagsParserService;
         private readonly IMessenger _messenger;
+        private bool _isPartial;
 
         public ShellBagsViewModel(IShellBagsParserService shellBagsParserService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger)
@@ -77,7 +78,9 @@ namespace Activities_Inspector.ViewModels
             if (!shellbagsResult.IsSuccess)
                 return Result.Failure<List<ShellBagEntry>>(shellbagsResult.Error);
 
-            return Result.Success(GetShellBagsEntries(shellbagsResult.Value)
+            _isPartial = shellbagsResult.Value.IsPartial;
+
+            return Result.Success(GetShellBagsEntries(shellbagsResult.Value.Items)
                 .Where(sb => sb.AbsolutePath != string.Empty)
                 .ToList());
         }
@@ -89,7 +92,15 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<ShellBagEntry> entries)
         {
-            _messenger.Send(new OnShellBagEntriesChangedMessage(entries));
+            _messenger.Send(new OnShellBagEntriesChangedMessage(entries, _isPartial));
+        }
+
+        protected override void AfterLoad()
+        {
+            if (_isPartial)
+            {
+                Dialogs.ShowInfo("Attenzione: risultati ShellBags parziali, la raccolta e' stata interrotta da un errore.");
+            }
         }
 
         private static IEnumerable<ShellBagEntry> GetShellBagsEntries(List<IShellItem> shellBags)

@@ -225,6 +225,37 @@ namespace ActivitiesInspector.UnitTests.Services
             Assert.NotEmpty(section.Footers.Primary.Elements);
         }
 
+        [Fact]
+        public void Partial_ShellBags_Adds_Warning_Before_Table()
+        {
+            var entries = new[]
+            {
+                new ShellBagEntry("C:\\A", new DateTime(2024, 1, 15), "R1")
+            };
+
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddShellbagsEntries(entries, section, isPartial: true);
+
+            Assert.Single(section.Elements.OfType<Table>());
+            Assert.Contains(ReportFormatting.PartialResultsWarningText, ParagraphTexts(section));
+        }
+
+        [Fact]
+        public void Complete_ShellBags_Adds_No_Warning()
+        {
+            var entries = new[]
+            {
+                new ShellBagEntry("C:\\A", new DateTime(2024, 1, 15), "R1")
+            };
+
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddShellbagsEntries(entries, section);
+
+            Assert.DoesNotContain(ReportFormatting.PartialResultsWarningText, ParagraphTexts(section));
+        }
+
         private static List<string> ParagraphTexts(Section section)
         {
             return section.Elements.OfType<Paragraph>()

@@ -8,6 +8,6 @@ namespace Activities_Inspector.Services
 {
     public interface IShellBagsParserService
     {
-        Task<Result<List<IShellItem>>> ParseShellBagsAsync(CancellationToken cancellationToken = default);
+        Task<Result<ShellBagsResult>> ParseShellBagsAsync(CancellationToken cancellationToken = default);
     }
 }

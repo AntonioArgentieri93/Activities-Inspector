@@ -50,6 +50,14 @@ namespace Activities_Inspector.Services.Reporting
         internal const double PortraitContentWidthMillimeters = 192;
         internal const double LandscapeContentWidthMillimeters = 277; // A4 landscape meno margini da 1 cm
         internal const string NoResultsNoteText = "Nessun elemento rilevato per questa funzionalita'.";
+        internal const string PartialResultsWarningText = "Attenzione: risultati parziali, la raccolta e' stata interrotta da un errore.";
+
+        internal static void AddPartialResultsWarning(Section section)
+        {
+            var warning = section.AddParagraph(PartialResultsWarningText);
+            OverrideParagraphDefaultStyle(warning, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                Unit.FromMillimeter(0d), Unit.FromMillimeter(5d), bold: true);
+        }
         internal static void OverrideParagraphDefaultStyle(Paragraph paragraph, Unit size, Unit marginLeft,
             Unit spaceBefore, Unit marginRight, Unit spaceAfter, string name = "Arial",
             bool bold = false, ParagraphAlignment horizontalAlignment = ParagraphAlignment.Left, Underline underline = Underline.None)

@@ -3,7 +3,6 @@ using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,11 +18,11 @@ namespace Activities_Inspector.Services
             _locations = InitPaths();
         }
 
-        public async Task<Result<List<IShellItem>>> ParseShellBagsAsync(CancellationToken cancellationToken = default)
+        public async Task<Result<ShellBagsResult>> ParseShellBagsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var retList = new List<IShellItem>();
+                ShellBagsResult result = null;
 
                 await Task.Run(() =>
                 {
@@ -33,14 +32,15 @@ namespace Activities_Inspector.Services
                         _locations.ScriptFileLocation);
 
                     var onlineReader = new OnlineRegistryReader(parser, false);
-                    retList.AddRange(ShellBagParser.GetShellItems(onlineReader));
+                    var (items, truncated) = ShellBagParser.GetShellItems(onlineReader);
+                    result = new ShellBagsResult(items, truncated);
                 }, cancellationToken);
 
-                return Result.Success(retList);
+                return Result.Success(result);
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                return Result.Failure<List<IShellItem>>(ex.ToString());
+                return Result.Failure<ShellBagsResult>(ex.ToString());
             }
         }
 

@@ -13,13 +13,13 @@ namespace Activities_Inspector.Services.Reporting
         public static void AddContents(UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries,
             PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool shellBagsPartial = false)
         {
             AddUsageInfos(usageInfos, section, totalWidthMm);
             AddInstalledPrograms(installedPrograms, section, totalWidthMm);
             AddRecentFolderEntries(recentFolderEntries, section, totalWidthMm);
             AddPrefetchInfoEntries(prefetchInfoEntries, section, totalWidthMm);
-            AddShellbagsEntries(shellBagEntries, section, totalWidthMm);
+            AddShellbagsEntries(shellBagEntries, section, totalWidthMm, shellBagsPartial);
             AddSessionEntries(sessionEntries, section, totalWidthMm);
             AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm);
             AddUsbEntries(usbEntries, section, totalWidthMm);
@@ -305,7 +305,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddShellbagsEntries(ShellBagEntry[] shellBagEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool isPartial = false)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -327,6 +327,11 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (isPartial)
+            {
+                ReportFormatting.AddPartialResultsWarning(section);
+            }
 
             if (shellBagEntries == null || shellBagEntries.Length == 0)
             {
