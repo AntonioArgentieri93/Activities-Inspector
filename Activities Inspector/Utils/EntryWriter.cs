@@ -36,7 +36,6 @@ namespace Activities_Inspector.Utils
             switch (entryType)
             {
                 case EntryType.InstalledPrograms:
-                case EntryType.Recents:
                     return string.Format(
                         "{0} ; {1} ; {2} ; {3}",
                         Activities_Inspector.Resources.MainWindows_InstallEntry_FileName,
@@ -44,13 +43,24 @@ namespace Activities_Inspector.Utils
                         Activities_Inspector.Resources.MainWindows_InstallEntry_FullPath,
                         Activities_Inspector.Resources.MainWindows_InstallEntry_installDate);
 
+                case EntryType.Recents:
+                    return string.Format(
+                        "{0} ; {1} ; {2} ; {3} ; {4}",
+                        Activities_Inspector.Resources.MainWindows_InstallEntry_FileName,
+                        Activities_Inspector.Resources.MainWindows_InstallEntry_DataSource,
+                        Activities_Inspector.Resources.MainWindows_InstallEntry_FullPath,
+                        Activities_Inspector.Resources.MainWindows_InstallEntry_installDate,
+                        "Elementi saltati");
+
                 case EntryType.Prefetch:
                     return string.Format(
-                        "{0} ; {1} ; {2} ; {3}",
+                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5}",
                         Activities_Inspector.Resources.MainWindows_Prefetch_ExecutableFileName,
                         Activities_Inspector.Resources.MainWindows_Prefetch_SourceFileName,
+                        Activities_Inspector.Resources.MainWindows_Prefetch_LastRunTime,
                         Activities_Inspector.Resources.MainWindows_Prefetch_Extension,
-                        Activities_Inspector.Resources.MainWindows_Prefetch_LastRunTime);
+                        "Prima esecuzione",
+                        "Esecuzioni");
 
                 case EntryType.ShellBags:
                     return string.Format(
@@ -61,15 +71,16 @@ namespace Activities_Inspector.Utils
 
                 case EntryType.TimeIntervals:
                     return string.Format(
-                        "{0} ; {1} ; {2} ; {3}",
+                        "{0} ; {1} ; {2} ; {3} ; {4}",
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_Start,
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_End,
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_Duration,
-                        Activities_Inspector.Resources.MainWindows_TimeIntervals_MachineName);
+                        Activities_Inspector.Resources.MainWindows_TimeIntervals_MachineName,
+                        "Avvio anomalo");
 
                 case EntryType.Sessions:
                     return string.Format(
-                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7}",
+                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8} ; {9}",
                         Activities_Inspector.Resources.MainWindows_Sessions_UserName,
                         Activities_Inspector.Resources.MainWindows_Sessions_Group,
                         Activities_Inspector.Resources.MainWindows_Sessions_MachineName,
@@ -77,7 +88,9 @@ namespace Activities_Inspector.Utils
                         Activities_Inspector.Resources.MainWindows_Sessions_LogOffTime,
                         Activities_Inspector.Resources.MainWindows_Sessions_Duration,
                         Activities_Inspector.Resources.MainWindows_Sessions_NetworkAddress,
-                        Activities_Inspector.Resources.MainWindows_Sessions_AccessType);
+                        Activities_Inspector.Resources.MainWindows_Sessions_AccessType,
+                        "Note",
+                        "ID sessione");
 
                 case EntryType.SystemTimeChanged:
                     return string.Format(
