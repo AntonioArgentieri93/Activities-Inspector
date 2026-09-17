@@ -13,8 +13,12 @@ namespace Activities_Inspector.Services
 {
     public class RecentFilesService : IRecentFilesService
     {
+        public int SkippedFilesCount { get; private set; }
+
         public async Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync(CancellationToken cancellationToken = default)
         {
+            SkippedFilesCount = 0;
+
             try
             {
                 var userName = Environment.UserName;
@@ -33,7 +37,18 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var lnkFile = await LoadFileAsync(file.FullName);
+                    LnkFile lnkFile = null;
+
+                    try
+                    {
+                        lnkFile = await LoadFileAsync(file.FullName);
+                    }
+                    catch
+                    {
+                        SkippedFilesCount++;
+                        continue;
+                    }
+
                     if (lnkFile == null) continue;
 
                     var fullPath = ResolveTargetPath(
@@ -74,17 +89,11 @@ namespace Activities_Inspector.Services
             return suffix.Length == 0 ? share : share + "\\" + suffix;
         }
 
-        private Task<LnkFile?> LoadFileAsync(string lnkFilePath, CancellationToken cancellationToken = default)
+        private Task<LnkFile> LoadFileAsync(string lnkFilePath, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var raw = File.ReadAllBytes(lnkFilePath);
-                return Task.FromResult<LnkFile?>(raw.Length > 0 && raw[0] == 0x4c ? new LnkFile(raw, lnkFilePath) : null);
-            }
-            catch
-            {
-                return Task.FromResult<LnkFile?>(null);
-            }
+            var raw = File.ReadAllBytes(lnkFilePath);
+            if (raw.Length == 0 || raw[0] != 0x4c) return Task.FromResult<LnkFile>(null);
+            return Task.FromResult(new LnkFile(raw, lnkFilePath));
         }
     }
 }

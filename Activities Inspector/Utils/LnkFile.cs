@@ -101,7 +101,78 @@ namespace Activities_Inspector.Utils
 
             if ((Header.DataFlags & LnkHeader.DataFlag.HasLinkInfo) == LnkHeader.DataFlag.HasLinkInfo)
             {
+                if (!TryParseLinkInfo(rawBytes, ref index))
+                    index = rawBytes.Length;
+            }
+
+            var isUnicode = (Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode;
+
+            if ((Header.DataFlags & LnkHeader.DataFlag.HasName) == LnkHeader.DataFlag.HasName)
+            {
+                Name = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
+            }
+
+            if ((Header.DataFlags & LnkHeader.DataFlag.HasRelativePath) == LnkHeader.DataFlag.HasRelativePath)
+            {
+                RelativePath = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
+            }
+
+            if ((Header.DataFlags & LnkHeader.DataFlag.HasWorkingDir) == LnkHeader.DataFlag.HasWorkingDir)
+            {
+                WorkingDirectory = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
+            }
+
+            if ((Header.DataFlags & LnkHeader.DataFlag.HasArguments) == LnkHeader.DataFlag.HasArguments)
+            {
+                Arguments = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
+            }
+
+            if ((Header.DataFlags & LnkHeader.DataFlag.HasIconLocation) == LnkHeader.DataFlag.HasIconLocation)
+            {
+                IconLocation = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
+            }
+
+
+            var extraByteBlocks = new List<byte[]>();
+
+            while (index < rawBytes.Length)
+            {
+                var extraSize = BitConverter.ToInt32(rawBytes, index);
+                if (extraSize == 0)
+                {
+                    break;
+                }
+
+                if (extraSize > rawBytes.Length - index)
+                {
+                    extraSize = rawBytes.Length - index;
+                }
+
+                var extraBytes = new byte[extraSize];
+                Buffer.BlockCopy(rawBytes, index, extraBytes, 0, extraSize);
+
+                extraByteBlocks.Add(extraBytes);
+
+                index += extraSize;
+            }
+
+            ExtraBlocks = new List<ExtraDataBase>();
+
+            foreach (var extraBlock in extraByteBlocks)
+            {
+                ExtraBlocks.Add(ExtraDataBlockFactory.Create(extraBlock));
+            }
+        }
+
+        private bool TryParseLinkInfo(byte[] rawBytes, ref int index)
+        {
+            try
+            {
+                if (index + 4 > rawBytes.Length) return false;
+
                 var locationItemSize = BitConverter.ToInt32(rawBytes, index);
+                if (locationItemSize <= 0 || index + locationItemSize > rawBytes.Length) return false;
+
                 var locationBytes = new byte[locationItemSize];
                 Buffer.BlockCopy(rawBytes, index, locationBytes, 0, locationItemSize);
 
@@ -172,87 +243,42 @@ namespace Activities_Inspector.Utils
                     }
                 }
 
-
                 index += locationItemSize;
+                return true;
             }
-
-            var isUnicode = (Header.DataFlags & LnkHeader.DataFlag.IsUnicode) == LnkHeader.DataFlag.IsUnicode;
-
-            if ((Header.DataFlags & LnkHeader.DataFlag.HasName) == LnkHeader.DataFlag.HasName)
+            catch
             {
-                Name = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
-            }
-
-            if ((Header.DataFlags & LnkHeader.DataFlag.HasRelativePath) == LnkHeader.DataFlag.HasRelativePath)
-            {
-                RelativePath = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
-            }
-
-            if ((Header.DataFlags & LnkHeader.DataFlag.HasWorkingDir) == LnkHeader.DataFlag.HasWorkingDir)
-            {
-                WorkingDirectory = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
-            }
-
-            if ((Header.DataFlags & LnkHeader.DataFlag.HasArguments) == LnkHeader.DataFlag.HasArguments)
-            {
-                Arguments = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
-            }
-
-            if ((Header.DataFlags & LnkHeader.DataFlag.HasIconLocation) == LnkHeader.DataFlag.HasIconLocation)
-            {
-                IconLocation = ReadLengthPrefixedString(rawBytes, ref index, isUnicode);
-            }
-
-
-            var extraByteBlocks = new List<byte[]>();
-
-            while (index < rawBytes.Length)
-            {
-                var extraSize = BitConverter.ToInt32(rawBytes, index);
-                if (extraSize == 0)
-                {
-                    break;
-                }
-
-                if (extraSize > rawBytes.Length - index)
-                {
-                    extraSize = rawBytes.Length - index;
-                }
-
-                var extraBytes = new byte[extraSize];
-                Buffer.BlockCopy(rawBytes, index, extraBytes, 0, extraSize);
-
-                extraByteBlocks.Add(extraBytes);
-
-                index += extraSize;
-            }
-
-            ExtraBlocks = new List<ExtraDataBase>();
-
-            foreach (var extraBlock in extraByteBlocks)
-            {
-                ExtraBlocks.Add(ExtraDataBlockFactory.Create(extraBlock));
+                return false;
             }
         }
 
         private static string ReadLengthPrefixedString(byte[] rawBytes, ref int index, bool isUnicode)
         {
-            var length = BitConverter.ToInt16(rawBytes, index);
-            index += 2;
-
-            string value;
-            if (isUnicode)
+            try
             {
-                value = Encoding.Unicode.GetString(rawBytes, index, length * 2);
+                if (index + 2 > rawBytes.Length) return string.Empty;
+
+                var length = BitConverter.ToInt16(rawBytes, index);
+                index += 2;
+
+                string value;
+                if (isUnicode)
+                {
+                    value = Encoding.Unicode.GetString(rawBytes, index, length * 2);
+                    index += length;
+                }
+                else
+                {
+                    value = Utils.EncodingProvider.Ansi.GetString(rawBytes, index, length);
+                }
                 index += length;
-            }
-            else
-            {
-                value = Utils.EncodingProvider.Ansi.GetString(rawBytes, index, length);
-            }
-            index += length;
 
-            return value;
+                return value;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public List<ShellBag> TargetIDs { get; }
@@ -266,10 +292,10 @@ namespace Activities_Inspector.Utils
         public DateTimeOffset? SourceModified { get; }
         public DateTimeOffset? SourceAccessed { get; }
 
-        public string CommonPath { get; }
-        public string LocalPath { get; }
-        public LnkVolumeInfo VolumeInfo { get; }
-        public NetworkShareInfo NetworkShareInfo { get; }
+        public string CommonPath { get; private set; }
+        public string LocalPath { get; private set; }
+        public LnkVolumeInfo VolumeInfo { get; private set; }
+        public NetworkShareInfo NetworkShareInfo { get; private set; }
         public string SourceFile { get; }
 
         public byte[] RawBytes { get; }
@@ -281,7 +307,7 @@ namespace Activities_Inspector.Utils
         public string Arguments { get; }
         public string IconLocation { get; }
 
-        public LocationFlag LocationFlags { get; }
+        public LocationFlag LocationFlags { get; private set; }
 
         public override string ToString()
         {

@@ -34,6 +34,21 @@ namespace ActivitiesInspector.UnitTests.Utils
         }
 
         [Fact]
+        public void Truncated_LinkInfo_Does_Not_Throw()
+        {
+            var raw = new byte[80];
+
+            raw[0] = 0x4C;
+            Buffer.BlockCopy(BitConverter.GetBytes(0x00000002), 0, raw, 20, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0xFFFFFF), 0, raw, 76, 4);
+
+            var lnk = new LnkFile(raw, "test.lnk");
+
+            Assert.Empty(lnk.TargetIDs);
+            Assert.Null(lnk.LocalPath);
+        }
+
+        [Fact]
         public void Clean_File_Has_Zero_Skipped()
         {
             var raw = new byte[96];

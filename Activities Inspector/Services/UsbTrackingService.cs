@@ -1,7 +1,6 @@
 using Activities_Inspector.Models;
 using CSharpFunctionalExtensions;
 using Activities_Inspector.Constants;
-using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
 using RawCopy;
 using Registry;
@@ -253,24 +252,60 @@ namespace Activities_Inspector.Services
             return DateTimeOffset.FromFileTime(BitConverter.ToInt64(data, 0)).ToLocalTime();
         }
 
+        private static readonly Lazy<HashSet<string>> PluggedDeviceIds =
+            new Lazy<HashSet<string>>(LoadPluggedDeviceIds);
+
         private static bool IsPlugged(string vid, string pid)
         {
+            if (string.IsNullOrEmpty(vid) || string.IsNullOrEmpty(pid)) return false;
+            return PluggedDeviceIds.Value.Contains(vid + "|" + pid);
+        }
+
+        private static HashSet<string> LoadPluggedDeviceIds()
+        {
+            var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             try
             {
-                using var searcher = new ManagementObjectSearcher("Select * From Win32_PnPEntity");
+                using var searcher = new ManagementObjectSearcher("Select DeviceID From Win32_PnPEntity");
                 using var collection = searcher.Get();
                 foreach (var device in collection)
                 {
-                    var usbDevice = Convert.ToString(device);
-                    if (usbDevice.Contains(vid) && usbDevice.Contains(pid))
-                        return true;
+                    if (TryParseVendorProduct(device["DeviceID"] as string, out string vendorId, out string productId))
+                        ids.Add(vendorId + "|" + productId);
                 }
-                return false;
             }
             catch
             {
-                return false;
             }
+
+            return ids;
+        }
+
+        internal static bool TryParseVendorProduct(string deviceId, out string vendorId, out string productId)
+        {
+            vendorId = string.Empty;
+            productId = string.Empty;
+
+            if (string.IsNullOrEmpty(deviceId)) return false;
+
+            var parts = deviceId.Split('\\');
+            if (parts.Length < 2) return false;
+
+            var ids = parts[1].Split('&');
+            if (ids.Length < 2) return false;
+
+            vendorId = StripPrefix(ids[0], "VID_");
+            productId = StripPrefix(ids[1], "PID_");
+
+            return vendorId.Length > 0 && productId.Length > 0;
+        }
+
+        private static string StripPrefix(string value, string prefix)
+        {
+            if (value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return value.Substring(prefix.Length);
+            return string.Empty;
         }
     }
 }

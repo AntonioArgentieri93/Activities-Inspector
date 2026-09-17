@@ -101,6 +101,7 @@ namespace Activities_Inspector.ViewModels
                 {
                     SetEntries(new ObservableCollection<TEntry>(result.Value));
                     PublishEntries(result.Value);
+                    AfterLoad();
                 }
                 else
                 {
@@ -135,6 +136,10 @@ namespace Activities_Inspector.ViewModels
         protected abstract Task<Result<List<TEntry>>> LoadEntriesAsync(CancellationToken token);
         protected abstract void SetEntries(ObservableCollection<TEntry> entries);
         protected abstract void PublishEntries(List<TEntry> entries);
+
+        protected virtual void AfterLoad()
+        {
+        }
 
         protected void ApplySort(object propertyType, bool ascending)
         {

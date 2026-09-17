@@ -82,6 +82,15 @@ namespace Activities_Inspector.ViewModels
             _messenger.Send(new OnRecentFolderEntriesChangedMessage(entries));
         }
 
+        protected override void AfterLoad()
+        {
+            if (_recentFilesService.SkippedFilesCount > 0)
+            {
+                Dialogs.ShowInfo(
+                    $"{_recentFilesService.SkippedFilesCount} file ignorati perché illeggibili.");
+            }
+        }
+
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {
             ApplySort(message.NewPropertyType, message.NewIsAscending);
