@@ -86,7 +86,12 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var substrings = installedPrograms[i].ReplacementStrings[0].Split(':');
+                    var message = installedPrograms[i].ReplacementStrings[0];
+                    if (string.IsNullOrEmpty(message)) continue;
+
+                    var substrings = message.Split(':');
+                    if (substrings.Length < 2) continue;
+
                     var substrings2 = substrings[1].Split(new[] { '-', '-' }, StringSplitOptions.RemoveEmptyEntries);
                     var fileName = substrings2.Length > 0 ? substrings2[0].Trim() : string.Empty;
 

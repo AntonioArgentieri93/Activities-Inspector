@@ -117,29 +117,43 @@ namespace Activities_Inspector.Services
             }
         }
 
+        private static readonly int[] HumanAccessTypes = { 2, 7, 9, 10, 11 };
+
         private static IEnumerable<EventLogEntry> FilterByAccessType(IEnumerable<EventLogEntry> events)
         {
+            // Allow-list dei tipi guidati da persona: 2 interattivo, 7 sblocco,
+            // 9 nuove credenziali, 10 remoto, 11 cached. Fuori restano sistema e
+            // rete (0 sistema, 3 rete, 4 batch, 5 servizio, 8 cleartext).
             return events.Where(ev =>
-                ev.ReplacementStrings[8] != "0" &&
-                ev.ReplacementStrings[8] != "3" &&
-                ev.ReplacementStrings[8] != "5" &&
-                ev.ReplacementStrings[8] != "7");
+                int.TryParse(ev.ReplacementStrings[8], out int accessType) &&
+                HumanAccessTypes.Contains(accessType));
         }
 
         private static IEnumerable<LogOnEntry> BuildLogOnEntries(List<EventLogEntry> entries)
         {
             foreach (var entry in entries)
             {
-                yield return new LogOnEntry(
-                    eventId: (int)entry.InstanceId,
-                    machineName: entry.MachineName,
-                    index: entry.ReplacementStrings[7],
-                    timeGenerated: entry.TimeGenerated,
-                    accountName: entry.ReplacementStrings[5],
-                    domainName: entry.ReplacementStrings[6],
-                    group: entry.ReplacementStrings[2],
-                    accessType: Convert.ToInt32(entry.ReplacementStrings[8]),
-                    sourceAddress: entry.ReplacementStrings[18]);
+                LogOnEntry parsed = null;
+
+                try
+                {
+                    parsed = new LogOnEntry(
+                        eventId: (int)entry.InstanceId,
+                        machineName: entry.MachineName,
+                        index: entry.ReplacementStrings[7],
+                        timeGenerated: entry.TimeGenerated,
+                        accountName: entry.ReplacementStrings[5],
+                        domainName: entry.ReplacementStrings[6],
+                        group: entry.ReplacementStrings[2],
+                        accessType: Convert.ToInt32(entry.ReplacementStrings[8]),
+                        sourceAddress: entry.ReplacementStrings[18]);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                yield return parsed;
             }
         }
 

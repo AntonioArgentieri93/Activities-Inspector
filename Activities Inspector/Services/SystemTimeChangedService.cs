@@ -28,8 +28,10 @@ namespace Activities_Inspector.Services
 
                     if (entry.ReplacementStrings.Length < 8) continue;
 
-                    if (entry.ReplacementStrings[1] == "LOCAL SERVICE" ||
-                        entry.ReplacementStrings[1] == "SERVIZIO LOCALE") continue;
+                    // SID di LOCAL SERVICE: indipendente dalla lingua del
+                    // sistema (il vecchio controllo sul nome perdeva le
+                    // altre localizzazioni, es. francese/tedesco).
+                    if (entry.ReplacementStrings[0] == @"S-1-5-19") continue;
 
                     if (entry.ReplacementStrings[7] == @"C:\Windows\System32\svchost.exe") continue;
 

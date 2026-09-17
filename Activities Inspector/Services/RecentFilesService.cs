@@ -34,12 +34,17 @@ namespace Activities_Inspector.Services
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var lnkFile = await LoadFileAsync(file.FullName);
-                    if (lnkFile == null || string.IsNullOrEmpty(lnkFile.LocalPath)) continue;
+                    if (lnkFile == null) continue;
+
+                    var fullPath = ResolveTargetPath(
+                        lnkFile.LocalPath,
+                        lnkFile.NetworkShareInfo?.NetworkShareName,
+                        lnkFile.CommonPath);
+                    if (string.IsNullOrEmpty(fullPath)) continue;
 
                     var actionTime = file.LastWriteTime;
                     var fileName = Path.GetFileNameWithoutExtension(file.Name);
                     var dataSource = file.FullName;
-                    var fullPath = lnkFile.LocalPath;
 
                     var entry = new RecentFolderEntry(actionTime, fileName, dataSource, fullPath)
                     {
@@ -54,6 +59,19 @@ namespace Activities_Inspector.Services
             {
                 return Result.Failure<List<RecentFolderEntry>>(ex.ToString());
             }
+        }
+
+        internal static string ResolveTargetPath(string localPath, string networkShareName, string commonPath)
+        {
+            if (!string.IsNullOrEmpty(localPath)) return localPath;
+
+            if (string.IsNullOrEmpty(networkShareName))
+                return commonPath ?? string.Empty;
+
+            var share = networkShareName.TrimEnd('\\');
+            var suffix = (commonPath ?? string.Empty).TrimStart('\\');
+
+            return suffix.Length == 0 ? share : share + "\\" + suffix;
         }
 
         private Task<LnkFile?> LoadFileAsync(string lnkFilePath, CancellationToken cancellationToken = default)

@@ -174,18 +174,20 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private static string BuildVendorId(string registryKey)
+        internal static string BuildVendorId(string registryKey)
         {
             if (string.IsNullOrEmpty(registryKey)) return string.Empty;
             var parts = registryKey.Split('&');
-            return parts.Length > 0 ? parts[0].Substring(4) : string.Empty;
+            if (parts.Length == 0 || parts[0].Length <= 4) return string.Empty;
+            return parts[0].Substring(4);
         }
 
-        private static string BuildProductId(string registryKey)
+        internal static string BuildProductId(string registryKey)
         {
             if (string.IsNullOrEmpty(registryKey)) return string.Empty;
             var parts = registryKey.Split('&');
-            return parts.Length > 1 ? parts[1].Substring(4) : string.Empty;
+            if (parts.Length < 2 || parts[1].Length <= 4) return string.Empty;
+            return parts[1].Substring(4);
         }
 
         private static string BuildDeviceName(string registryValue)

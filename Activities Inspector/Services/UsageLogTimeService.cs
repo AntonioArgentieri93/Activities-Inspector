@@ -41,53 +41,73 @@ namespace Activities_Inspector.Services
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
 
-            var machineNames = events.Where(ev => ev.InstanceId == 1 && ev.CategoryNumber != 5 || ev.InstanceId == 41 && 
-                ev.CategoryNumber != 5).Select(ev => ev.MachineName).ToArray();
+            var points = events
+                .Where(IsStartEvent)
+                .Select(ev => (Time: ev.TimeGenerated, Machine: ev.MachineName, IsStart: true))
+                .Concat(events
+                    .Where(IsEndEvent)
+                    .Select(ev => (Time: ev.TimeGenerated, Machine: ev.MachineName, IsStart: false)))
+                .ToList();
 
-            var intervals = GetIntervals(events).Where(interval => interval.Start != DateTime.MinValue).ToArray();
+            var pairs = PairIntervals(points)
+                .Where(p => p.Interval.Start != DateTime.MinValue)
+                .ToArray();
 
-            for (var i = 0; i < intervals.Length; i++)
+            for (var i = 0; i < pairs.Length; i++)
             {
-                var duration = intervals[i].End != null
-                    ? intervals[i].End.Value.Subtract(intervals[i].Start)
-                    : DateTime.Now.Subtract(intervals[i].Start);
+                var duration = pairs[i].Interval.End != null
+                    ? pairs[i].Interval.End.Value.Subtract(pairs[i].Interval.Start)
+                    : DateTime.Now.Subtract(pairs[i].Interval.Start);
 
-                var machineName = machineNames.Length > i ? machineNames[i] : string.Empty;
-                yield return new UsageInfo(intervals[i], duration, machineName);
+                yield return new UsageInfo(pairs[i].Interval, duration, pairs[i].MachineName);
             }
         }
 
-        private IEnumerable<IntervalEntry> GetIntervals(IEnumerable<EventLogEntry> events)
+        private static bool IsStartEvent(EventLogEntry ev)
         {
-            if (events == null) throw new ArgumentNullException(nameof(events));
+            return (ev.InstanceId == 1 || ev.InstanceId == 41)
+                && ev.CategoryNumber != 5
+                && ev.EntryType == EventLogEntryType.Information;
+        }
 
-            var start = events.Where(ev => ev.InstanceId == 1 && ev.CategoryNumber != 5 || 
-                ev.InstanceId == 41 && ev.CategoryNumber != 5 &&
-                ev.EntryType == EventLogEntryType.Information).ToList();
-            var end = events.Where(ev => ev.InstanceId == 6006 && ev.CategoryNumber != 5 || 
-                ev.InstanceId == 42 && ev.CategoryNumber != 5 &&
-                ev.EntryType == EventLogEntryType.Information).ToList();
+        private static bool IsEndEvent(EventLogEntry ev)
+        {
+            return (ev.InstanceId == 6006 || ev.InstanceId == 42)
+                && ev.CategoryNumber != 5
+                && ev.EntryType == EventLogEntryType.Information;
+        }
 
-            for (var i = 0; i < end.Count; i++)
+        internal static List<(IntervalEntry Interval, string MachineName)> PairIntervals(
+            List<(DateTime Time, string Machine, bool IsStart)> points)
+        {
+            var starts = points.Where(p => p.IsStart).OrderBy(p => p.Time).ToList();
+            var ends = points.Where(p => !p.IsStart).OrderBy(p => p.Time).ToList();
+
+            var result = new List<(IntervalEntry Interval, string MachineName)>();
+
+            foreach (var end in ends)
             {
-                var endItem = end[i];
-                var startItem = start.Where(it => it.TimeGenerated < endItem.TimeGenerated).LastOrDefault();
+                var candidates = starts.Where(s => s.Time < end.Time).ToList();
 
-                if (startItem != null)
+                if (candidates.Count > 0)
                 {
-                    yield return new IntervalEntry(startItem.TimeGenerated, endItem.TimeGenerated);
+                    var start = candidates[candidates.Count - 1];
+                    result.Add((new IntervalEntry(start.Time, end.Time), start.Machine));
                 }
             }
 
-            var lastStartItem = start.LastOrDefault();
-            if (lastStartItem == null)
+            if (starts.Count == 0)
             {
-                yield return new IntervalEntry(null);
+                result.Add((new IntervalEntry(null), string.Empty));
             }
             else
             {
-                yield return new IntervalEntry(start.Last().TimeGenerated, null);
+                var last = starts[starts.Count - 1];
+                result.Add((new IntervalEntry(last.Time, null), last.Machine));
             }
+
+            return result;
         }
+
     }
 }
