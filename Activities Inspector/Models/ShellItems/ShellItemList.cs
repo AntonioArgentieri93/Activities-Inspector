@@ -1,8 +1,8 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class ShellItemList : Block
     {
@@ -25,7 +25,7 @@ namespace ProgettoInformaticaForense_Argentieri.Models
             }
 
             string postfix = unpack_byte(off + 2).ToString("X2");
-            Type type = Type.GetType("ProgettoInformaticaForense_Argentieri.Models.ShellItem0x" + postfix);
+            Type type = Type.GetType("Activities_Inspector.Models.ShellItem0x" + postfix);
 
             if (type == null)
             {

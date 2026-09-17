@@ -1,8 +1,8 @@
-﻿using ProgettoInformaticaForense_Argentieri.Constants;
+using Activities_Inspector.Constants;
 using System;
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class ShellItem : Block, IShellItem
     {
@@ -55,7 +55,6 @@ namespace ProgettoInformaticaForense_Argentieri.Models
             protected set
             {}
         }
-        [System.Obsolete("Deprecated. Use 1-parameter Constructor. Offset parameter has no effect.")]
         public ShellItem(byte[] buf, int offset)
             : base(buf, offset)
         {

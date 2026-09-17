@@ -1,6 +1,6 @@
-﻿using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using CSharpFunctionalExtensions;
+using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class EntriesExporter : IEntriesExporter
     {

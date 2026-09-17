@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Exceptions
+namespace Activities_Inspector.Exceptions
 {
     public class OverrunBufferException : Exception
     {

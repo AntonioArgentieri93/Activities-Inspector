@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     public static class Helpers
     {

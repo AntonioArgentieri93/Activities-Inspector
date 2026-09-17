@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     internal class ShellBagCDBurn : ShellBag
     {
@@ -71,7 +71,7 @@ namespace RecentFolder.ShellBags
                 FileSize = filesize;
 
                 var modDate =
-                    Utils.ExtractDateTimeOffsetFromBytes(bytes.Skip(index).Take(4).ToArray());
+                    global::ExtensionBlocks.Utils.ExtractDateTimeOffsetFromBytes(bytes.Skip(index).Take(4).ToArray());
 
                 LastModificationTime = modDate;
 
@@ -128,7 +128,7 @@ namespace RecentFolder.ShellBags
                 var signature = BitConverter.ToUInt32(bytes, index + 4);
 
                 //TODO does this need to check if its a 0xbeef?? regex?
-                var block = Utils.GetExtensionBlockFromBytes(signature, bytes.Skip(index).ToArray());
+                var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, bytes.Skip(index).ToArray());
 
                 ExtensionBlocks.Add(block);
 

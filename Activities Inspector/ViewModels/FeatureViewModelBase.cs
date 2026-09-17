@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
 using GalaSoft.MvvmLight.Command;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Models;
+using Activities_Inspector.Services;
 using RawCopy;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     /// <summary>
     /// Base generica per le pagine di visualizzazione evidenze.

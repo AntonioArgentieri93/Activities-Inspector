@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using Activities_Inspector.Utils;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X74 : ShellBag
     {
@@ -68,7 +68,7 @@ namespace RecentFolder.ShellBags
 
             index += 4;
 
-            LastModificationTime = Utils.ExtractDateTimeOffsetFromBytes(tempBytes);
+            LastModificationTime = global::ExtensionBlocks.Utils.ExtractDateTimeOffsetFromBytes(tempBytes);
 
             index += 2; //skip file attribute flag
 
@@ -97,7 +97,7 @@ namespace RecentFolder.ShellBags
             Array.Copy(rawBytes, index, delegateGuidRaw, 0, 16);
 
 
-            var delegateGuid = Utils.ExtractGuidFromShellItem(delegateGuidRaw);
+            var delegateGuid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(delegateGuidRaw);
 
             if (delegateGuid != "5e591a74-df96-48d3-8d67-1733bcee28ba")
             {
@@ -110,9 +110,9 @@ namespace RecentFolder.ShellBags
             var itemIdentifierGuidRaw = new byte[16];
             Array.Copy(rawBytes, index, itemIdentifierGuidRaw, 0, 16);
 
-            var itemIdentifierGuid = Utils.ExtractGuidFromShellItem(itemIdentifierGuidRaw);
+            var itemIdentifierGuid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(itemIdentifierGuidRaw);
 
-            var itemName = Utils.GetFolderNameFromGuid(itemIdentifierGuid);
+            var itemName = global::ExtensionBlocks.Utils.GetFolderNameFromGuid(itemIdentifierGuid);
             index += 16;
 
             //0xbeef0004 section
@@ -151,7 +151,7 @@ namespace RecentFolder.ShellBags
                 var signature = BitConverter.ToUInt32(bytes, 0x04);
 
                 //TODO does this need to check if its a 0xbeef?? regex?
-                var block = Utils.GetExtensionBlockFromBytes(signature, bytes);
+                var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, bytes);
 
                 ExtensionBlocks.Add(block);
 

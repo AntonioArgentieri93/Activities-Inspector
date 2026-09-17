@@ -1,8 +1,8 @@
-﻿using Autofac;
+using Autofac;
 using GalaSoft.MvvmLight.Messaging;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Services;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure
+namespace Activities_Inspector.ViewModels.Infrastructure
 {
     public class ViewModelLocator
     {

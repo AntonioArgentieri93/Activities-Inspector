@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Constants
+namespace Activities_Inspector.Constants
 {
     public static class AppConstants
     {

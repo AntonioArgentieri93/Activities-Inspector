@@ -1,7 +1,7 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface IRegistryReader
     {

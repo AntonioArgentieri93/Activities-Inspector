@@ -1,7 +1,7 @@
-﻿using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using CSharpFunctionalExtensions;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class LoggedInfoService : ILoggedInfoService
     {
@@ -93,7 +93,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         private IEnumerable<LogOnEntry> GetLogOnEntries(List<EventLogEntry> systemEvents)
         {
-            var logOnEntries = systemEvents.Where(ev => ev.EventID == AppConstants.EventLog.LogonEventId).ToList();
+            var logOnEntries = systemEvents.Where(ev => ev.InstanceId == AppConstants.EventLog.LogonEventId).ToList();
 
             var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
 
@@ -109,7 +109,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
         private IEnumerable<LogoffEntry> GetLogOffEntries(List<EventLogEntry> systemEvents)
         {
-            var logOffEntries = systemEvents.Where(ev => ev.EventID == AppConstants.EventLog.LogoffEventId).ToList();
+            var logOffEntries = systemEvents.Where(ev => ev.InstanceId == AppConstants.EventLog.LogoffEventId).ToList();
 
             foreach (var entry in logOffEntries)
             {
@@ -131,7 +131,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             foreach (var entry in entries)
             {
                 yield return new LogOnEntry(
-                    eventId: entry.EventID,
+                    eventId: (int)entry.InstanceId,
                     machineName: entry.MachineName,
                     index: entry.ReplacementStrings[7],
                     timeGenerated: entry.TimeGenerated,

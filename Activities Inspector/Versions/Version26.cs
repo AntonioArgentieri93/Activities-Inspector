@@ -1,11 +1,11 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Versions
+namespace Activities_Inspector.Versions
 {
     public class Version26 : IPrefetch
     {

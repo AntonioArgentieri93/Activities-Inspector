@@ -1,7 +1,7 @@
-﻿using ProgettoInformaticaForense_Argentieri.Models;
+using Activities_Inspector.Models;
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public static class ScriptHandler
     {

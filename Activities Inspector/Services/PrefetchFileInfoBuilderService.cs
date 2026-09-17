@@ -1,6 +1,6 @@
-﻿using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Models;
+using CSharpFunctionalExtensions;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class PrefetchFileInfoBuilderService : IPrefetchFileInfoBuilderService
     {

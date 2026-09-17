@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X61 : ShellBag
     {

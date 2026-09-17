@@ -1,6 +1,6 @@
-﻿using System.Windows;
+using System.Windows;
 
-namespace ProgettoInformaticaForense_Argentieri.Views
+namespace Activities_Inspector.Views
 {
     public partial class ReportWindow : Window
     {

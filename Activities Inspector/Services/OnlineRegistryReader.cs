@@ -1,6 +1,6 @@
-﻿using Microsoft.Win32;
-using ProgettoInformaticaForense_Argentieri.Exceptions;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Microsoft.Win32;
+using Activities_Inspector.Exceptions;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Security;
 using System.Security.Cryptography;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class OnlineRegistryReader : IRegistryReader
     {

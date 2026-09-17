@@ -1,10 +1,10 @@
 using GalaSoft.MvvmLight.Command;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     /// <summary>
     /// Base per i ViewModel con operazioni lunghe cancellabili.

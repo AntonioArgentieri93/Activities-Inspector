@@ -1,11 +1,11 @@
-﻿using Activities_Inspector.Messages;
+using Activities_Inspector.Messages;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using ProgettoInformaticaForense_Argentieri.Messages;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Pages;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Messages;
+using Activities_Inspector.Models;
+using Activities_Inspector.Pages;
+using Activities_Inspector.Services;
 using CSharpFunctionalExtensions;
 using RawCopy;
 using System;
@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     public class UsbViewModel : FeatureViewModelBase<UsbEntry>
     {

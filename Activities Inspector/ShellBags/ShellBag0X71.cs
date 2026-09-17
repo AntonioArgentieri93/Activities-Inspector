@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExtensionBlocks;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using Activities_Inspector.Utils;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X71 : ShellBag
     {
@@ -50,10 +50,10 @@ namespace RecentFolder.ShellBags
             index += 16;
 
 
-            var rawguid = Utils.ExtractGuidFromShellItem(rawguid1);
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawguid1);
 
 
-            var foldername = Utils.GetFolderNameFromGuid(rawguid);
+            var foldername = global::ExtensionBlocks.Utils.GetFolderNameFromGuid(rawguid);
 
             Value = foldername;
 
@@ -63,7 +63,7 @@ namespace RecentFolder.ShellBags
 
                 var signature1 = BitConverter.ToUInt32(rawBytes, index + 4);
 
-                var block1 = Utils.GetExtensionBlockFromBytes(signature1, rawBytes.Skip(index).ToArray());
+                var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, rawBytes.Skip(index).ToArray());
 
                 ExtensionBlocks.Add(block1);
             }
@@ -128,7 +128,7 @@ namespace RecentFolder.ShellBags
                             var signature1 = BitConverter.ToUInt32(exBytes, 4);
 
 
-                            var block1 = Utils.GetExtensionBlockFromBytes(signature1, exBytes);
+                            var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, exBytes);
 
                             ExtensionBlocks.Add(block1);
                         }
@@ -162,13 +162,13 @@ namespace RecentFolder.ShellBags
             index += 2; //move past end of property sheet terminator
 
 
-            var rawguid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
             index += 16;
 
-            rawguid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
+            rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
             index += 16;
 
-            var name = Utils.GetFolderNameFromGuid(rawguid);
+            var name = global::ExtensionBlocks.Utils.GetFolderNameFromGuid(rawguid);
 
             Value = name;
 
@@ -187,7 +187,7 @@ namespace RecentFolder.ShellBags
                     var signature1 = BitConverter.ToUInt32(extBytes, 4);
 
 
-                    var block1 = Utils.GetExtensionBlockFromBytes(signature1, extBytes);
+                    var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, extBytes);
 
                     ExtensionBlocks.Add(block1);
 

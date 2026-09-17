@@ -1,8 +1,8 @@
-﻿using Activities_Inspector.Models;
+using Activities_Inspector.Models;
 using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using RawCopy;
 using Registry;
 using Registry.Abstractions;
@@ -14,7 +14,7 @@ using System.Management;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class UsbTrackingService : IUsbTrackingService
     {

@@ -1,8 +1,8 @@
-using ProgettoInformaticaForense_Argentieri.ExtraData;
-using ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData;
+using Activities_Inspector.ExtraData;
+using Activities_Inspector.ExtraData.ExtraData;
 using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     /// <summary>
     /// Crea l'ExtraDataBase appropriato in base alla signature del blocco.

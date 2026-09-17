@@ -1,8 +1,8 @@
-﻿using ExtensionBlocks;
-using ProgettoInformaticaForense_Argentieri.ExtraData;
-using ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData;
-using RecentFolder.ShellBags;
-using RecentFolder.ShellBags.ShellBags;
+using ExtensionBlocks;
+using Activities_Inspector.ExtraData;
+using Activities_Inspector.ExtraData.ExtraData;
+using Activities_Inspector.ShellBags;
+using Activities_Inspector.ShellBags.ShellBags;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     public class LnkFile
     {

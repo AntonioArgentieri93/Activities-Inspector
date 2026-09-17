@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     public class NetworkShareInfo
     {

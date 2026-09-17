@@ -1,4 +1,4 @@
-﻿namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public enum ExtraDataTypes : uint
     {

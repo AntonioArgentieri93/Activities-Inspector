@@ -1,6 +1,6 @@
-﻿using ProgettoInformaticaForense_Argentieri.Views;
+using Activities_Inspector.Views;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class WindowFactory : IWindowFactory
     {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using Activities_Inspector.Utils;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X31 : ShellBag
     {
@@ -58,7 +58,7 @@ namespace RecentFolder.ShellBags
 
             index += 4; // skip file size since always 0 for directory
 
-            LastModificationTime = Utils.ExtractDateTimeOffsetFromBytes(rawBytes.Skip(index).Take(4).ToArray());
+            LastModificationTime = global::ExtensionBlocks.Utils.ExtractDateTimeOffsetFromBytes(rawBytes.Skip(index).Take(4).ToArray());
 
             index += 4;
 
@@ -158,7 +158,7 @@ namespace RecentFolder.ShellBags
                 var signature = BitConverter.ToUInt32(bytes, 0x04);
 
                 //TODO does this need to check if its a 0xbeef?? regex?
-                var block = Utils.GetExtensionBlockFromBytes(signature, bytes);
+                var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, bytes);
 
                 if (block.Signature.ToString("X").StartsWith("BEEF00"))
                 {

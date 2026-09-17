@@ -1,11 +1,11 @@
-﻿using ExtensionBlocks;
-using RecentFolder.ShellBags;
-using RecentFolder.ShellBags.ShellBags;
+using ExtensionBlocks;
+using Activities_Inspector.ShellBags;
+using Activities_Inspector.ShellBags.ShellBags;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public class VistaAndAboveIdListDataBlock : ExtraDataBase
     {
@@ -63,7 +63,7 @@ namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
                     case 0xb1:
                     case 0x31:
                     case 0x35:
-                        var d = new RecentFolder.ShellBags.ShellBag0X31(bytese);
+                        var d = new Activities_Inspector.ShellBags.ShellBag0X31(bytese);
                         TargetIDs.Add(d);
                         break;
                     case 0x32:

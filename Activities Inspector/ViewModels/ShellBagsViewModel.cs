@@ -1,13 +1,13 @@
-﻿using Activities_Inspector.Messages;
+using Activities_Inspector.Messages;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using ProgettoInformaticaForense_Argentieri.Messages;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Pages;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Messages;
+using Activities_Inspector.Models;
+using Activities_Inspector.Pages;
+using Activities_Inspector.Services;
 using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 using RawCopy;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     public class ShellBagsViewModel : FeatureViewModelBase<ShellBagEntry>
     {

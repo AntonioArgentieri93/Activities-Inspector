@@ -1,11 +1,11 @@
-﻿using Activities_Inspector.Models;
+using Activities_Inspector.Models;
 using CSharpFunctionalExtensions;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 using MigraDocCore.Rendering;
 using PdfSharpCore.Utils;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ using Document = MigraDocCore.DocumentObjectModel.Document;
 using Section = MigraDocCore.DocumentObjectModel.Section;
 using Table = MigraDocCore.DocumentObjectModel.Tables.Table;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class ReportService : IReportService
     {

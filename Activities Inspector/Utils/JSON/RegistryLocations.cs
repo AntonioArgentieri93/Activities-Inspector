@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils.JSON
+namespace Activities_Inspector.Utils.JSON
 {
     public class RegistryLocations
     {

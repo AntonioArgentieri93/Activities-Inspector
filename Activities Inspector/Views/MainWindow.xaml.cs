@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 
-namespace ProgettoInformaticaForense_Argentieri.Views
+namespace Activities_Inspector.Views
 {
     public partial class MainWindow : Window
     {

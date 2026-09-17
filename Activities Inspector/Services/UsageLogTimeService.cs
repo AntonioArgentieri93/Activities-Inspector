@@ -1,5 +1,5 @@
-﻿using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Models;
+using CSharpFunctionalExtensions;
+using Activities_Inspector.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class UsageLogTimeService : IUsageLogTimeService
     {
@@ -41,7 +41,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
 
-            var machineNames = events.Where(ev => ev.EventID == 1 && ev.CategoryNumber != 5 || ev.EventID == 41 && 
+            var machineNames = events.Where(ev => ev.InstanceId == 1 && ev.CategoryNumber != 5 || ev.InstanceId == 41 && 
                 ev.CategoryNumber != 5).Select(ev => ev.MachineName).ToArray();
 
             var intervals = GetIntervals(events).Where(interval => interval.Start != DateTime.MinValue).ToArray();
@@ -61,11 +61,11 @@ namespace ProgettoInformaticaForense_Argentieri.Services
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
 
-            var start = events.Where(ev => ev.EventID == 1 && ev.CategoryNumber != 5 || 
-                ev.EventID == 41 && ev.CategoryNumber != 5 &&
+            var start = events.Where(ev => ev.InstanceId == 1 && ev.CategoryNumber != 5 || 
+                ev.InstanceId == 41 && ev.CategoryNumber != 5 &&
                 ev.EntryType == EventLogEntryType.Information).ToList();
-            var end = events.Where(ev => ev.EventID == 6006 && ev.CategoryNumber != 5 || 
-                ev.EventID == 42 && ev.CategoryNumber != 5 &&
+            var end = events.Where(ev => ev.InstanceId == 6006 && ev.CategoryNumber != 5 || 
+                ev.InstanceId == 42 && ev.CategoryNumber != 5 &&
                 ev.EntryType == EventLogEntryType.Information).ToList();
 
             for (var i = 0; i < end.Count; i++)

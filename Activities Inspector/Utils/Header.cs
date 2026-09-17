@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class Header
     {

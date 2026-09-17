@@ -1,10 +1,10 @@
-﻿using CSharpFunctionalExtensions;
-using ProgettoInformaticaForense_Argentieri.Models;
+using CSharpFunctionalExtensions;
+using Activities_Inspector.Models;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface ILoggedInfoService
     {

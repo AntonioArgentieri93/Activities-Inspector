@@ -1,17 +1,17 @@
-﻿using Activities_Inspector.Models;
+using Activities_Inspector.Models;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using ProgettoInformaticaForense_Argentieri.Messages;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Services;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Messages;
+using Activities_Inspector.Models;
+using Activities_Inspector.Services;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     public class ReportViewModel : CancellableViewModelBase
     {

@@ -1,9 +1,9 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace ProgettoInformaticaForense_Argentieri.Converters
+namespace Activities_Inspector.Converters
 {
     public class DateTimeOffsetFormatConverter : IValueConverter
     {

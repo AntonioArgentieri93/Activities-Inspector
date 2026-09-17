@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class NetService : INetService
     {
@@ -38,11 +38,10 @@ namespace ProgettoInformaticaForense_Argentieri.Services
 
             try
             {
-                WebRequest request = WebRequest.Create("http://checkip.dyndns.org/");
-                using (WebResponse response = request.GetResponse())
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                using (var client = new HttpClient())
                 {
-                    address = stream.ReadToEnd();
+                    address = client.GetStringAsync("http://checkip.dyndns.org/")
+                        .GetAwaiter().GetResult();
                 }
 
                 int first = address.IndexOf("Address: ") + 9;

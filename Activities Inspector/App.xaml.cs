@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using ProgettoInformaticaForense_Argentieri.ViewModels.Infrastructure;
+using Activities_Inspector.ViewModels.Infrastructure;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace ProgettoInformaticaForense_Argentieri
+namespace Activities_Inspector
 {
     public partial class App : Application
     {

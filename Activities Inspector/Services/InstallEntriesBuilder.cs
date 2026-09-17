@@ -1,16 +1,16 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Microsoft.Win32;
-using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Utility;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class InstallEntriesBuilder : IInstallEntriesBuilder
     {
@@ -78,7 +78,7 @@ namespace ProgettoInformaticaForense_Argentieri.Services
             return Task.Run(() =>
             {
                 var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
-                var installedPrograms = events.Where(ev => ev.EventID == 11707).ToList();
+                var installedPrograms = events.Where(ev => ev.InstanceId == 11707).ToList();
 
                 var entries = new List<InstallEntry>();
 

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using ExtensionBlocks;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0Xc3 : ShellBag
     {

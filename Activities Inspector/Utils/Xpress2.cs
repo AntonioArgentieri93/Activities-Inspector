@@ -1,6 +1,6 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class Xpress2
     {

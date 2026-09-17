@@ -1,4 +1,4 @@
-﻿namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class ShellItem0xB1 : ShellItem0x30
     {

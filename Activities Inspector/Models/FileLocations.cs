@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class FileLocations : INotifyPropertyChanged
     {

@@ -1,4 +1,4 @@
-﻿using ExtensionBlocks;
+using ExtensionBlocks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X1F : ShellBag
     {
@@ -67,7 +67,7 @@ namespace RecentFolder.ShellBags
                         {
                             var signature = BitConverter.ToUInt32(rawBytes, index + 4);
 
-                            var block = Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
+                            var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
 
                             ExtensionBlocks.Add(block);
                             index += extsize;
@@ -138,7 +138,7 @@ namespace RecentFolder.ShellBags
                 {
                     var signature = BitConverter.ToUInt32(rawBytes, index + 4);
 
-                    var block = Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
+                    var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
 
                     ExtensionBlocks.Add(block);
                 }
@@ -206,16 +206,16 @@ namespace RecentFolder.ShellBags
 
                 var signature1 = BitConverter.ToUInt32(exBytes, 4);
 
-                var block1 = Utils.GetExtensionBlockFromBytes(signature1, exBytes);
+                var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, exBytes);
 
                 ExtensionBlocks.Add(block1);
 
                 return;
             }
 
-            var rawguid = Utils.ExtractGuidFromShellItem(bin.ReadBytes(16));
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(bin.ReadBytes(16));
 
-            rawguid = Utils.ExtractGuidFromShellItem(bin.ReadBytes(16));
+            rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(bin.ReadBytes(16));
 
             var name = GuidMapping.GuidMapping.GetDescriptionFromGuid(rawguid);
 
@@ -240,7 +240,7 @@ namespace RecentFolder.ShellBags
 
                     var signature1 = BitConverter.ToUInt32(extBytes, 4);
 
-                    var block1 = Utils.GetExtensionBlockFromBytes(signature1, extBytes);
+                    var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, extBytes);
 
                     ExtensionBlocks.Add(block1);
                 }
@@ -293,13 +293,13 @@ namespace RecentFolder.ShellBags
             var rawGuidBytes = new byte[16];
             Buffer.BlockCopy(rawBytes, index, rawGuidBytes, 0, 16);
 
-            var rawguid1 = Utils.ExtractGuidFromShellItem(rawGuidBytes);
+            var rawguid1 = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawGuidBytes);
             index += 16;
 
             rawGuidBytes = new byte[16];
             Buffer.BlockCopy(rawBytes, index, rawGuidBytes, 0, 16);
 
-            var rawguid2 = Utils.ExtractGuidFromShellItem(rawGuidBytes);
+            var rawguid2 = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawGuidBytes);
             index += 16;
 
             var folder = GuidMapping.GuidMapping.GetDescriptionFromGuid(rawguid2);
@@ -319,7 +319,7 @@ namespace RecentFolder.ShellBags
 
             Array.Copy(rawBytes, index, rawguid1, 0, 16);
 
-            var rawguid = Utils.ExtractGuidFromShellItem(rawguid1);
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawguid1);
 
             var foldername = GuidMapping.GuidMapping.GetDescriptionFromGuid(rawguid);
 
@@ -378,7 +378,7 @@ namespace RecentFolder.ShellBags
 
                             var signature1 = BitConverter.ToUInt32(exBytes, 4);
 
-                            var block1 = Utils.GetExtensionBlockFromBytes(signature1, exBytes);
+                            var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, exBytes);
 
                             ExtensionBlocks.Add(block1);
                         }
@@ -409,7 +409,7 @@ namespace RecentFolder.ShellBags
 
                     var signature1 = BitConverter.ToUInt32(extBytes, 4);
 
-                    var block1 = Utils.GetExtensionBlockFromBytes(signature1, extBytes);
+                    var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, extBytes);
 
                     ExtensionBlocks.Add(block1);
 
@@ -456,35 +456,35 @@ namespace RecentFolder.ShellBags
             if (LastAccessTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Accessed On: {LastAccessTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Accessed On: {LastAccessTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 
             if (ModifiedDateFromBackup.HasValue)
             {
                 sb.AppendLine(
-                    $"Modified Date From Backup: {ModifiedDateFromBackup.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Modified Date From Backup: {ModifiedDateFromBackup.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 
             if (CreatedDateFromBackup.HasValue)
             {
                 sb.AppendLine(
-                    $"Created Date From Backup: {CreatedDateFromBackup.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Created Date From Backup: {CreatedDateFromBackup.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 
             if (BackupDateTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Backup Date Time: {BackupDateTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Backup Date Time: {BackupDateTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 
             if (BackupUnknownDateTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Backup Unknown Date Time: {BackupUnknownDateTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Backup Unknown Date Time: {BackupUnknownDateTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 

@@ -1,7 +1,7 @@
-using ProgettoInformaticaForense_Argentieri.Constants;
+using Activities_Inspector.Constants;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public static class EncodingProvider
     {

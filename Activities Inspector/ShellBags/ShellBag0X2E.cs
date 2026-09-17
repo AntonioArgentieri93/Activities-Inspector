@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExtensionBlocks;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X2E : ShellBag
     {
@@ -30,7 +30,7 @@ namespace RecentFolder.ShellBags
                     FriendlyName = "User profile";
 
                     var la =
-                        Utils.ExtractDateTimeOffsetFromBytes(
+                        global::ExtensionBlocks.Utils.ExtractDateTimeOffsetFromBytes(
                             rawBytes.Skip(rawBytes.Length - 14).Take(4).ToArray());
 
                     LastAccessTime = la;
@@ -158,7 +158,7 @@ namespace RecentFolder.ShellBags
                             var signature1 = BitConverter.ToUInt32(exBytes, 4);
 
 
-                            var block1 = Utils.GetExtensionBlockFromBytes(signature1, exBytes);
+                            var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, exBytes);
 
                             ExtensionBlocks.Add(block1);
                         }
@@ -178,10 +178,10 @@ namespace RecentFolder.ShellBags
 
             index += 2; //move past end of property sheet terminator
 
-            var rawguid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
             index += 16;
 
-            rawguid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
+            rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(index).Take(16).ToArray());
             index += 16;
 
             var name = GuidMapping.GuidMapping.GetDescriptionFromGuid(rawguid);
@@ -201,7 +201,7 @@ namespace RecentFolder.ShellBags
                     var signature1 = BitConverter.ToUInt32(extBytes, 4);
 
 
-                    var block1 = Utils.GetExtensionBlockFromBytes(signature1, extBytes);
+                    var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, extBytes);
 
                     ExtensionBlocks.Add(block1);
 
@@ -231,9 +231,9 @@ namespace RecentFolder.ShellBags
 
             Array.Copy(rawBytes, index, rawguid1, 0, 16);
 
-            var rawguid = Utils.ExtractGuidFromShellItem(rawguid1);
+            var rawguid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawguid1);
 
-            var foldername = Utils.GetFolderNameFromGuid(rawguid);
+            var foldername = global::ExtensionBlocks.Utils.GetFolderNameFromGuid(rawguid);
 
             index += 16;
 
@@ -262,7 +262,7 @@ namespace RecentFolder.ShellBags
                 var signature = BitConverter.ToUInt32(rawBytes, index + 4);
 
                 //TODO does this need to check if its a 0xbeef?? regex?
-                var block = Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
+                var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, rawBytes.Skip(index).ToArray());
 
                 ExtensionBlocks.Add(block);
 
@@ -276,11 +276,11 @@ namespace RecentFolder.ShellBags
         {
             FriendlyName = "Root folder: GUID";
 
-            var delegateGuid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(20).Take(16).ToArray());
+            var delegateGuid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(20).Take(16).ToArray());
 
-            var folderGuid = Utils.ExtractGuidFromShellItem(rawBytes.Skip(36).Take(16).ToArray());
+            var folderGuid = global::ExtensionBlocks.Utils.ExtractGuidFromShellItem(rawBytes.Skip(36).Take(16).ToArray());
 
-            var foldername = Utils.GetFolderNameFromGuid(folderGuid);
+            var foldername = global::ExtensionBlocks.Utils.GetFolderNameFromGuid(folderGuid);
 
             Value = foldername;
         }
@@ -302,7 +302,7 @@ namespace RecentFolder.ShellBags
             if (LastAccessTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Accessed On: {LastAccessTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Accessed On: {LastAccessTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
                 sb.AppendLine();
             }
 

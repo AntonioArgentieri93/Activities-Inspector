@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public class TrackerDataBaseBlock : ExtraDataBase
     {

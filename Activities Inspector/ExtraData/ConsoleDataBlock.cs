@@ -1,10 +1,10 @@
-﻿using ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData;
+using Activities_Inspector.ExtraData.ExtraData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData
+namespace Activities_Inspector.ExtraData
 {
     [Flags]
     public enum FillAttribute

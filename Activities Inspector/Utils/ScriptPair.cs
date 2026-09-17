@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class ScriptPair
     {

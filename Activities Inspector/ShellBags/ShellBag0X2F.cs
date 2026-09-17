@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X2F : ShellBag
     {
@@ -24,7 +24,7 @@ namespace RecentFolder.ShellBags
 
                 var signature1 = BitConverter.ToUInt32(rawBytes, index + 4);
 
-                var block1 = Utils.GetExtensionBlockFromBytes(signature1, rawBytes.Skip(index).ToArray());
+                var block1 = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature1, rawBytes.Skip(index).ToArray());
 
                 ExtensionBlocks.Add(block1);
             }

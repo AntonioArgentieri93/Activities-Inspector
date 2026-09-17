@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class LogoffEntry : LogEntry
     {

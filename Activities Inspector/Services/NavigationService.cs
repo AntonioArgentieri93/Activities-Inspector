@@ -1,10 +1,10 @@
-﻿using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Views;
+using Activities_Inspector.Models;
+using Activities_Inspector.Views;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class NavigationService : INavigationService
     {

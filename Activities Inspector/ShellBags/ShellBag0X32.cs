@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExtensionBlocks;
-using ProgettoInformaticaForense_Argentieri.Utility;
+using Activities_Inspector.Utils;
 
-namespace RecentFolder.ShellBags
+namespace Activities_Inspector.ShellBags
 {
     public class ShellBag0X32 : ShellBag
     {
@@ -71,7 +71,7 @@ namespace RecentFolder.ShellBags
             Array.Copy(rawBytes, index, tempBytes, 0, 4);
             var lastmodifiedUtcRaw = tempBytes;
 
-            LastModificationTime = Utils.ExtractDateTimeOffsetFromBytes(lastmodifiedUtcRaw);
+            LastModificationTime = global::ExtensionBlocks.Utils.ExtractDateTimeOffsetFromBytes(lastmodifiedUtcRaw);
 
 
             index += 4;
@@ -164,7 +164,7 @@ namespace RecentFolder.ShellBags
                 var signature = BitConverter.ToUInt32(bytes, 0x04);
 
                 //TODO does this need to check if its a 0xbeef?? regex?
-                var block = Utils.GetExtensionBlockFromBytes(signature, bytes);
+                var block = global::ExtensionBlocks.Utils.GetExtensionBlockFromBytes(signature, bytes);
 
                 ExtensionBlocks.Add(block);
 
@@ -213,13 +213,13 @@ namespace RecentFolder.ShellBags
             if (LastModificationTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Modified On: {LastModificationTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Modified On: {LastModificationTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
             }
 
             if (LastAccessTime.HasValue)
             {
                 sb.AppendLine(
-                    $"Accessed On: {LastAccessTime.Value.ToString(Utils.GetDateTimeFormatWithMilliseconds())}");
+                    $"Accessed On: {LastAccessTime.Value.ToString(global::ExtensionBlocks.Utils.GetDateTimeFormatWithMilliseconds())}");
             }
 
             sb.AppendLine();

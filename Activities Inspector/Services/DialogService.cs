@@ -1,11 +1,11 @@
-﻿using Activities_Inspector;
+using Activities_Inspector;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using ProgettoInformaticaForense_Argentieri.Views;
+using Activities_Inspector.Views;
 using System;
 using System.Linq;
 using System.Windows;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class DialogService : IDialogService
     {

@@ -1,12 +1,12 @@
-﻿using ProgettoInformaticaForense_Argentieri.Exceptions;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Exceptions;
+using Activities_Inspector.Utils;
 using Registry;
 using Registry.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class OfflineRegistryReader : IRegistryReader
     {

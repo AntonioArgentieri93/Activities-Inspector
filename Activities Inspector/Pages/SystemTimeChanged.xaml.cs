@@ -1,9 +1,9 @@
-﻿using Activities_Inspector.Messages;
+using Activities_Inspector.Messages;
 using GalaSoft.MvvmLight.Messaging;
 using System;
 using System.Windows.Controls;
 
-namespace ProgettoInformaticaForense_Argentieri.Pages
+namespace Activities_Inspector.Pages
 {
     public partial class SystemTimeChanged : Page
     {

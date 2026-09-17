@@ -1,9 +1,9 @@
-﻿using ProgettoInformaticaForense_Argentieri.Models;
+using Activities_Inspector.Models;
 using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace ProgettoInformaticaForense_Argentieri.Converters
+namespace Activities_Inspector.Converters
 {
     public class ProvisioningTypeToIsEnabledConverter : IValueConverter
     {

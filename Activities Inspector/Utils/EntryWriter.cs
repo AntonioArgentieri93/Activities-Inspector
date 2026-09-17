@@ -1,11 +1,11 @@
-﻿using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Services;
+using Activities_Inspector.Models;
+using Activities_Inspector.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     public class EntryWriter : StreamWriter
     {

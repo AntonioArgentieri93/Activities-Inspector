@@ -1,11 +1,11 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public static class RegistryHelper
     {

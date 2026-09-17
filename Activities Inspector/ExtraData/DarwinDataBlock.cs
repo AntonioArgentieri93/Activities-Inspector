@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public class DarwinDataBlock : ExtraDataBase
     {

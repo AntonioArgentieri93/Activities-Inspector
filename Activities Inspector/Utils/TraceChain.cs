@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class TraceChain
     {

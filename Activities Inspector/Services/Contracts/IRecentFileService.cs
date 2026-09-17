@@ -1,4 +1,4 @@
-﻿namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface IRecentFileService
     {

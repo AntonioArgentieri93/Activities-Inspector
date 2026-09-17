@@ -1,7 +1,7 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class RegistryKeyWrapper
     {

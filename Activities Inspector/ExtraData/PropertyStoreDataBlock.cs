@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Text;
 using ExtensionBlocks;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public class PropertyStoreDataBlock : ExtraDataBase
     {

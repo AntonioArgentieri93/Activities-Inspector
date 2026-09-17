@@ -1,6 +1,6 @@
-﻿using ProgettoInformaticaForense_Argentieri.Models;
+using Activities_Inspector.Models;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface IEntryFormatter
     {

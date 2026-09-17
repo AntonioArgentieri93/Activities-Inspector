@@ -1,8 +1,8 @@
-﻿using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Utils;
 using System.Collections.Generic;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class ShellItem0x00 : ShellItem
     {

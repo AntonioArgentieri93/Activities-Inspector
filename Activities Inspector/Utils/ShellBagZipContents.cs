@@ -1,10 +1,10 @@
-﻿using ExtensionBlocks;
+using ExtensionBlocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     public class ShellBagZipContents : ShellBag
     {

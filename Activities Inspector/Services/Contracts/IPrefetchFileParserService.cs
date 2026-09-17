@@ -1,6 +1,6 @@
-﻿using ProgettoInformaticaForense_Argentieri.Utils;
+using Activities_Inspector.Utils;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface IPrefetchFileParserService
     {

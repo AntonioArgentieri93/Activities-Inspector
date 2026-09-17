@@ -1,9 +1,9 @@
 using ExtensionBlocks;
-using RecentFolder.ShellBags;
-using RecentFolder.ShellBags.ShellBags;
+using Activities_Inspector.ShellBags;
+using Activities_Inspector.ShellBags.ShellBags;
 using System;
 
-namespace ProgettoInformaticaForense_Argentieri.Utility
+namespace Activities_Inspector.Utils
 {
     /// <summary>
     /// Crea lo ShellBag appropriato in base al tipo di shell item.
@@ -45,7 +45,7 @@ namespace ProgettoInformaticaForense_Argentieri.Utility
                 case 0xb1:
                 case 0x31:
                 case 0x35:
-                    return new RecentFolder.ShellBags.ShellBag0X31(shellItem);
+                    return new Activities_Inspector.ShellBags.ShellBag0X31(shellItem);
                 case 0x32:
                 case 0x36:
                     return new ShellBag0X32(shellItem);

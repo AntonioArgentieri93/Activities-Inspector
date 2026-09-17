@@ -1,12 +1,12 @@
-﻿using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Utils;
-using ProgettoInformaticaForense_Argentieri.Versions;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Utils;
+using Activities_Inspector.Versions;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public class PrefetchFileParserService : IPrefetchFileParserService
     {

@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace ProgettoInformaticaForense_Argentieri.ExtraData.ExtraData
+namespace Activities_Inspector.ExtraData.ExtraData
 {
     public class DamagedDataBlock : ExtraDataBase
     {

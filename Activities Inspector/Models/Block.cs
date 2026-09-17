@@ -1,9 +1,9 @@
-﻿using ProgettoInformaticaForense_Argentieri.Exceptions;
+using Activities_Inspector.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class Block
     {

@@ -1,4 +1,4 @@
-﻿namespace ProgettoInformaticaForense_Argentieri.Utils
+namespace Activities_Inspector.Utils
 {
     public class Constants
     {

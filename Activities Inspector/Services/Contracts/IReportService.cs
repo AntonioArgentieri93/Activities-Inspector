@@ -1,9 +1,9 @@
-﻿using Activities_Inspector.Models;
+using Activities_Inspector.Models;
 using CSharpFunctionalExtensions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProgettoInformaticaForense_Argentieri.Services
+namespace Activities_Inspector.Services
 {
     public interface IReportService
     {

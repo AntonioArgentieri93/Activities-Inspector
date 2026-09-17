@@ -1,11 +1,11 @@
-﻿using GalaSoft.MvvmLight;
-using ProgettoInformaticaForense_Argentieri.Models;
-using ProgettoInformaticaForense_Argentieri.Services;
+using GalaSoft.MvvmLight;
+using Activities_Inspector.Models;
+using Activities_Inspector.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProgettoInformaticaForense_Argentieri.ViewModels
+namespace Activities_Inspector.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {

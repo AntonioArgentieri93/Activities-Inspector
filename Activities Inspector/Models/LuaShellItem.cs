@@ -1,12 +1,12 @@
-﻿using NLua;
-using ProgettoInformaticaForense_Argentieri.Constants;
-using ProgettoInformaticaForense_Argentieri.Exceptions;
-using ProgettoInformaticaForense_Argentieri.Utils;
+using NLua;
+using Activities_Inspector.Constants;
+using Activities_Inspector.Exceptions;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ProgettoInformaticaForense_Argentieri.Models
+namespace Activities_Inspector.Models
 {
     public class LuaShellItem : ShellItem
     {
