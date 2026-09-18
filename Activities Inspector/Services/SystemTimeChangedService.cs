@@ -23,10 +23,6 @@ namespace Activities_Inspector.Services
 
         public async Task<Result<List<SystemTimeChangedEntry>>> GetSystemTimeChangedEntriesAsync(CancellationToken cancellationToken = default)
         {
-            if (!_sources.Current.IsLive)
-                return Result.Failure<List<SystemTimeChangedEntry>>("Modifiche ora di sistema disponibili solo su sistema live " +
-                    "(registro System via API, parsing .evtx offline non supportato).");
-
             try
             {
                 var entries = new List<SystemTimeChangedEntry>();
@@ -79,21 +75,28 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private async Task<List<EventLogEntry>> GetSystemTimeChangedEventLogEntriesAsync(CancellationToken cancellationToken = default)
+        private async Task<List<IEventRecord>> GetSystemTimeChangedEventLogEntriesAsync(CancellationToken cancellationToken = default)
         {
+            if (!_sources.Current.IsLive)
+            {
+                return Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog))
+                    .Where(ev => ev.EventId == AppConstants.EventLog.SystemTimeChangedEventId &&
+                        ev.Source == AppConstants.EventLog.SecurityProviderName)
+                    .ToList();
+            }
+
             return await Task.Run(() =>
             {
                 using var eventLog = new EventLog { Log = AppConstants.EventLog.SecurityLog };
-                var entries = new List<EventLogEntry>();
+                var entries = new List<IEventRecord>();
 
                 foreach (EventLogEntry entry in eventLog.Entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
-                    if (entry.EventID == AppConstants.EventLog.SystemTimeChangedEventId &&
-                        entry.Source == AppConstants.EventLog.SecurityProviderName)
-                        entries.Add(entry);
-#pragma warning restore CS0618
+                    var record = new LiveEventRecord(entry);
+                    if (record.EventId == AppConstants.EventLog.SystemTimeChangedEventId &&
+                        record.Source == AppConstants.EventLog.SecurityProviderName)
+                        entries.Add(record);
                 }
 
                 return entries;

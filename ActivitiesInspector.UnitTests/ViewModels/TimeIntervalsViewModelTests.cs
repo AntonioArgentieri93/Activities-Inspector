@@ -51,10 +51,10 @@ namespace ActivitiesInspector.UnitTests.ViewModels
 
         private sealed class FakeUsageLogTimeService : IUsageLogTimeService
         {
-            public Task<Result<List<EventLogEntry>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult(Result.Success(new List<EventLogEntry>()));
+            public Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(Result.Success(new List<IEventRecord>()));
 
-            public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<EventLogEntry> events)
+            public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events)
                 => new[]
                 {
                     new UsageInfo(

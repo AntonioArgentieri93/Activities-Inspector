@@ -71,6 +71,9 @@ namespace Activities_Inspector.Services.Evidence
 
         public string GetSoftwareHivePath() => MapPath(@"C:\Windows\System32\config\SOFTWARE");
 
+        public string GetEventLogPath(string logName)
+            => MapPath(Path.Combine(Environment.SystemDirectory, "winevt", "Logs", logName + ".evtx"));
+
         public IEnumerable<string> GetUserHivePaths(string fileName)
         {
             return GetUserProfileDirs()

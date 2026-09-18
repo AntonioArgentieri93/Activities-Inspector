@@ -22,5 +22,7 @@ namespace Activities_Inspector.Services.Evidence
         string GetSoftwareHivePath();
 
         IEnumerable<string> GetUserHivePaths(string fileName);
+
+        string GetEventLogPath(string logName);
     }
 }

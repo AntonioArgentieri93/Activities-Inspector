@@ -1,3 +1,4 @@
+using Activities_Inspector.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,12 +18,12 @@ namespace Activities_Inspector.Utils
             return attribute == null ? value.ToString() : attribute.Description;
         }
 
-        public static IEnumerable<EventLogEntry> GetLogEntries(string logName)
+        public static IEnumerable<IEventRecord> GetLogEntries(string logName)
         {
             using var eventLog = new EventLog { Log = logName };
             foreach (EventLogEntry entry in eventLog.Entries)
             {
-                yield return entry;
+                yield return new LiveEventRecord(entry);
             }
         }
     }

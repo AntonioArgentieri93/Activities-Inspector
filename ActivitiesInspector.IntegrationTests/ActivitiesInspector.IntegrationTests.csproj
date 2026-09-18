@@ -17,4 +17,10 @@
     <ProjectReference Include="..\Activities Inspector\Activities Inspector.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\ApplicationStable.evtx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

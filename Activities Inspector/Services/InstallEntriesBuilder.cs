@@ -68,9 +68,8 @@ namespace Activities_Inspector.Services
                         .SelectMany(h => GetUninstallFromHiveFile(h,
                             new[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken))
                         .ToList();
-                    events = new List<InstallEntry>();
-                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
-                        "Registro Applicazione leggibile solo via API live (non supportato offline)"));
+                    events = GetFromEvtxFile(
+                        _sources.Current.GetEventLogPath(AppConstants.EventLog.ApplicationLog), manifest, cancellationToken);
                 }
 
                 var startMenu = await GetFromStartMenuAsync(manifest, cancellationToken);
@@ -136,43 +135,52 @@ namespace Activities_Inspector.Services
             }, cancellationToken);
         }
 
+        private List<InstallEntry> GetFromEvtxFile(string evtxPath, List<IntegrityRecord> manifest, CancellationToken cancellationToken)
+        {
+            manifest.Add(IntegrityHasher.HashFile(evtxPath, EntryType.InstalledPrograms));
+            return BuildInstallEntriesFromEvents(Evidence.EvtxFileReader.ReadEvents(evtxPath), cancellationToken);
+        }
+
         private Task<List<InstallEntry>> GetFromEventsAsync(CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
                 var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
-#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
-                var installedPrograms = events.Where(ev =>
-                    ev.EventID == AppConstants.EventLog.MsiInstallEventId &&
-                    ev.Source == AppConstants.EventLog.MsiInstallerProviderName).ToList();
-#pragma warning restore CS0618
-
-                var entries = new List<InstallEntry>();
-
-                for (int i = 0; i < installedPrograms.Count; i++)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var message = installedPrograms[i].ReplacementStrings[0];
-                    if (string.IsNullOrEmpty(message)) continue;
-
-                    var substrings = message.Split(':');
-                    if (substrings.Length < 2) continue;
-
-                    var substrings2 = substrings[1].Split(new[] { '-', '-' }, StringSplitOptions.RemoveEmptyEntries);
-                    var fileName = substrings2.Length > 0 ? substrings2[0].Trim() : string.Empty;
-
-                    var entry = new InstallEntry(fileName, string.Empty, string.Empty,
-                        DateBuilder.ToLocal(installedPrograms[i].TimeGenerated));
-
-                    if (entries.Any(ie => ie.FileName == entry.FileName &&
-                        ie.InstallDate == entry.InstallDate)) continue;
-
-                    entries.Add(entry);
-                }
-
-                return entries;
+                return BuildInstallEntriesFromEvents(events, cancellationToken);
             }, cancellationToken);
+        }
+
+        private static List<InstallEntry> BuildInstallEntriesFromEvents(List<IEventRecord> events, CancellationToken cancellationToken)
+        {
+            var installedPrograms = events.Where(ev =>
+                ev.EventId == AppConstants.EventLog.MsiInstallEventId &&
+                ev.Source == AppConstants.EventLog.MsiInstallerProviderName).ToList();
+
+            var entries = new List<InstallEntry>();
+
+            for (int i = 0; i < installedPrograms.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var message = installedPrograms[i].ReplacementStrings[0];
+                if (string.IsNullOrEmpty(message)) continue;
+
+                var substrings = message.Split(':');
+                if (substrings.Length < 2) continue;
+
+                var substrings2 = substrings[1].Split(new[] { '-', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                var fileName = substrings2.Length > 0 ? substrings2[0].Trim() : string.Empty;
+
+                var entry = new InstallEntry(fileName, string.Empty, string.Empty,
+                    DateBuilder.ToLocal(installedPrograms[i].TimeGenerated));
+
+                if (entries.Any(ie => ie.FileName == entry.FileName &&
+                    ie.InstallDate == entry.InstallDate)) continue;
+
+                entries.Add(entry);
+            }
+
+            return entries;
         }
 
         private static InstallEntry BuildInstallEntry(RegistryKey registryKey)

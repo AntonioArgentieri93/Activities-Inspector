@@ -156,7 +156,7 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
-        public async Task EventLog_Services_Fail_Explicitly_Offline()
+        public async Task EventLog_Services_Fail_Explicitly_On_Missing_Evtx()
         {
             var provider = OfflineProvider(_root);
 
@@ -167,8 +167,6 @@ namespace ActivitiesInspector.UnitTests.Services
             Assert.False(sessions.IsSuccess);
             Assert.False(intervals.IsSuccess);
             Assert.False(timeChanged.IsSuccess);
-            Assert.All(new[] { sessions.Error, intervals.Error, timeChanged.Error },
-                e => Assert.Contains("solo su sistema live", e));
         }
 
         [Fact]

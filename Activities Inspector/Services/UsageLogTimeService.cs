@@ -21,23 +21,25 @@ namespace Activities_Inspector.Services
             _sources = sources;
         }
 
-        public async Task<Result<List<EventLogEntry>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
+        public async Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
         {
-            if (!_sources.Current.IsLive)
-                return Result.Failure<List<EventLogEntry>>("Orari di accensione e spegnimento disponibili solo su sistema live " +
-                    "(registro System via API, parsing .evtx offline non supportato).");
-
             try
             {
+                if (!_sources.Current.IsLive)
+                {
+                    var offline = Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(LogFilter));
+                    return Result.Success(offline);
+                }
+
                 using var myLog = new EventLog { Log = LogFilter };
-                var entries = new List<EventLogEntry>();
+                var entries = new List<IEventRecord>();
 
                 await Task.Run(() =>
                 {
                     foreach (EventLogEntry entry in myLog.Entries)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        entries.Add(entry);
+                        entries.Add(new LiveEventRecord(entry));
                     }
                 }, cancellationToken);
 
@@ -45,11 +47,11 @@ namespace Activities_Inspector.Services
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                return Result.Failure<List<EventLogEntry>>(ex.ToString());
+                return Result.Failure<List<IEventRecord>>(ex.ToString());
             }
         }
 
-        public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<EventLogEntry> events)
+        public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events)
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
 
@@ -59,7 +61,7 @@ namespace Activities_Inspector.Services
                     Time: ev.TimeGenerated,
                     Machine: ev.MachineName,
                     IsStart: true,
-                    IsCrashBoot: ev.InstanceId == AppConstants.EventLog.UnexpectedShutdownEventId))
+                    IsCrashBoot: ev.EventId == AppConstants.EventLog.UnexpectedShutdownEventId))
                 .Concat(events
                     .Where(IsEndEvent)
                     .Select(ev => (
@@ -83,39 +85,33 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private static bool IsStartEvent(EventLogEntry ev)
+        private static bool IsStartEvent(IEventRecord ev)
         {
             if (ev.CategoryNumber == 5)
                 return false;
 
-            // NOTA: si usa EventID (obsoleto) e non InstanceId: per gli eventi
-            // scritti dai servizi (es. 6005/6006) InstanceId contiene anche i
-            // bit di severity (es. 2147489653), quindi il match esatto richiede
-            // EventID. Verificato empiricamente sul log di sistema.
-#pragma warning disable CS0618
-            bool isBoot = ev.EventID == AppConstants.EventLog.BootEventId
+            // EventId e' l'ID puro (niente severity bit come in InstanceId):
+            // verificato contro la nota storica qui sotto, ora superflua.
+            bool isBoot = ev.EventId == AppConstants.EventLog.BootEventId
                 && ev.Source == AppConstants.EventLog.EventLogProviderName
                 && ev.EntryType == EventLogEntryType.Information;
 
             // Il 41 (unexpected shutdown) è di livello Critical, non Information.
-            bool isCrash = ev.EventID == AppConstants.EventLog.UnexpectedShutdownEventId
+            bool isCrash = ev.EventId == AppConstants.EventLog.UnexpectedShutdownEventId
                 && ev.Source == AppConstants.EventLog.KernelPowerProviderName;
-#pragma warning restore CS0618
 
             return isBoot || isCrash;
         }
 
-        private static bool IsEndEvent(EventLogEntry ev)
+        private static bool IsEndEvent(IEventRecord ev)
         {
             if (ev.CategoryNumber == 5 || ev.EntryType != EventLogEntryType.Information)
                 return false;
 
-#pragma warning disable CS0618
-            return (ev.EventID == AppConstants.EventLog.ShutdownEventId &&
+            return (ev.EventId == AppConstants.EventLog.ShutdownEventId &&
                     ev.Source == AppConstants.EventLog.EventLogProviderName)
-                || (ev.EventID == AppConstants.EventLog.SleepEventId &&
+                || (ev.EventId == AppConstants.EventLog.SleepEventId &&
                     ev.Source == AppConstants.EventLog.KernelPowerProviderName);
-#pragma warning restore CS0618
         }
 
         internal static List<(IntervalEntry Interval, string MachineName)> PairIntervals(

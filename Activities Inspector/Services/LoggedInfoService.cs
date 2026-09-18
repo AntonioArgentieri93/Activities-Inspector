@@ -22,10 +22,6 @@ namespace Activities_Inspector.Services
 
         public async Task<Result<List<SessionEntry>>> GetSessionsAsync(CancellationToken cancellationToken = default)
         {
-            if (!_sources.Current.IsLive)
-                return Result.Failure<List<SessionEntry>>("Sessioni disponibili solo su sistema live " +
-                    "(registro Sicurezza via API, parsing .evtx offline non supportato).");
-
             try
             {
                 var sessionsList = new List<SessionEntry>();
@@ -105,30 +101,34 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private Task<List<EventLogEntry>> GetSecurityEventLogEntriesAsync(CancellationToken cancellationToken = default)
+        private Task<List<IEventRecord>> GetSecurityEventLogEntriesAsync(CancellationToken cancellationToken = default)
         {
+            if (!_sources.Current.IsLive)
+            {
+                return Task.FromResult(
+                    Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog)));
+            }
+
             return Task.Run(() =>
             {
                 using var eventLog = new EventLog { Log = AppConstants.EventLog.SecurityLog };
-                var entries = new List<EventLogEntry>();
+                var entries = new List<IEventRecord>();
 
                 foreach (EventLogEntry entry in eventLog.Entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    entries.Add(entry);
+                    entries.Add(new LiveEventRecord(entry));
                 }
 
                 return entries;
             }, cancellationToken);
         }
 
-        private IEnumerable<LogOnEntry> GetLogOnEntries(List<EventLogEntry> systemEvents)
+        private IEnumerable<LogOnEntry> GetLogOnEntries(List<IEventRecord> systemEvents)
         {
-#pragma warning disable CS0618 // EventID, non InstanceId: vedi nota in UsageLogTimeService.IsStartEvent.
             var logOnEntries = systemEvents.Where(ev =>
-                ev.EventID == AppConstants.EventLog.LogonEventId &&
+                ev.EventId == AppConstants.EventLog.LogonEventId &&
                 ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
-#pragma warning restore CS0618
 
             var filteredByAccessType = FilterByAccessType(logOnEntries).ToList();
 
@@ -142,13 +142,11 @@ namespace Activities_Inspector.Services
             return distinctEntries;
         }
 
-        private IEnumerable<LogoffEntry> GetLogOffEntries(List<EventLogEntry> systemEvents)
+        private IEnumerable<LogoffEntry> GetLogOffEntries(List<IEventRecord> systemEvents)
         {
-#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
             var logOffEntries = systemEvents.Where(ev =>
-                ev.EventID == AppConstants.EventLog.LogoffEventId &&
+                ev.EventId == AppConstants.EventLog.LogoffEventId &&
                 ev.Source == AppConstants.EventLog.SecurityProviderName).ToList();
-#pragma warning restore CS0618
 
             foreach (var entry in logOffEntries)
             {
@@ -165,7 +163,7 @@ namespace Activities_Inspector.Services
 
         private static readonly int[] HumanAccessTypes = { 2, 7, 9, 10, 11 };
 
-        private static IEnumerable<EventLogEntry> FilterByAccessType(IEnumerable<EventLogEntry> events)
+        private static IEnumerable<IEventRecord> FilterByAccessType(IEnumerable<IEventRecord> events)
         {
             // Allow-list dei tipi guidati da persona: 2 interattivo, 7 sblocco,
             // 9 nuove credenziali, 10 remoto, 11 cached. Fuori restano sistema e
@@ -175,7 +173,7 @@ namespace Activities_Inspector.Services
                 HumanAccessTypes.Contains(accessType));
         }
 
-        private static IEnumerable<LogOnEntry> BuildLogOnEntries(List<EventLogEntry> entries)
+        private static IEnumerable<LogOnEntry> BuildLogOnEntries(List<IEventRecord> entries)
         {
             foreach (var entry in entries)
             {
@@ -183,9 +181,8 @@ namespace Activities_Inspector.Services
 
                 try
                 {
-#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
                     parsed = new LogOnEntry(
-                        eventId: entry.EventID,
+                        eventId: entry.EventId,
                         machineName: entry.MachineName,
                         index: entry.ReplacementStrings[7],
                         timeGenerated: entry.TimeGenerated,
@@ -194,7 +191,6 @@ namespace Activities_Inspector.Services
                         group: entry.ReplacementStrings[2],
                         accessType: Convert.ToInt32(entry.ReplacementStrings[8]),
                         sourceAddress: entry.ReplacementStrings[18]);
-#pragma warning restore CS0618
                 }
                 catch
                 {
