@@ -26,6 +26,11 @@ namespace Activities_Inspector.Services
 
                 var startMenu = await GetFromStartMenuAsync(cancellationToken);
                 var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
+
+                if (all.Count == 0)
+                    return Result.Failure<List<InstallEntry>>("Nessuna sorgente programmi installati leggibile: " +
+                        "chiavi Uninstall, log Applicazione e menu Start vuoti o inaccessibili.");
+
                 return Result.Success(DedupeEntries(all));
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))

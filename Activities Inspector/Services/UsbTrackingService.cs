@@ -55,6 +55,9 @@ namespace Activities_Inspector.Services
             var subKeys = reg.Root.SubKeys;
             var controlSets = subKeys.Where(sk => sk.KeyName.StartsWith(AppConstants.Registry.ControlSetPrefix)).ToList();
 
+            if (controlSets.Count == 0)
+                throw new InvalidOperationException("Sorgente USB illeggibile: nessun ControlSet nell'hive SYSTEM (file danneggiato o incompleto).");
+
             foreach (var controlSet in controlSets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -76,10 +79,14 @@ namespace Activities_Inspector.Services
             var entries = new List<UsbEntry>();
 
             using var baseKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(AppConstants.Registry.RegistrySystemPath);
-            if (baseKey == null) return entries;
+            if (baseKey == null)
+                throw new InvalidOperationException("Sorgente USB illeggibile: chiave SYSTEM non accessibile nel registro di sistema.");
 
             var subKeyNames = baseKey.GetSubKeyNames();
             var controlSets = subKeyNames.Where(sk => sk.StartsWith(AppConstants.Registry.ControlSetPrefix)).ToList();
+
+            if (controlSets.Count == 0)
+                throw new InvalidOperationException("Sorgente USB illeggibile: nessun ControlSet nel registro di sistema.");
 
             foreach (var controlSet in controlSets)
             {

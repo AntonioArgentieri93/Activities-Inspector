@@ -21,6 +21,10 @@ namespace Activities_Inspector.Services
 
                 var systemEvents = await GetSecurityEventLogEntriesAsync(cancellationToken);
 
+                if (systemEvents.Count == 0)
+                    return Result.Failure<List<SessionEntry>>("Il registro eventi Sicurezza e' vuoto o illeggibile: " +
+                        "impossibile distinguere assenza di accessi da log ruotato/cancellato o permessi insufficienti.");
+
                 var logOnEntries = GetLogOnEntries(systemEvents).ToList();
                 var logOffEntries = GetLogOffEntries(systemEvents).ToList();
 
@@ -168,6 +172,7 @@ namespace Activities_Inspector.Services
 
                 try
                 {
+#pragma warning disable CS0618 // Come sopra: serve EventID, non InstanceId.
                     parsed = new LogOnEntry(
                         eventId: entry.EventID,
                         machineName: entry.MachineName,
@@ -178,6 +183,7 @@ namespace Activities_Inspector.Services
                         group: entry.ReplacementStrings[2],
                         accessType: Convert.ToInt32(entry.ReplacementStrings[8]),
                         sourceAddress: entry.ReplacementStrings[18]);
+#pragma warning restore CS0618
                 }
                 catch
                 {
