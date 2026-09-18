@@ -49,6 +49,26 @@ namespace ActivitiesInspector.UnitTests.Utils
         }
 
         [Fact]
+        public void HashBytes_Matches_HashFile_On_Same_Content()
+        {
+            var path = WriteTemp("abc");
+
+            try
+            {
+                var fromBytes = IntegrityHasher.HashBytes(Encoding.ASCII.GetBytes("abc"), path, EntryType.Prefetch);
+                var fromFile = IntegrityHasher.HashFile(path, EntryType.Prefetch);
+
+                Assert.Equal(fromFile.Sha256, fromBytes.Sha256);
+                Assert.Equal(fromFile.SizeBytes, fromBytes.SizeBytes);
+                Assert.Equal(IntegrityStatus.Acquired, fromBytes.Status);
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
+        [Fact]
         public void Missing_File_Yields_Explicit_Row_Without_Throwing()
         {
             var record = IntegrityHasher.HashFile(

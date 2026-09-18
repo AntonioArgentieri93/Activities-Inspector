@@ -45,9 +45,29 @@ namespace Activities_Inspector.Services
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        manifest.Add(IntegrityHasher.HashFile(fileName, EntryType.Prefetch));
+                        byte[] raw;
+                        try
+                        {
+                            raw = File.ReadAllBytes(fileName);
+                        }
+                        catch
+                        {
+                            manifest.Add(IntegrityHasher.HashFile(fileName, EntryType.Prefetch));
+                            continue;
+                        }
 
-                        var pf = _parser.Open(fileName);
+                        manifest.Add(IntegrityHasher.HashBytes(raw, fileName, EntryType.Prefetch));
+
+                        IPrefetch pf;
+                        try
+                        {
+                            pf = _parser.Open(new MemoryStream(raw), fileName);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
                         if (pf == null) continue;
 
                         var fileInfo = new FileInfo(pf.Header.ExecutableFilename);

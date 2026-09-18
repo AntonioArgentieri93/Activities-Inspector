@@ -40,14 +40,28 @@ namespace Activities_Inspector.Services
                 List<InstallEntry> microsoftLocals;
                 List<InstallEntry> users;
                 List<InstallEntry> events;
+                var startMenuManifest = new List<IntegrityRecord>();
+                var eventsManifest = new List<IntegrityRecord>();
+
+                // Le 5 sorgenti sono indipendenti: in parallelo il tempo
+                // totale e' quello della piu' lenta, non la somma.
+                var startMenuTask = GetFromStartMenuAsync(startMenuManifest, cancellationToken);
 
                 if (_sources.Current.IsLive)
                 {
-                    wow6432Locals = await GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
-                    microsoftLocals = await GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
-                    users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
-                    events = await GetFromEventsAsync(cancellationToken);
+                    var wowTask = GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
+                    var msTask = GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                    var usersTask = GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                    var eventsTask = GetFromEventsAsync(eventsManifest, cancellationToken);
 
+                    await Task.WhenAll(wowTask, msTask, usersTask, eventsTask, startMenuTask);
+
+                    wow6432Locals = await wowTask;
+                    microsoftLocals = await msTask;
+                    users = await usersTask;
+                    events = await eventsTask;
+
+                    manifest.AddRange(startMenuManifest);
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $@"HKLM\{AppConstants.Registry.Wow6432UninstallPath} (registro live, {wow6432Locals.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
@@ -56,23 +70,38 @@ namespace Activities_Inspector.Services
                         $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $"Registro Applicazione (API live, {events.Count} voci)"));
-                    manifest.Add(IntegrityHasher.HashFile(ApplicationLogPath, EntryType.InstalledPrograms));
+                    manifest.AddRange(eventsManifest);
                 }
                 else
                 {
-                    wow6432Locals = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
-                        new[] { @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
-                    microsoftLocals = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
-                        new[] { @"Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
-                    users = _sources.Current.GetUserHivePaths("NTUSER.DAT")
-                        .SelectMany(h => GetUninstallFromHiveFile(h,
-                            new[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken))
-                        .ToList();
-                    events = GetFromEvtxFile(
-                        _sources.Current.GetEventLogPath(AppConstants.EventLog.ApplicationLog), manifest, cancellationToken);
+                    var offlineTask = Task.Run(() =>
+                    {
+                        var wow = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
+                            new[] { @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
+                        var ms = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
+                            new[] { @"Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
+                        var usr = _sources.Current.GetUserHivePaths("NTUSER.DAT")
+                            .SelectMany(h => GetUninstallFromHiveFile(h,
+                                new[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken))
+                            .ToList();
+                        var ev = GetFromEvtxFile(
+                            _sources.Current.GetEventLogPath(AppConstants.EventLog.ApplicationLog), eventsManifest, cancellationToken);
+                        return (wow, ms, usr, ev);
+                    }, cancellationToken);
+
+                    await Task.WhenAll(offlineTask, startMenuTask);
+
+                    var offline = await offlineTask;
+                    wow6432Locals = offline.wow;
+                    microsoftLocals = offline.ms;
+                    users = offline.usr;
+                    events = offline.ev;
+
+                    manifest.AddRange(startMenuManifest);
+                    manifest.AddRange(eventsManifest);
                 }
 
-                var startMenu = await GetFromStartMenuAsync(manifest, cancellationToken);
+                var startMenu = await startMenuTask;
                 var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
 
                 if (all.Count == 0)
@@ -138,13 +167,18 @@ namespace Activities_Inspector.Services
         private List<InstallEntry> GetFromEvtxFile(string evtxPath, List<IntegrityRecord> manifest, CancellationToken cancellationToken)
         {
             manifest.Add(IntegrityHasher.HashFile(evtxPath, EntryType.InstalledPrograms));
+
+            if (!File.Exists(evtxPath))
+                return new List<InstallEntry>();
+
             return BuildInstallEntriesFromEvents(Evidence.EvtxFileReader.ReadEvents(evtxPath), cancellationToken);
         }
 
-        private Task<List<InstallEntry>> GetFromEventsAsync(CancellationToken cancellationToken)
+        private Task<List<InstallEntry>> GetFromEventsAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
+                manifest.Add(IntegrityHasher.HashFile(ApplicationLogPath, EntryType.InstalledPrograms));
                 var events = Helpers.GetLogEntries(AppConstants.EventLog.ApplicationLog).ToList();
                 return BuildInstallEntriesFromEvents(events, cancellationToken);
             }, cancellationToken);

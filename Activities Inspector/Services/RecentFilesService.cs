@@ -46,44 +46,63 @@ namespace Activities_Inspector.Services
                     .OrderBy(f => f.LastWriteTime)
                     .ToList();
 
-                var entries = new List<RecentFolderEntry>();
-
-                foreach (var file in orderedFiles)
+                // Loop CPU-bound su thread pool: parsing ed hashing di
+                // centinaia di file non devono bloccare lo UI thread.
+                var entries = await Task.Run(() =>
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var list = new List<RecentFolderEntry>();
 
-                    LnkFile lnkFile = null;
-
-                    manifest.Add(IntegrityHasher.HashFile(file.FullName, EntryType.Recents));
-
-                    try
+                    foreach (var file in orderedFiles)
                     {
-                        lnkFile = await LoadFileAsync(file.FullName);
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        LnkFile lnkFile = null;
+
+                        byte[] raw;
+                        try
+                        {
+                            raw = File.ReadAllBytes(file.FullName);
+                        }
+                        catch
+                        {
+                            SkippedFilesCount++;
+                            manifest.Add(IntegrityHasher.HashFile(file.FullName, EntryType.Recents));
+                            continue;
+                        }
+
+                        manifest.Add(IntegrityHasher.HashBytes(raw, file.FullName, EntryType.Recents));
+
+                        try
+                        {
+                            lnkFile = LoadFile(raw, file.FullName);
+                        }
+                        catch
+                        {
+                            SkippedFilesCount++;
+                            continue;
+                        }
+
+                        if (lnkFile == null) continue;
+
+                        var fullPath = ResolveTargetPath(
+                            lnkFile.LocalPath,
+                            lnkFile.NetworkShareInfo?.NetworkShareName,
+                            lnkFile.CommonPath);
+                        if (string.IsNullOrEmpty(fullPath)) continue;
+
+                        var actionTime = file.LastWriteTime;
+                        var fileName = Path.GetFileNameWithoutExtension(file.Name);
+                        var dataSource = file.FullName;
+
+                        var entry = new RecentFolderEntry(actionTime, fileName, dataSource, fullPath)
+                        {
+                            SkippedShellItems = lnkFile.SkippedShellItems
+                        };
+                        list.Add(entry);
                     }
-                    catch
-                    {
-                        SkippedFilesCount++;
-                        continue;
-                    }
 
-                    if (lnkFile == null) continue;
-
-                    var fullPath = ResolveTargetPath(
-                        lnkFile.LocalPath,
-                        lnkFile.NetworkShareInfo?.NetworkShareName,
-                        lnkFile.CommonPath);
-                    if (string.IsNullOrEmpty(fullPath)) continue;
-
-                    var actionTime = file.LastWriteTime;
-                    var fileName = Path.GetFileNameWithoutExtension(file.Name);
-                    var dataSource = file.FullName;
-
-                    var entry = new RecentFolderEntry(actionTime, fileName, dataSource, fullPath)
-                    {
-                        SkippedShellItems = lnkFile.SkippedShellItems
-                    };
-                    entries.Add(entry);
-                }
+                    return list;
+                }, cancellationToken);
 
                 return Result.Success(entries);
             }
@@ -106,11 +125,10 @@ namespace Activities_Inspector.Services
             return suffix.Length == 0 ? share : share + "\\" + suffix;
         }
 
-        private Task<LnkFile> LoadFileAsync(string lnkFilePath, CancellationToken cancellationToken = default)
+        private static LnkFile LoadFile(byte[] raw, string lnkFilePath)
         {
-            var raw = File.ReadAllBytes(lnkFilePath);
-            if (raw.Length == 0 || raw[0] != 0x4c) return Task.FromResult<LnkFile>(null);
-            return Task.FromResult(new LnkFile(raw, lnkFilePath));
+            if (raw.Length == 0 || raw[0] != 0x4c) return null;
+            return new LnkFile(raw, lnkFilePath);
         }
     }
 }

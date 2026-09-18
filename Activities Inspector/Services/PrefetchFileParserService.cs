@@ -16,7 +16,7 @@ namespace Activities_Inspector.Services
             return Open(fs, file);
         }
 
-        private IPrefetch Open(Stream stream, string file)
+        public IPrefetch Open(Stream stream, string file)
         {
             IPrefetch pf = null;
 

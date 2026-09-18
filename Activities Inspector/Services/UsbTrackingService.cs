@@ -35,25 +35,27 @@ namespace Activities_Inspector.Services
                 var manifest = new List<IntegrityRecord>();
                 LastIntegrityManifest = manifest;
 
-                var entries = new List<UsbEntry>();
+                // I/O hive/registry + query WMI su thread pool: la scansione
+                // completa non deve bloccare lo UI thread.
+                var entries = await Task.Run(async () =>
+                {
+                    if (!_sources.Current.IsLive)
+                    {
+                        var hivePath = _sources.Current.GetSystemHivePath();
+                        var hiveBytes = await File.ReadAllBytesAsync(hivePath, cancellationToken);
+                        manifest.Add(IntegrityHasher.HashBytes(hiveBytes, hivePath, EntryType.Usb));
+                        return await BuildUsbEntriesFromHiveBytesAsync(hiveBytes, hivePath, false, cancellationToken);
+                    }
 
-                if (!_sources.Current.IsLive)
-                {
-                    var hivePath = _sources.Current.GetSystemHivePath();
-                    manifest.Add(IntegrityHasher.HashFile(hivePath, EntryType.Usb));
-                    entries = await BuildUsbEntriesFromHiveBytesAsync(
-                        await File.ReadAllBytesAsync(hivePath, cancellationToken), hivePath, false, cancellationToken);
-                }
-                else if (isAdministrator)
-                {
-                    entries = await BuildUsbEntriesFromHiveAsync(manifest, cancellationToken);
-                }
-                else
-                {
+                    if (isAdministrator)
+                    {
+                        return await BuildUsbEntriesFromHiveAsync(manifest, cancellationToken);
+                    }
+
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.Usb,
                         $@"HKLM\{AppConstants.Registry.RegistrySystemPath} (registro live)"));
-                    entries = await BuildUsbEntriesFromRegistryAsync(cancellationToken);
-                }
+                    return await BuildUsbEntriesFromRegistryAsync(cancellationToken);
+                }, cancellationToken);
 
                 return Result.Success(entries);
             }
@@ -71,9 +73,8 @@ namespace Activities_Inspector.Services
             var rawFiles = Helper.GetRawFiles(files);
             var rawFile = rawFiles.First();
 
-            manifest.Add(IntegrityHasher.HashFile(rawFile.InputFilename, EntryType.Usb));
-
             var byteArray = await rawFile.FileStream.ReadFullyAsync();
+            manifest.Add(IntegrityHasher.HashBytes(byteArray, rawFile.InputFilename, EntryType.Usb));
             return await BuildUsbEntriesFromHiveBytesAsync(byteArray, rawFile.InputFilename, true, cancellationToken);
         }
 

@@ -30,6 +30,17 @@ namespace Activities_Inspector.Utils
             }
         }
 
+        internal static IntegrityRecord HashBytes(byte[] data, string path, EntryType feature)
+        {
+            var acquiredUtc = DateTime.UtcNow;
+
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(data);
+
+            return new IntegrityRecord(feature, path, ToHex(hash), data.Length,
+                acquiredUtc, IntegrityStatus.Acquired);
+        }
+
         internal static string ToHex(byte[] hash)
         {
             var sb = new StringBuilder(hash.Length * 2);
