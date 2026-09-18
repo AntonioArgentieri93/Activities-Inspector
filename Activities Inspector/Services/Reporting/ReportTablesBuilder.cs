@@ -151,7 +151,7 @@ namespace Activities_Inspector.Services.Reporting
 
                 if (item.InstallDate.HasValue)
                 {
-                    installDate = item.InstallDate.Value.ToShortDateString();
+                    installDate = DateBuilder.BuildFromDateTime(item.InstallDate.Value);
                 }
 
                 var rowValues = new List<string>()
@@ -427,14 +427,9 @@ namespace Activities_Inspector.Services.Reporting
 
             foreach (var item in sessionEntries)
             {
-                var logOnTime = string.Empty;
+                var logOnTime = DateBuilder.BuildFromDateTime(item.LogOnTime);
                 var logOffTime = string.Empty;
                 var duration = string.Empty;
-
-                if (item.LogOnTime != DateTime.MinValue)
-                {
-                    logOnTime = DateBuilder.BuildFromDateTime(item.LogOnTime);
-                }
 
                 if (item.LogOffTime != null)
                 {

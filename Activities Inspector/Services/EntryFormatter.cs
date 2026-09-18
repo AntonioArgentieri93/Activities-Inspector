@@ -63,19 +63,18 @@ namespace Activities_Inspector.Services
 
         private string BuildUsageInfoFormat(UsageInfo usageInfo)
         {
-            var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
             string endInterval = string.Empty;
 
             if (usageInfo.Interval.End.HasValue)
             {
-                endInterval = usageInfo.Interval.End.Value.ToString("dd/M/yyyy HH:mm:ss") + $"GMT+{offset.Hours}";
+                endInterval = DateBuilder.BuildFromDateTime(usageInfo.Interval.End.Value);
             }
 
             var duration = GetDuration(usageInfo.Duration);
 
             return string.Format(
                 "{0} ; {1} ; {2} ; {3} ; {4}",
-                usageInfo.Interval.Start.ToString("dd/M/yyyy HH:mm:ss") + $"GMT+{offset.Hours}",
+                DateBuilder.BuildFromDateTime(usageInfo.Interval.Start),
                 endInterval,
                 duration,
                 usageInfo.MachineName,
@@ -88,7 +87,7 @@ namespace Activities_Inspector.Services
                 installEntry.FileName,
                 installEntry.DataSource,
                 installEntry.FullPath,
-                installEntry.InstallDate?.ToShortDateString());
+                installEntry.InstallDate.HasValue ? DateBuilder.BuildFromDateTime(installEntry.InstallDate.Value) : string.Empty);
 
         private string BuildRecentFolderEntryFormat(RecentFolderEntry recentFolderEntry)
             => string.Format(
@@ -118,13 +117,12 @@ namespace Activities_Inspector.Services
 
         private string BuildSessionEntry(SessionEntry sessionEntry)
         {
-            var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
             var logOffTime = string.Empty;
             var duration = string.Empty;
 
             if (sessionEntry.LogOffTime.HasValue)
             {
-                logOffTime = sessionEntry.LogOffTime.Value.ToString("dd/M/yyyy HH:mm:ss") + $"GMT+{offset.Hours}";
+                logOffTime = DateBuilder.BuildFromDateTime(sessionEntry.LogOffTime.Value);
             }
 
             if (sessionEntry.Duration.HasValue)
@@ -139,7 +137,7 @@ namespace Activities_Inspector.Services
                 sessionEntry.UserName,
                 sessionEntry.Group,
                 sessionEntry.MachineName,
-                sessionEntry.LogOnTime == DateTime.MinValue ? string.Empty : sessionEntry.LogOnTime.ToString(),
+                DateBuilder.BuildFromDateTime(sessionEntry.LogOnTime),
                 logOffTime,
                 duration,
                 sessionEntry.NetworkAddress,

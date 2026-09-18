@@ -1,3 +1,4 @@
+using Activities_Inspector.Utils;
 using System;
 using System.Globalization;
 using System.Windows.Data;
@@ -10,8 +11,7 @@ namespace Activities_Inspector.Converters
         {
             if (value == null) return null;
 
-            var date = ((DateTime)value).ToShortDateString();
-            return date;
+            return DateBuilder.BuildFromDateTime((DateTime)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
