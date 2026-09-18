@@ -20,6 +20,14 @@ namespace Activities_Inspector.ViewModels
             private set => Set(nameof(EvidenceSourceDescription), ref _evidenceSourceDescription, value);
         }
 
+        private bool _isLiveMode;
+
+        public bool IsLiveMode
+        {
+            get => _isLiveMode;
+            private set => Set(nameof(IsLiveMode), ref _isLiveMode, value);
+        }
+
         #endregion
 
         #region Comandi
@@ -123,7 +131,10 @@ namespace Activities_Inspector.ViewModels
         }
 
         private void RefreshSourceDescription()
-            => EvidenceSourceDescription = $"Sorgente: {_sources.Current.DisplayName}";
+        {
+            EvidenceSourceDescription = $"Sorgente: {_sources.Current.DisplayName}";
+            IsLiveMode = _sources.Current.IsLive;
+        }
     }
 }
 

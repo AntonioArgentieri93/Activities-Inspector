@@ -51,17 +51,38 @@
                 <TextBlock Text="{Binding EvidenceSourceDescription}"
                            ToolTip="{Binding EvidenceSourceDescription}"
                            Foreground="White"
-                           FontSize="11"
+                           FontSize="12"
+                           FontWeight="Bold"
                            TextWrapping="Wrap"
                            Margin="0,0,0,5"/>
                 <StackPanel Orientation="Horizontal">
                     <Button Command="{Binding SelectLiveCommand}"
                             Content="Live"
-                            Margin="0,0,5,0"
-                            Padding="8,2"/>
+                            Margin="0,0,5,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource Button_Style}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLiveMode}" Value="True">
+                                        <Setter Property="Background" Value="#FF53b334"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <Button Command="{Binding SelectImageCommand}"
-                            Content="Immagine..."
-                            Padding="8,2"/>
+                            Content="Immagine...">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource Button_Style}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLiveMode}" Value="False">
+                                        <Setter Property="Background" Value="#FF53b334"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
             </StackPanel>
             <ListView ItemsSource="{Binding Items}"
