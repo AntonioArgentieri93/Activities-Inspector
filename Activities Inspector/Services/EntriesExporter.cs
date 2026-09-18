@@ -13,7 +13,7 @@ namespace Activities_Inspector.Services
     public class EntriesExporter : IEntriesExporter
     {
         private readonly IEntryFormatter _entryFormatter;
-        private const string ExportedDataRootPath = "Output";
+        private static string ExportedDataRootPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
 
         public EntriesExporter(IEntryFormatter entryFormatter)
         {
