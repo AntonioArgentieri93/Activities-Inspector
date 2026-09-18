@@ -36,7 +36,8 @@
                               MinWidth="270"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
+        <Grid Grid.Column="0"
+              Background="#FF00365C">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
