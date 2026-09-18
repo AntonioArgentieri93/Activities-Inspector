@@ -35,6 +35,9 @@ namespace Activities_Inspector.Services.Reporting
         internal const string IntegrityKey = "integrity";
         internal const string IntegrityTitle = "Integrità e catena di custodia";
 
+        internal const string AuditKey = "audit";
+        internal const string AuditTitle = "Diario operativo";
+
         internal static readonly (string Key, string Title)[] All =
         {
             (UsageKey, UsageTitle),
@@ -45,7 +48,8 @@ namespace Activities_Inspector.Services.Reporting
             (SessionsKey, SessionsTitle),
             (TimeChangedKey, TimeChangedTitle),
             (UsbKey, UsbTitle),
-            (IntegrityKey, IntegrityTitle)
+            (IntegrityKey, IntegrityTitle),
+            (AuditKey, AuditTitle)
         };
     }
 

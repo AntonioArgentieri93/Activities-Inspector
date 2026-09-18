@@ -178,8 +178,9 @@ namespace ActivitiesInspector.UnitTests.Services
                 new ShellBagEntry[0], new SessionEntry[0], new SystemTimeChangedEntry[0], new UsbEntry[0], section);
 
             Assert.Empty(section.Elements.OfType<Table>());
-            Assert.Equal(ReportSectionCatalog.All.Length - 1, ParagraphTexts(section).Count(t => t == ReportFormatting.NoResultsNoteText));
+            Assert.Equal(ReportSectionCatalog.All.Length - 2, ParagraphTexts(section).Count(t => t == ReportFormatting.NoResultsNoteText));
             Assert.Contains("Nessun artefatto acquisito: eseguire le funzionalita' prima di generare il report.", ParagraphTexts(section));
+            Assert.Contains("Nessuna operazione registrata in questa sessione.", ParagraphTexts(section));
             Assert.Equal(
                 ReportSectionCatalog.All.Select(e => e.Key).OrderBy(k => k),
                 section.Elements.OfType<Paragraph>().SelectMany(p => p.Elements.OfType<BookmarkField>()).Select(b => b.Name).OrderBy(n => n));
@@ -292,6 +293,36 @@ namespace ActivitiesInspector.UnitTests.Services
             var document = new Document();
             var section = document.AddSection();
             ReportTablesBuilder.AddIntegrityManifest(new IntegrityRecord[0], section);
+
+            Assert.Empty(section.Elements.OfType<Table>());
+            Assert.NotEmpty(section.Elements.OfType<Paragraph>());
+        }
+
+        [Fact]
+        public void Audit_Trail_Renders_Rows_With_Verified_Chain()
+        {
+            var audit = new AuditTrailService();
+            audit.Record(AuditCategory.Ricerca, "TimeIntervals: 3 risultati");
+            audit.Record(AuditCategory.Export, "TimeIntervals: 3 righe -> f.csv");
+
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddAuditTrail(audit.Entries.ToArray(), section);
+
+            var table = Assert.Single(section.Elements.OfType<Table>());
+            Assert.Equal(3, table.Rows.Count);
+            var texts = TableText(table);
+            Assert.Contains("TimeIntervals: 3 risultati", texts);
+            Assert.Contains("Ricerca", texts);
+            Assert.Contains(ParagraphTexts(section), p => p.Contains("risulta integra"));
+        }
+
+        [Fact]
+        public void Empty_Audit_Trail_Adds_Explicit_Note_And_No_Table()
+        {
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddAuditTrail(new AuditEntry[0], section);
 
             Assert.Empty(section.Elements.OfType<Table>());
             Assert.NotEmpty(section.Elements.OfType<Paragraph>());

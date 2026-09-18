@@ -13,7 +13,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
                 new FakeReportService(),
                 new TestDialogService(),
                 new FakeWindowFactory(),
-                Messenger.Default);
+                Messenger.Default,
+                new FakeAuditTrail());
         }
 
         [Fact]
@@ -33,7 +34,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
                 new FakeReportService(),
                 dialogs,
                 new FakeWindowFactory(),
-                Messenger.Default);
+                Messenger.Default,
+                new FakeAuditTrail());
 
             vm.GenerateReportCommand.Execute(null);
 

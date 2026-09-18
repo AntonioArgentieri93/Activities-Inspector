@@ -154,6 +154,7 @@ namespace Activities_Inspector.ViewModels
         private readonly IReportService _reportService;
         private readonly IWindowFactory _windowFactory;
         private readonly IMessenger _messenger;
+        private readonly IAuditTrail _auditTrail;
 
         private UsageInfo[] _usageInfos;
         private InstallEntry[] _installEntries;
@@ -170,12 +171,13 @@ namespace Activities_Inspector.ViewModels
         private UsbEntry[] _usbEntries;
 
         public ReportViewModel(IReportService reportService, IDialogService dialogService,
-            IWindowFactory windowFactory, IMessenger messenger)
+            IWindowFactory windowFactory, IMessenger messenger, IAuditTrail auditTrail)
             : base(dialogService)
         {
             _reportService = reportService;
             _windowFactory = windowFactory;
             _messenger = messenger;
+            _auditTrail = auditTrail;
 
             IsBusy = false;
             // Necessario: la base notifica OnIsBusyChanged solo su cambio
@@ -219,21 +221,25 @@ namespace Activities_Inspector.ViewModels
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
-                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).ToArray());
+                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).ToArray(),
+                    _auditTrail.Entries.ToArray());
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 
                 if (result.IsSuccess)
                 {
+                    _auditTrail.Record(AuditCategory.Report, $"Report generato -> {destinationPath}");
                     Dialogs.ShowInfo(Activities_Inspector.Resources.ReportWindows_OperationComplete_Info);
                 }
                 else
                 {
+                    _auditTrail.Record(AuditCategory.Report, "Report fallito");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
+                _auditTrail.Record(AuditCategory.Report, "Report annullato");
             }
             catch (Exception ex)
             {

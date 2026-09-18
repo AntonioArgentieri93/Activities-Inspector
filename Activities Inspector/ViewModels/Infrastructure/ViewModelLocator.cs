@@ -40,6 +40,7 @@ namespace Activities_Inspector.ViewModels.Infrastructure
             builder.RegisterType<NetService>().As<INetService>().SingleInstance();
             builder.RegisterType<WindowFactory>().As<IWindowFactory>().SingleInstance();
             builder.RegisterType<ReportService>().As<IReportService>().SingleInstance();
+            builder.RegisterType<AuditTrailService>().As<IAuditTrail>().SingleInstance();
             builder.RegisterInstance(Messenger.Default).As<IMessenger>().SingleInstance();
 
             _container = builder.Build();

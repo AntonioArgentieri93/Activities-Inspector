@@ -4,6 +4,7 @@ using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.Tables;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Table = MigraDocCore.DocumentObjectModel.Tables.Table;
 
 namespace Activities_Inspector.Services.Reporting
@@ -14,7 +15,7 @@ namespace Activities_Inspector.Services.Reporting
             PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section,
             double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool shellBagsPartial = false,
-            IntegrityRecord[] integrityManifest = null)
+            IntegrityRecord[] integrityManifest = null, AuditEntry[] auditTrail = null)
         {
             AddUsageInfos(usageInfos, section, totalWidthMm);
             AddInstalledPrograms(installedPrograms, section, totalWidthMm);
@@ -25,6 +26,72 @@ namespace Activities_Inspector.Services.Reporting
             AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm);
             AddUsbEntries(usbEntries, section, totalWidthMm);
             AddIntegrityManifest(integrityManifest ?? new IntegrityRecord[0], section, totalWidthMm);
+            AddAuditTrail(auditTrail ?? new AuditEntry[0], section, totalWidthMm);
+        }
+
+        public static void AddAuditTrail(AuditEntry[] entries, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+        {
+            ReportFormatting.AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.AuditTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.AuditKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
+            ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var chainValid = Services.AuditChain.Verify(entries);
+
+            var content = "La tabella elenca le operazioni svolte dal software in questa sessione " +
+                "(ricerche, esportazioni, generazione del report) con ora in formato locale. \n" +
+                "Ogni riga contiene l'impronta della precedente: la catena " +
+                (chainValid ? "risulta integra." : "RISULTA ALTERATA: il diario non e' attendibile.") + " \n" +
+                "Il diario vive solo in memoria e non scrive nulla sul PC in esame.";
+
+            var contentParagraph = section.AddParagraph(content);
+            ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (entries == null || entries.Length == 0)
+            {
+                var note = section.AddParagraph("Nessuna operazione registrata in questa sessione.");
+                ReportFormatting.OverrideParagraphDefaultStyle(note, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+                note.Format.Font.Italic = true;
+                return;
+            }
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "N.",
+                "Ora",
+                "Operazione",
+                "Dettaglio",
+                "Impronta"
+            };
+
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
+
+            foreach (var item in entries.OrderBy(e => e.Sequence))
+            {
+                var rowValues = new List<string>()
+                {
+                    item.Sequence.ToString(),
+                    DateBuilder.BuildFromDateTime(DateBuilder.ToLocal(item.TimestampUtc)),
+                    item.Category.ToString(),
+                    item.Detail ?? string.Empty,
+                    item.Hash ?? string.Empty
+                };
+
+                ReportFormatting.AddRowValuesToTable(table, rowValues);
+            }
         }
 
         public static void AddIntegrityManifest(IntegrityRecord[] records, Section section,

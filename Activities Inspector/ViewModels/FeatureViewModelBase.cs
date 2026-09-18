@@ -36,11 +36,13 @@ namespace Activities_Inspector.ViewModels
         }
 
         protected IEntriesExporter Exporter { get; }
+        protected IAuditTrail Audit { get; }
 
-        protected FeatureViewModelBase(IDialogService dialogService, IEntriesExporter entriesExporter)
+        protected FeatureViewModelBase(IDialogService dialogService, IEntriesExporter entriesExporter, IAuditTrail auditTrail)
             : base(dialogService)
         {
             Exporter = entriesExporter;
+            Audit = auditTrail;
         }
 
         protected abstract EntryType EntryType { get; }
@@ -68,6 +70,8 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
+                    Audit.Record(AuditCategory.Export, $"{EntryType}: {Entries?.Count ?? 0} righe -> {result.Value}");
+
                     var message = Activities_Inspector.Resources.ExportCommand_ExportComplete_Message +
                         $"\nPercorso: {result.Value}";
 
@@ -80,11 +84,13 @@ namespace Activities_Inspector.ViewModels
                 }
                 else
                 {
+                    Audit.Record(AuditCategory.Export, $"{EntryType} fallito");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
+                Audit.Record(AuditCategory.Export, $"{EntryType} annullato");
             }
             catch (Exception ex)
             {
@@ -111,17 +117,20 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
+                    Audit.Record(AuditCategory.Ricerca, $"{EntryType}: {result.Value.Count} risultati");
                     SetEntries(new ObservableCollection<TEntry>(result.Value));
                     PublishEntries(result.Value);
                     AfterLoad();
                 }
                 else
                 {
+                    Audit.Record(AuditCategory.Ricerca, $"{EntryType} fallita");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
+                Audit.Record(AuditCategory.Ricerca, $"{EntryType} annullata");
             }
             catch (Exception ex)
             {

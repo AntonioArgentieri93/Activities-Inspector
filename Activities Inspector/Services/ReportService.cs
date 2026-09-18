@@ -35,7 +35,7 @@ namespace Activities_Inspector.Services
                 ReportCoverBuilder.ConfigureTablesSection(tablesSection);
                 ReportTablesBuilder.AddContents(content.UsageInfos, content.InstallEntries, content.RecentFolderEntries, content.PrefetchInfoEntries, content.ShellBagEntries,
                     content.SessionEntries, content.SystemTimeChangedEntries, content.UsbEntries, tablesSection,
-                    ReportFormatting.LandscapeContentWidthMillimeters, content.ShellBagsPartial, content.IntegrityManifest);
+                    ReportFormatting.LandscapeContentWidthMillimeters, content.ShellBagsPartial, content.IntegrityManifest, content.AuditTrail);
 
                 ReportFormatting.AddFooterWithPageNumbers(coverSection);
                 ReportFormatting.AddFooterWithPageNumbers(tablesSection);

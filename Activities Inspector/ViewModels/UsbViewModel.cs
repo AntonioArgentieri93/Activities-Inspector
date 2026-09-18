@@ -55,8 +55,8 @@ namespace Activities_Inspector.ViewModels
         private ObservableCollection<UsbEntry> _temp;
 
         public UsbViewModel(IUsbTrackingService usbTrackingService, IDialogService dialogService,
-            IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService, entriesExporter)
+            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail)
+            : base(dialogService, entriesExporter, auditTrail)
         {
             _usbTrackingService = usbTrackingService;
             _messenger = messenger;

@@ -50,8 +50,8 @@ namespace Activities_Inspector.ViewModels
         private readonly IMessenger _messenger;
 
         public RecentFolderViewModel(IRecentFilesService recentFilesService, IDialogService dialogService,
-            IEntriesExporter entriesExporter, IMessenger messenger)
-            : base(dialogService, entriesExporter)
+            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail)
+            : base(dialogService, entriesExporter, auditTrail)
         {
             _recentFilesService = recentFilesService;
             _messenger = messenger;

@@ -20,11 +20,13 @@ namespace ActivitiesInspector.UnitTests.ViewModels
         public async Task Export_Is_Enabled_After_Successful_Load()
         {
             var dialogs = new TestDialogService();
+            var audit = new FakeAuditTrail();
             var vm = new TimeIntervalsViewModel(
                 new FakeUsageLogTimeService(),
                 dialogs,
                 new FakeExporter(),
-                Messenger.Default);
+                Messenger.Default,
+                audit);
 
             Assert.False(vm.ExportCommand.CanExecute(null));
 
@@ -44,6 +46,7 @@ namespace ActivitiesInspector.UnitTests.ViewModels
             Assert.Empty(dialogs.Errors);
             Assert.True(lastEvaluated);
             Assert.True(vm.ExportCommand.CanExecute(null));
+            Assert.Contains(audit.Records, r => r.Category == AuditCategory.Ricerca);
         }
 
         private sealed class FakeUsageLogTimeService : IUsageLogTimeService

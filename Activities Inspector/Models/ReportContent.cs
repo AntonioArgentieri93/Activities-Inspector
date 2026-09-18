@@ -21,13 +21,15 @@ namespace Activities_Inspector.Models
         public string DestinationPath { get; }
         public bool ShellBagsPartial { get; }
         public IntegrityRecord[] IntegrityManifest { get; }
+        public AuditEntry[] AuditTrail { get; }
 
         public ReportContent(ProvisioningType provisioningType, string other, string inquirerSurname,
             string inquirerName, string inquirerQualification, string objectDescription, UsageInfo[] usageInfos,
             InstallEntry[] installEntries, RecentFolderEntry[] recentFolderEntries,PrefetchInfoEntry[] prefetchInfoEntries, 
             ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries, 
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, string destinationPath,
-            bool shellBagsPartial = false, IntegrityRecord[] integrityManifest = null)
+            bool shellBagsPartial = false, IntegrityRecord[] integrityManifest = null,
+            AuditEntry[] auditTrail = null)
         {
             this.ProvisioningType = provisioningType;
             this.Other = other;
@@ -46,6 +48,7 @@ namespace Activities_Inspector.Models
             this.DestinationPath = destinationPath; 
             this.ShellBagsPartial = shellBagsPartial;
             this.IntegrityManifest = integrityManifest ?? new IntegrityRecord[0];
+            this.AuditTrail = auditTrail ?? new AuditEntry[0];
         }
     }
 }
