@@ -74,7 +74,12 @@ namespace Activities_Inspector.ViewModels
             if (!eventsResult.IsSuccess)
                 return Result.Failure<List<UsageInfo>>(eventsResult.Error);
 
-            return Result.Success(_usageLogTimeService.BuildUsageInfo(eventsResult.Value).ToList());
+            // Filtri e pairing sull'intero log System: CPU-bound su thread
+            // pool, mai sullo UI thread.
+            var infos = await Task.Run(
+                () => _usageLogTimeService.BuildUsageInfo(eventsResult.Value).ToList(), token);
+
+            return Result.Success(infos);
         }
 
         protected override void SetEntries(ObservableCollection<UsageInfo> entries)

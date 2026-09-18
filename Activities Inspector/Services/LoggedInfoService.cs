@@ -24,16 +24,20 @@ namespace Activities_Inspector.Services
         {
             try
             {
-                var sessionsList = new List<SessionEntry>();
-
                 var systemEvents = await GetSecurityEventLogEntriesAsync(cancellationToken);
 
                 if (systemEvents.Count == 0)
                     return Result.Failure<List<SessionEntry>>("Il registro eventi Sicurezza e' vuoto o illeggibile: " +
                         "impossibile distinguere assenza di accessi da log ruotato/cancellato o permessi insufficienti.");
 
-                var logOnEntries = GetLogOnEntries(systemEvents).ToList();
-                var logOffEntries = GetLogOffEntries(systemEvents).ToList();
+                // Filtri e pairing su decine di migliaia di eventi: CPU-bound
+                // su thread pool, mai sullo UI thread.
+                var sessionsList = await Task.Run(() =>
+                {
+                    var list = new List<SessionEntry>();
+
+                    var logOnEntries = GetLogOnEntries(systemEvents).ToList();
+                    var logOffEntries = GetLogOffEntries(systemEvents).ToList();
 
                 foreach (var logOffEntry in logOffEntries)
                 {
@@ -44,7 +48,7 @@ namespace Activities_Inspector.Services
 
                     if (selectedLogOnEntry != null)
                     {
-                        sessionsList.Add(new SessionEntry(
+                        list.Add(new SessionEntry(
                             index: selectedLogOnEntry.Index,
                             userName: selectedLogOnEntry.AccountName,
                             group: selectedLogOnEntry.DomainName,
@@ -59,7 +63,7 @@ namespace Activities_Inspector.Services
                     }
                     else
                     {
-                        sessionsList.Add(new SessionEntry(
+                        list.Add(new SessionEntry(
                             index: logOffEntry.Index,
                             userName: logOffEntry.AccountName,
                             group: logOffEntry.DomainName,
@@ -79,7 +83,7 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    sessionsList.Add(new SessionEntry(
+                    list.Add(new SessionEntry(
                         index: logOnEntry.Index,
                         userName: logOnEntry.AccountName,
                         group: logOnEntry.DomainName,
@@ -91,7 +95,8 @@ namespace Activities_Inspector.Services
                         accessType: logOnEntry.AccessType.ToString()));
                 }
 
-                sessionsList = sessionsList.OrderBy(ev => ev.LogOnTime).ToList();
+                return list.OrderBy(ev => ev.LogOnTime).ToList();
+                }, cancellationToken);
 
                 return Result.Success(sessionsList);
             }

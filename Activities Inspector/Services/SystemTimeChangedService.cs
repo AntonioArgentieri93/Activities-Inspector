@@ -25,47 +25,52 @@ namespace Activities_Inspector.Services
         {
             try
             {
-                var entries = new List<SystemTimeChangedEntry>();
-
                 var logEntries = await GetSystemTimeChangedEventLogEntriesAsync(cancellationToken);
 
-                foreach (var entry in logEntries)
+                // Parsing e filtri sull'intero log: CPU-bound su thread pool,
+                // mai sullo UI thread.
+                var entries = await Task.Run(() =>
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var list = new List<SystemTimeChangedEntry>();
 
-                    if (entry.ReplacementStrings.Length < 8) continue;
-
-                    // SID di LOCAL SERVICE: indipendente dalla lingua del
-                    // sistema (il vecchio controllo sul nome perdeva le
-                    // altre localizzazioni, es. francese/tedesco).
-                    if (entry.ReplacementStrings[0] == @"S-1-5-19") continue;
-
-                    if (entry.ReplacementStrings[7] == @"C:\Windows\System32\svchost.exe") continue;
-
-                    if (!DateTime.TryParseExact(entry.TimeGenerated.ToString("dd/M/yyyy HH:mm:ss"), "dd/M/yyyy HH:mm:ss",
-                        DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime timeGenerated))
+                    foreach (var entry in logEntries)
                     {
-                        continue;
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (entry.ReplacementStrings.Length < 8) continue;
+
+                        // SID di LOCAL SERVICE: indipendente dalla lingua del
+                        // sistema (il vecchio controllo sul nome perdeva le
+                        // altre localizzazioni, es. francese/tedesco).
+                        if (entry.ReplacementStrings[0] == @"S-1-5-19") continue;
+
+                        if (entry.ReplacementStrings[7] == @"C:\Windows\System32\svchost.exe") continue;
+
+                        if (!DateTime.TryParseExact(entry.TimeGenerated.ToString("dd/M/yyyy HH:mm:ss"), "dd/M/yyyy HH:mm:ss",
+                            DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime timeGenerated))
+                        {
+                            continue;
+                        }
+
+                        if (!DateTime.TryParse(entry.ReplacementStrings[4], null, DateTimeStyles.RoundtripKind, out DateTime oldTime) ||
+                            !DateTime.TryParse(entry.ReplacementStrings[5], null, DateTimeStyles.RoundtripKind, out DateTime newTime))
+                        {
+                            continue;
+                        }
+
+                        oldTime = DateBuilder.ToLocal(oldTime);
+                        newTime = DateBuilder.ToLocal(newTime);
+
+                        if (oldTime == newTime) continue;
+
+                        list.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1],
+                            DateBuilder.BuildFromDateTime(timeGenerated),
+                            DateBuilder.BuildFromString(oldTime.ToString()),
+                            DateBuilder.BuildFromString(newTime.ToString())));
                     }
 
-                    if (!DateTime.TryParse(entry.ReplacementStrings[4], null, DateTimeStyles.RoundtripKind, out DateTime oldTime) ||
-                        !DateTime.TryParse(entry.ReplacementStrings[5], null, DateTimeStyles.RoundtripKind, out DateTime newTime))
-                    {
-                        continue;
-                    }
-
-                    oldTime = DateBuilder.ToLocal(oldTime);
-                    newTime = DateBuilder.ToLocal(newTime);
-
-                    if (oldTime == newTime) continue;
-
-                    entries.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1],
-                        DateBuilder.BuildFromDateTime(timeGenerated),
-                        DateBuilder.BuildFromString(oldTime.ToString()),
-                        DateBuilder.BuildFromString(newTime.ToString())));
-                }
-
-                entries = entries.OrderBy(ee => ee.TimeGenerated).ToList();
+                    return list.OrderBy(ee => ee.TimeGenerated).ToList();
+                }, cancellationToken);
 
                 return Result.Success(entries);
             }
