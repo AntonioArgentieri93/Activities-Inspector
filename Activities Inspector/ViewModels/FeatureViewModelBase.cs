@@ -60,6 +60,7 @@ namespace Activities_Inspector.ViewModels
         private async Task ExportAsync()
         {
             var token = BeginOperation();
+            ExportCommand.RaiseCanExecuteChanged();
 
             try
             {
@@ -84,6 +85,7 @@ namespace Activities_Inspector.ViewModels
             finally
             {
                 EndOperation();
+                ExportCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -91,6 +93,7 @@ namespace Activities_Inspector.ViewModels
         {
             if (Entries != null) Entries.Clear();
             var token = BeginOperation();
+            ExportCommand.RaiseCanExecuteChanged();
 
             try
             {
@@ -119,6 +122,7 @@ namespace Activities_Inspector.ViewModels
             finally
             {
                 EndOperation();
+                ExportCommand.RaiseCanExecuteChanged();
             }
         }
 
