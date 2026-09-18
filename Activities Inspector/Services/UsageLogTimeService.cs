@@ -27,8 +27,8 @@ namespace Activities_Inspector.Services
             {
                 if (!_sources.Current.IsLive)
                 {
-                    var offline = Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(LogFilter));
-                    return Result.Success(offline);
+                    var path = _sources.Current.GetEventLogPath(LogFilter);
+                    return Result.Success(await Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path), cancellationToken));
                 }
 
                 using var myLog = new EventLog { Log = LogFilter };

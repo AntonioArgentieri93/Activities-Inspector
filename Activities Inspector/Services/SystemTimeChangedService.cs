@@ -84,10 +84,11 @@ namespace Activities_Inspector.Services
         {
             if (!_sources.Current.IsLive)
             {
-                return Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog))
+                var path = _sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog);
+                return await Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path)
                     .Where(ev => ev.EventId == AppConstants.EventLog.SystemTimeChangedEventId &&
                         ev.Source == AppConstants.EventLog.SecurityProviderName)
-                    .ToList();
+                    .ToList(), cancellationToken);
             }
 
             return await Task.Run(() =>

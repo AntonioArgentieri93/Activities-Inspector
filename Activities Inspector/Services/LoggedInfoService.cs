@@ -110,8 +110,8 @@ namespace Activities_Inspector.Services
         {
             if (!_sources.Current.IsLive)
             {
-                return Task.FromResult(
-                    Evidence.EvtxFileReader.ReadEvents(_sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog)));
+                var path = _sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog);
+                return Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path), cancellationToken);
             }
 
             return Task.Run(() =>

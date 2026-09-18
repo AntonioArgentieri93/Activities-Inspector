@@ -76,24 +76,28 @@ namespace Activities_Inspector.Services
                 {
                     var offlineTask = Task.Run(() =>
                     {
-                        var wow = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
-                            new[] { @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
-                        var ms = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
-                            new[] { @"Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
+                        // Un'unica lettura+parsing dell'hive SOFTWARE per
+                        // entrambi i rami (198MB: dimezza I/O e CPU).
+                        var software = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
+                            new[]
+                            {
+                                @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
+                                @"Microsoft\Windows\CurrentVersion\Uninstall"
+                            }, manifest, cancellationToken);
                         var usr = _sources.Current.GetUserHivePaths("NTUSER.DAT")
                             .SelectMany(h => GetUninstallFromHiveFile(h,
                                 new[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken))
                             .ToList();
                         var ev = GetFromEvtxFile(
                             _sources.Current.GetEventLogPath(AppConstants.EventLog.ApplicationLog), eventsManifest, cancellationToken);
-                        return (wow, ms, usr, ev);
+                        return (software, usr, ev);
                     }, cancellationToken);
 
                     await Task.WhenAll(offlineTask, startMenuTask);
 
                     var offline = await offlineTask;
-                    wow6432Locals = offline.wow;
-                    microsoftLocals = offline.ms;
+                    wow6432Locals = offline.software;
+                    microsoftLocals = new List<InstallEntry>();
                     users = offline.usr;
                     events = offline.ev;
 
