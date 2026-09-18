@@ -15,6 +15,9 @@ namespace Activities_Inspector.Services
     {
         private readonly IPrefetchFileParserService _parser;
 
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public PrefetchFileInfoBuilderService(IPrefetchFileParserService parser)
         {
             _parser = parser;
@@ -24,6 +27,8 @@ namespace Activities_Inspector.Services
         {
             try
             {
+                LastIntegrityManifest = new List<IntegrityRecord>();
+
                 var prefetchFileNames = await GetPrefetchFilesNamesAsync(cancellationToken);
 
                 // Parsing CPU-bound su thread pool: senza questo, centinaia
@@ -32,10 +37,13 @@ namespace Activities_Inspector.Services
                 var entries = await Task.Run(() =>
                 {
                     var list = new List<PrefetchInfoEntry>();
+                    var manifest = new List<IntegrityRecord>();
 
                     foreach (var fileName in prefetchFileNames)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
+
+                        manifest.Add(IntegrityHasher.HashFile(fileName, EntryType.Prefetch));
 
                         var pf = _parser.Open(fileName);
                         if (pf == null) continue;
@@ -46,6 +54,7 @@ namespace Activities_Inspector.Services
                             list.Add(entry);
                     }
 
+                    LastIntegrityManifest = manifest;
                     return list;
                 }, cancellationToken);
 

@@ -81,7 +81,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<PrefetchInfoEntry> entries)
         {
-            _messenger.Send(new OnPrefetchInfoEntriesChangedMessage(entries));
+            _messenger.Send(new OnPrefetchInfoEntriesChangedMessage(entries, _prefetchFileInfoBuilderService.LastIntegrityManifest));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

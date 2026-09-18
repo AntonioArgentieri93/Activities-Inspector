@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface IPrefetchFileInfoBuilderService
     {
         Task<Result<List<PrefetchInfoEntry>>> GetPrefetchFileInfosAsync(CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

@@ -15,9 +15,14 @@ namespace Activities_Inspector.Services
     {
         public int SkippedFilesCount { get; private set; }
 
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync(CancellationToken cancellationToken = default)
         {
             SkippedFilesCount = 0;
+            var manifest = new List<IntegrityRecord>();
+            LastIntegrityManifest = manifest;
 
             try
             {
@@ -38,6 +43,8 @@ namespace Activities_Inspector.Services
                     cancellationToken.ThrowIfCancellationRequested();
 
                     LnkFile lnkFile = null;
+
+                    manifest.Add(IntegrityHasher.HashFile(file.FullName, EntryType.Recents));
 
                     try
                     {

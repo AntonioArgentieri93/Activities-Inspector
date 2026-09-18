@@ -32,6 +32,9 @@ namespace Activities_Inspector.Services.Reporting
         internal const string UsbKey = "usb";
         internal const string UsbTitle = "Periferiche USB";
 
+        internal const string IntegrityKey = "integrity";
+        internal const string IntegrityTitle = "Integrità e catena di custodia";
+
         internal static readonly (string Key, string Title)[] All =
         {
             (UsageKey, UsageTitle),
@@ -41,7 +44,8 @@ namespace Activities_Inspector.Services.Reporting
             (ShellbagsKey, ShellbagsTitle),
             (SessionsKey, SessionsTitle),
             (TimeChangedKey, TimeChangedTitle),
-            (UsbKey, UsbTitle)
+            (UsbKey, UsbTitle),
+            (IntegrityKey, IntegrityTitle)
         };
     }
 

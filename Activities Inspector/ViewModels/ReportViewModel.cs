@@ -161,6 +161,10 @@ namespace Activities_Inspector.ViewModels
         private PrefetchInfoEntry[] _prefetchInfoEntries;
         private ShellBagEntry[] _shellBagEntries;
         private bool _shellBagsPartial;
+        private List<IntegrityRecord> _installManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _recentManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _prefetchManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _usbManifest = new List<IntegrityRecord>();
         private SessionEntry[] _sessionEntries;
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
@@ -215,7 +219,7 @@ namespace Activities_Inspector.ViewModels
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
-                    _shellBagsPartial);
+                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).ToArray());
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 
@@ -249,16 +253,19 @@ namespace Activities_Inspector.ViewModels
         private void HandleOnInstallEntriesChangedMessage(OnInstallEntriesChangedMessage message)
         {
             _installEntries = message.NewInstallEntries.ToArray();
+            _installManifest = message.Manifest.ToList();
         }
 
         private void HandleOnRecentFolderEntriesChangedMessage(OnRecentFolderEntriesChangedMessage message)
         {
             _recentFolderEntries = message.NewRecentFoldersEntries.ToArray();
+            _recentManifest = message.Manifest.ToList();
         }
 
         private void HandleOnPrefetchInfoEntriesChangedMessage(OnPrefetchInfoEntriesChangedMessage message)
         {
             _prefetchInfoEntries = message.NewPrefetchInfoEntries.ToArray();
+            _prefetchManifest = message.Manifest.ToList();
         }
 
         private void HandleOnShellBagEntriesChangedMessage(OnShellBagEntriesChangedMessage message)
@@ -280,6 +287,7 @@ namespace Activities_Inspector.ViewModels
         private void HandleOnUsbEntriesChangedMessage(OnUsbEntriesChangedMessage message)
         {
             _usbEntries = message.NewUsbEntries.ToArray();
+            _usbManifest = message.Manifest.ToList();
         }
     }
 }

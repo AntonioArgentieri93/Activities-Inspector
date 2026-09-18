@@ -13,7 +13,8 @@ namespace Activities_Inspector.Services.Reporting
         public static void AddContents(UsageInfo[] usageInfos, InstallEntry[] installedPrograms, RecentFolderEntry[] recentFolderEntries,
             PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool shellBagsPartial = false)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool shellBagsPartial = false,
+            IntegrityRecord[] integrityManifest = null)
         {
             AddUsageInfos(usageInfos, section, totalWidthMm);
             AddInstalledPrograms(installedPrograms, section, totalWidthMm);
@@ -23,6 +24,98 @@ namespace Activities_Inspector.Services.Reporting
             AddSessionEntries(sessionEntries, section, totalWidthMm);
             AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm);
             AddUsbEntries(usbEntries, section, totalWidthMm);
+            AddIntegrityManifest(integrityManifest ?? new IntegrityRecord[0], section, totalWidthMm);
+        }
+
+        public static void AddIntegrityManifest(IntegrityRecord[] records, Section section,
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+        {
+            ReportFormatting.AddNewPage(section);
+
+            var promiseParagraph = section.AddParagraph(ReportSectionCatalog.IntegrityTitle);
+            promiseParagraph.AddBookmark(ReportSectionCatalog.IntegrityKey);
+            promiseParagraph.Format.OutlineLevel = OutlineLevel.Level1;
+            ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
+
+            var content = "La tabella riporta per ogni artefatto letto dal PC in esame il percorso, " +
+                "l'impronta SHA-256, la dimensione in byte e l'istante di acquisizione (UTC). \n" +
+                "Le impronte sono calcolate in sola lettura al momento dell'analisi e attestano cio' che il software " +
+                "ha letto in quell'istante, non l'immutabilita' del sistema: su macchina live i file possono cambiare " +
+                "dopo l'acquisizione. \n" +
+                "Le righe senza impronta indicano sorgenti lette via API live (nessun file acquisibile) oppure file " +
+                "non leggibili, con il motivo riportato nella colonna Stato.";
+
+            var contentParagraph = section.AddParagraph(content);
+            ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            if (records == null || records.Length == 0)
+            {
+                var note = section.AddParagraph("Nessun artefatto acquisito: eseguire le funzionalita' prima di generare il report.");
+                ReportFormatting.OverrideParagraphDefaultStyle(note, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+                note.Format.Font.Italic = true;
+                return;
+            }
+
+            var table = section.AddTable();
+
+            table.Borders.Top.Width = 1;
+            table.Borders.Bottom.Width = 1;
+            table.Borders.Left.Width = 1;
+            table.Borders.Right.Width = 1;
+
+            var headerLabels = new List<string>()
+            {
+                "Funzionalita'",
+                "Percorso",
+                "SHA-256",
+                "Byte",
+                "Acquisito (UTC)",
+                "Stato"
+            };
+
+            ReportFormatting.AddHeaderToTable(table, headerLabels, totalWidthMm);
+
+            foreach (var item in records)
+            {
+                var rowValues = new List<string>()
+                {
+                    MapFeatureTitle(item.Feature),
+                    item.Path ?? string.Empty,
+                    item.Sha256 ?? string.Empty,
+                    item.SizeBytes.HasValue ? item.SizeBytes.Value.ToString() : string.Empty,
+                    item.AcquiredUtc.HasValue ? DateBuilder.BuildFromDateTimeUtc(item.AcquiredUtc.Value) : string.Empty,
+                    MapIntegrityStatus(item)
+                };
+
+                ReportFormatting.AddRowValuesToTable(table, rowValues);
+            }
+        }
+
+        private static string MapFeatureTitle(EntryType feature)
+        {
+            switch (feature)
+            {
+                case EntryType.InstalledPrograms: return ReportSectionCatalog.InstalledTitle;
+                case EntryType.Recents: return ReportSectionCatalog.RecentsTitle;
+                case EntryType.Prefetch: return ReportSectionCatalog.PrefetchTitle;
+                case EntryType.Usb: return ReportSectionCatalog.UsbTitle;
+                default: return feature.ToString();
+            }
+        }
+
+        private static string MapIntegrityStatus(IntegrityRecord item)
+        {
+            switch (item.Status)
+            {
+                case IntegrityStatus.Acquired: return "Acquisito";
+                case IntegrityStatus.LiveSource: return item.Detail ?? "Sorgente live";
+                case IntegrityStatus.NotAcquirable:
+                    return string.IsNullOrEmpty(item.Detail) ? "Non acquisibile" : $"Non acquisibile ({item.Detail})";
+                default: return item.Status.ToString();
+            }
         }
 
         public static void AddUsageInfos(UsageInfo[] usageInfos, Section section,

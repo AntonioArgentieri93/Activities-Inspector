@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface IUsbTrackingService
     {
         Task<Result<List<UsbEntry>>> BuildUsbEntriesAsync(bool isAdministrator, CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

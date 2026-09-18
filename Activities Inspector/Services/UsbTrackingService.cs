@@ -17,18 +17,26 @@ namespace Activities_Inspector.Services
 {
     public class UsbTrackingService : IUsbTrackingService
     {
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<UsbEntry>>> BuildUsbEntriesAsync(bool isAdministrator, CancellationToken cancellationToken = default)
         {
             try
             {
+                var manifest = new List<IntegrityRecord>();
+                LastIntegrityManifest = manifest;
+
                 var entries = new List<UsbEntry>();
 
                 if (isAdministrator)
                 {
-                    entries = await BuildUsbEntriesFromHiveAsync(cancellationToken);
+                    entries = await BuildUsbEntriesFromHiveAsync(manifest, cancellationToken);
                 }
                 else
                 {
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.Usb,
+                        $@"HKLM\{AppConstants.Registry.RegistrySystemPath} (registro live)"));
                     entries = await BuildUsbEntriesFromRegistryAsync(cancellationToken);
                 }
 
@@ -40,13 +48,15 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private async Task<List<UsbEntry>> BuildUsbEntriesFromHiveAsync(CancellationToken cancellationToken)
+        private async Task<List<UsbEntry>> BuildUsbEntriesFromHiveAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken)
         {
             var entries = new List<UsbEntry>();
 
             var files = new List<string> { AppConstants.Paths.SystemHivePath };
             var rawFiles = Helper.GetRawFiles(files);
             var rawFile = rawFiles.First();
+
+            manifest.Add(IntegrityHasher.HashFile(rawFile.InputFilename, EntryType.Usb));
 
             var byteArray = await rawFile.FileStream.ReadFullyAsync();
             var reg = new RegistryHive(byteArray, rawFile.InputFilename);

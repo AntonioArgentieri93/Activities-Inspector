@@ -15,17 +15,36 @@ namespace Activities_Inspector.Services
 {
     public class InstallEntriesBuilder : IInstallEntriesBuilder
     {
+        private static string ApplicationLogPath => Path.Combine(
+            Environment.SystemDirectory, "winevt", "Logs", "Application.evtx");
+
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<InstallEntry>>> GetInstallEntriesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
+                var manifest = new List<IntegrityRecord>();
+                LastIntegrityManifest = manifest;
+
                 var wow6432Locals = await GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
                 var microsoftLocals = await GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                 var users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                 var events = await GetFromEventsAsync(cancellationToken);
 
-                var startMenu = await GetFromStartMenuAsync(cancellationToken);
+                var startMenu = await GetFromStartMenuAsync(manifest, cancellationToken);
                 var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
+
+                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                    $@"HKLM\{AppConstants.Registry.Wow6432UninstallPath} (registro live, {wow6432Locals.Count} voci)"));
+                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                    $@"HKLM\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {microsoftLocals.Count} voci)"));
+                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                    $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
+                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                    $"Registro Applicazione (API live, {events.Count} voci)"));
+                manifest.Add(IntegrityHasher.HashFile(ApplicationLogPath, EntryType.InstalledPrograms));
 
                 if (all.Count == 0)
                     return Result.Failure<List<InstallEntry>>("Nessuna sorgente programmi installati leggibile: " +
@@ -189,7 +208,7 @@ namespace Activities_Inspector.Services
             return merged;
         }
 
-        private Task<List<InstallEntry>> GetFromStartMenuAsync(CancellationToken cancellationToken)
+        private Task<List<InstallEntry>> GetFromStartMenuAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
@@ -200,6 +219,8 @@ namespace Activities_Inspector.Services
                     foreach (var lnkPath in EnumerateLnkFiles(root))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
+
+                        manifest.Add(IntegrityHasher.HashFile(lnkPath, EntryType.InstalledPrograms));
 
                         InstallEntry entry = null;
 

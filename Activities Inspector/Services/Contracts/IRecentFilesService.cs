@@ -11,5 +11,7 @@ namespace Activities_Inspector.Services
         Task<Result<List<RecentFolderEntry>>> GetRecentFilesAsync(CancellationToken cancellationToken = default);
 
         int SkippedFilesCount { get; }
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

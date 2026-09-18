@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface IInstallEntriesBuilder
     {
         Task<Result<List<InstallEntry>>> GetInstallEntriesAsync(CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

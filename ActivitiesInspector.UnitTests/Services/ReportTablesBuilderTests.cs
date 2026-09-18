@@ -7,6 +7,7 @@ using MigraDocCore.DocumentObjectModel.Tables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace ActivitiesInspector.UnitTests.Services
@@ -176,7 +177,8 @@ namespace ActivitiesInspector.UnitTests.Services
                 new ShellBagEntry[0], new SessionEntry[0], new SystemTimeChangedEntry[0], new UsbEntry[0], section);
 
             Assert.Empty(section.Elements.OfType<Table>());
-            Assert.Equal(ReportSectionCatalog.All.Length, ParagraphTexts(section).Count(t => t == ReportFormatting.NoResultsNoteText));
+            Assert.Equal(ReportSectionCatalog.All.Length - 1, ParagraphTexts(section).Count(t => t == ReportFormatting.NoResultsNoteText));
+            Assert.Contains("Nessun artefatto acquisito: eseguire le funzionalita' prima di generare il report.", ParagraphTexts(section));
             Assert.Equal(
                 ReportSectionCatalog.All.Select(e => e.Key).OrderBy(k => k),
                 section.Elements.OfType<Paragraph>().SelectMany(p => p.Elements.OfType<BookmarkField>()).Select(b => b.Name).OrderBy(n => n));
@@ -256,10 +258,58 @@ namespace ActivitiesInspector.UnitTests.Services
             Assert.DoesNotContain(ReportFormatting.PartialResultsWarningText, ParagraphTexts(section));
         }
 
+        [Fact]
+        public void Integrity_Manifest_Renders_All_Row_Kinds()
+        {
+            var utc = new DateTime(2024, 1, 15, 10, 30, 0);
+            var records = new[]
+            {
+                new IntegrityRecord(EntryType.Prefetch, @"C:\Windows\Prefetch\A.pf",
+                    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", 128, utc, IntegrityStatus.Acquired),
+                new IntegrityRecord(EntryType.Usb, @"C:\Windows\System32\config\SYSTEM",
+                    null, null, utc, IntegrityStatus.NotAcquirable, "Accesso negato"),
+                IntegrityRecord.LiveSource(EntryType.InstalledPrograms, @"HKLM\Software (registro live)")
+            };
+
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddIntegrityManifest(records, section);
+
+            var table = Assert.Single(section.Elements.OfType<Table>());
+            Assert.Equal(4, table.Rows.Count);
+            var texts = TableText(table);
+            Assert.Contains("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", texts);
+            Assert.Contains("Non acquisibile (Accesso negato)", texts);
+            Assert.Contains("Letto via API live, nessun file acquisibile", texts);
+            Assert.Contains("15/1/2024 10:30:00 UTC", texts);
+            Assert.Contains("Prefetch", texts);
+        }
+
+        [Fact]
+        public void Empty_Integrity_Manifest_Adds_Explicit_Note_And_No_Table()
+        {
+            var document = new Document();
+            var section = document.AddSection();
+            ReportTablesBuilder.AddIntegrityManifest(new IntegrityRecord[0], section);
+
+            Assert.Empty(section.Elements.OfType<Table>());
+            Assert.NotEmpty(section.Elements.OfType<Paragraph>());
+        }
+
+        private static string TableText(Table table)
+        {
+            var sb = new StringBuilder();
+            foreach (Row row in table.Rows)
+                foreach (Cell cell in row.Cells)
+                    foreach (var paragraph in cell.Elements.OfType<Paragraph>())
+                        sb.Append(string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content)));
+            return sb.ToString().Replace("\u200B", string.Empty);
+        }
+
         private static List<string> ParagraphTexts(Section section)
         {
             return section.Elements.OfType<Paragraph>()
-                .Select(p => string.Concat(p.Elements.OfType<Text>().Select(t => t.Content)))
+                .Select(p => string.Concat(p.Elements.OfType<Text>().Select(t => t.Content)).Replace("\u200B", string.Empty))
                 .ToList();
         }
 
