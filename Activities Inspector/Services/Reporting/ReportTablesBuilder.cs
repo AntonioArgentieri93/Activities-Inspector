@@ -72,7 +72,7 @@ namespace Activities_Inspector.Services.Reporting
                 "Percorso",
                 "SHA-256",
                 "Byte",
-                "Acquisito (UTC)",
+                "Acquisito",
                 "Stato"
             };
 
@@ -86,7 +86,7 @@ namespace Activities_Inspector.Services.Reporting
                     item.Path ?? string.Empty,
                     item.Sha256 ?? string.Empty,
                     item.SizeBytes.HasValue ? item.SizeBytes.Value.ToString() : string.Empty,
-                    item.AcquiredUtc.HasValue ? DateBuilder.BuildFromDateTimeUtc(item.AcquiredUtc.Value) : string.Empty,
+                    item.AcquiredUtc.HasValue ? DateBuilder.BuildFromDateTime(DateBuilder.ToLocal(item.AcquiredUtc.Value)) : string.Empty,
                     MapIntegrityStatus(item)
                 };
 

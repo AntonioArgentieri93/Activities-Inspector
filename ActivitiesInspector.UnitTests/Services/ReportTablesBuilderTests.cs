@@ -1,6 +1,7 @@
 using Activities_Inspector.Models;
 using Activities_Inspector.Services;
 using Activities_Inspector.Services.Reporting;
+using Activities_Inspector.Utils;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.Fields;
 using MigraDocCore.DocumentObjectModel.Tables;
@@ -281,7 +282,7 @@ namespace ActivitiesInspector.UnitTests.Services
             Assert.Contains("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", texts);
             Assert.Contains("Non acquisibile (Accesso negato)", texts);
             Assert.Contains("Letto via API live, nessun file acquisibile", texts);
-            Assert.Contains("15/1/2024 10:30:00 UTC", texts);
+            Assert.Contains(DateBuilder.BuildFromDateTime(DateBuilder.ToLocal(utc)), texts);
             Assert.Contains("Prefetch", texts);
         }
 

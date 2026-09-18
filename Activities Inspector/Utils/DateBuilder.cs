@@ -67,13 +67,6 @@ namespace Activities_Inspector.Utils
         public static string BuildFromDateTimeOffset(DateTimeOffset? dateTimeOffset)
             => dateTimeOffset.HasValue == false ? string.Empty : BuildFromDateTime(dateTimeOffset.Value.LocalDateTime);
 
-        public static string BuildFromDateTimeUtc(DateTime dateTime)
-        {
-            var strDate = dateTime.ToString("dd/M/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-
-            return $"{strDate} UTC";
-        }
-
         public static DateTime? BuildDateTimeFromString(string strDate)
         {
             if (string.IsNullOrEmpty(strDate) == false)

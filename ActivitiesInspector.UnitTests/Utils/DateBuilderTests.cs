@@ -57,13 +57,5 @@ namespace ActivitiesInspector.UnitTests.Utils
 
         private static string FormatOffset(TimeSpan offset)
             => (offset.Hours >= 0 ? "+" : string.Empty) + offset.Hours;
-
-        [Fact]
-        public void BuildFromDateTimeUtc_Uses_Utc_Label()
-        {
-            Assert.Equal(
-                "15/1/2024 10:30:00 UTC",
-                DateBuilder.BuildFromDateTimeUtc(new DateTime(2024, 1, 15, 10, 30, 0)));
-        }
     }
 }
