@@ -13,6 +13,13 @@ namespace Activities_Inspector.Services
 {
     public class RecentFilesService : IRecentFilesService
     {
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public RecentFilesService(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         public int SkippedFilesCount { get; private set; }
 
         public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
@@ -26,15 +33,18 @@ namespace Activities_Inspector.Services
 
             try
             {
-                var userName = Environment.UserName;
-                var path = Path.Combine(@"C:\Users", userName, AppConstants.Paths.RecentDirectory);
+                var recentDirs = _sources.Current.GetRecentDirectories()
+                    .Where(Directory.Exists)
+                    .ToList();
 
-                var directory = new DirectoryInfo(path);
-                if (!directory.Exists)
-                    return Result.Failure<List<RecentFolderEntry>>($"La cartella Recent non esiste: {path}");
+                if (recentDirs.Count == 0)
+                    return Result.Failure<List<RecentFolderEntry>>("Nessuna cartella Recent leggibile " +
+                        $"sulla sorgente {_sources.Current.DisplayName}.");
 
-                var files = directory.GetFiles(AppConstants.Paths.RecentExtension);
-                var orderedFiles = files.OrderBy(f => f.LastWriteTime).ToList();
+                var orderedFiles = recentDirs
+                    .SelectMany(d => new DirectoryInfo(d).GetFiles(AppConstants.Paths.RecentExtension))
+                    .OrderBy(f => f.LastWriteTime)
+                    .ToList();
 
                 var entries = new List<RecentFolderEntry>();
 

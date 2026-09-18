@@ -13,8 +13,19 @@ namespace Activities_Inspector.Services
 {
     public class LoggedInfoService : ILoggedInfoService
     {
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public LoggedInfoService(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         public async Task<Result<List<SessionEntry>>> GetSessionsAsync(CancellationToken cancellationToken = default)
         {
+            if (!_sources.Current.IsLive)
+                return Result.Failure<List<SessionEntry>>("Sessioni disponibili solo su sistema live " +
+                    "(registro Sicurezza via API, parsing .evtx offline non supportato).");
+
             try
             {
                 var sessionsList = new List<SessionEntry>();

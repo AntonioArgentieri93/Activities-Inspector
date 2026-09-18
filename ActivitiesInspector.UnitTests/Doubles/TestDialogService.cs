@@ -9,6 +9,7 @@ namespace ActivitiesInspector.UnitTests.Doubles
         public readonly List<string> Infos = new List<string>();
 
         public string DestinationToSelect { get; set; }
+        public string FolderToSelect { get; set; }
 
         public void ShowError(string error)
         {
@@ -23,6 +24,11 @@ namespace ActivitiesInspector.UnitTests.Doubles
         public string SelectReportDestination()
         {
             return DestinationToSelect;
+        }
+
+        public string SelectFolder(string description)
+        {
+            return FolderToSelect;
         }
     }
 }

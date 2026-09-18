@@ -41,6 +41,7 @@ namespace Activities_Inspector.ViewModels.Infrastructure
             builder.RegisterType<WindowFactory>().As<IWindowFactory>().SingleInstance();
             builder.RegisterType<ReportService>().As<IReportService>().SingleInstance();
             builder.RegisterType<AuditTrailService>().As<IAuditTrail>().SingleInstance();
+            builder.RegisterType<Services.Evidence.EvidenceSourceProvider>().As<Services.Evidence.IEvidenceSourceProvider>().SingleInstance();
             builder.RegisterInstance(Messenger.Default).As<IMessenger>().SingleInstance();
 
             _container = builder.Build();

@@ -41,11 +41,35 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0"
+                        Margin="0,5,5,5">
+                <TextBlock Text="{Binding EvidenceSourceDescription}"
+                           ToolTip="{Binding EvidenceSourceDescription}"
+                           Foreground="White"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,5"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding SelectLiveCommand}"
+                            Content="Live"
+                            Margin="0,0,5,0"
+                            Padding="8,2"/>
+                    <Button Command="{Binding SelectImageCommand}"
+                            Content="Immagine..."
+                            Padding="8,2"/>
+                </StackPanel>
+            </StackPanel>
             <ListView ItemsSource="{Binding Items}"
                       SelectedItem="{Binding SelectedItem}"
                       Background="#FF00365C"
                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      Margin="0,49.5,5,0">
+                      Margin="0,5,5,0"
+                      Grid.Row="1">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="Foreground" Value="White" />
@@ -65,8 +89,8 @@
                     Style="{StaticResource Report_Button_Style}" 
                     Height="40"
                     VerticalAlignment="Bottom"
-                    Margin="0,0,5,0"
-                    Grid.Row="1" />
+                    Margin="0,5,5,0"
+                    Grid.Row="2" />
         </Grid>
 
         <Frame x:Name="MainFrame"

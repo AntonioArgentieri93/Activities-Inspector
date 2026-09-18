@@ -27,7 +27,7 @@ namespace Activities_Inspector.Services.Reporting
 
             InsertMainHeader(section);
             AddCover(content.ProvisioningType, content.Other, content.InquirerSurname, content.InquirerName,
-                content.InquirerQualification, content.ObjectDescription, section);
+                content.InquirerQualification, content.ObjectDescription, section, content.EvidenceSource);
             AddTableOfContents(section);
         }
 
@@ -115,7 +115,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         private void AddCover(ProvisioningType provisioningType, string other, string inquirerSurname, string inquirerName,
-            string inquirerQualification, string description, Section section)
+            string inquirerQualification, string description, Section section, string evidenceSource)
         {
             var header = provisioningType != ProvisioningType.Other ? GetProvisioningType(provisioningType) : other;
             var headerParagraph = section.AddParagraph(header);
@@ -164,10 +164,10 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(descriptionValue, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(10d));
 
-            AddPremise(section);
+            AddPremise(section, evidenceSource);
         }
 
-        private void AddPremise(Section section)
+        private void AddPremise(Section section, string evidenceSource)
         {
             var promiseParagraph = section.AddParagraph("Premessa");
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(10d),
@@ -215,6 +215,13 @@ namespace Activities_Inspector.Services.Reporting
             var publicAddressValue = publicAddressLabel.AddFormattedText(publicIpAddress ?? String.Empty);
             publicAddressValue.Font.Bold = true;
             ReportFormatting.OverrideParagraphDefaultStyle(publicAddressLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
+
+            var evidenceSourceLabel = cell.AddParagraph();
+            evidenceSourceLabel.AddText("Sorgente evidenze: ");
+            var evidenceSourceValue = evidenceSourceLabel.AddFormattedText(evidenceSource ?? String.Empty);
+            evidenceSourceValue.Font.Bold = true;
+            ReportFormatting.OverrideParagraphDefaultStyle(evidenceSourceLabel, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d));
         }
 

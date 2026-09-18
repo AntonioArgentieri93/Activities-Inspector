@@ -14,8 +14,19 @@ namespace Activities_Inspector.Services
     {
         private const string LogFilter = "System";
 
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public UsageLogTimeService(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         public async Task<Result<List<EventLogEntry>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
         {
+            if (!_sources.Current.IsLive)
+                return Result.Failure<List<EventLogEntry>>("Orari di accensione e spegnimento disponibili solo su sistema live " +
+                    "(registro System via API, parsing .evtx offline non supportato).");
+
             try
             {
                 using var myLog = new EventLog { Log = LogFilter };

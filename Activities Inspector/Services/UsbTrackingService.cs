@@ -8,6 +8,7 @@ using Registry.Abstractions;
 using ServiceStack;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Threading;
@@ -17,6 +18,13 @@ namespace Activities_Inspector.Services
 {
     public class UsbTrackingService : IUsbTrackingService
     {
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public UsbTrackingService(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
             = new List<IntegrityRecord>();
 
@@ -29,7 +37,14 @@ namespace Activities_Inspector.Services
 
                 var entries = new List<UsbEntry>();
 
-                if (isAdministrator)
+                if (!_sources.Current.IsLive)
+                {
+                    var hivePath = _sources.Current.GetSystemHivePath();
+                    manifest.Add(IntegrityHasher.HashFile(hivePath, EntryType.Usb));
+                    entries = await BuildUsbEntriesFromHiveBytesAsync(
+                        await File.ReadAllBytesAsync(hivePath, cancellationToken), hivePath, false, cancellationToken);
+                }
+                else if (isAdministrator)
                 {
                     entries = await BuildUsbEntriesFromHiveAsync(manifest, cancellationToken);
                 }
@@ -59,7 +74,15 @@ namespace Activities_Inspector.Services
             manifest.Add(IntegrityHasher.HashFile(rawFile.InputFilename, EntryType.Usb));
 
             var byteArray = await rawFile.FileStream.ReadFullyAsync();
-            var reg = new RegistryHive(byteArray, rawFile.InputFilename);
+            return await BuildUsbEntriesFromHiveBytesAsync(byteArray, rawFile.InputFilename, true, cancellationToken);
+        }
+
+        private async Task<List<UsbEntry>> BuildUsbEntriesFromHiveBytesAsync(byte[] byteArray, string hiveName,
+            bool resolvePlugged, CancellationToken cancellationToken)
+        {
+            var entries = new List<UsbEntry>();
+
+            var reg = new RegistryHive(byteArray, hiveName);
             _ = reg.ParseHive();
 
             var subKeys = reg.Root.SubKeys;
@@ -77,7 +100,7 @@ namespace Activities_Inspector.Services
 
                 if (key != null)
                 {
-                    ProcessUsbKeys(key.SubKeys, entries, cancellationToken);
+                    ProcessUsbKeys(key.SubKeys, entries, resolvePlugged, cancellationToken);
                 }
             }
 
@@ -150,7 +173,7 @@ namespace Activities_Inspector.Services
             return entries;
         }
 
-        private void ProcessUsbKeys(IEnumerable<RegistryKey> keys, List<UsbEntry> entries, CancellationToken cancellationToken)
+        private void ProcessUsbKeys(IEnumerable<RegistryKey> keys, List<UsbEntry> entries, bool resolvePlugged, CancellationToken cancellationToken)
         {
             foreach (var registryKey in keys)
             {
@@ -161,7 +184,7 @@ namespace Activities_Inspector.Services
 
                 var vendorId = BuildVendorId(keyName);
                 var productId = BuildProductId(keyName);
-                var plugged = IsPlugged(vendorId, productId);
+                var plugged = resolvePlugged && IsPlugged(vendorId, productId);
 
                 foreach (var subKey in registryKey.SubKeys)
                 {

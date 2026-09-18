@@ -1,4 +1,5 @@
 using Activities_Inspector.Services;
+using Activities_Inspector.Services.Evidence;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -11,7 +12,7 @@ namespace ActivitiesInspector.IntegrationTests.Services
         [Fact]
         public async Task BuildUsageInfo_MachineNames_NeverEmpty()
         {
-            var service = new UsageLogTimeService();
+            var service = new UsageLogTimeService(new EvidenceSourceProvider());
 
             var events = await service.GetSystemEventsAsync();
 

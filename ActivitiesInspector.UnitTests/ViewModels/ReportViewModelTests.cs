@@ -1,4 +1,5 @@
 using ActivitiesInspector.UnitTests.Doubles;
+using Activities_Inspector.Services.Evidence;
 using Activities_Inspector.ViewModels;
 using GalaSoft.MvvmLight.Messaging;
 using Xunit;
@@ -14,7 +15,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
                 new TestDialogService(),
                 new FakeWindowFactory(),
                 Messenger.Default,
-                new FakeAuditTrail());
+                new FakeAuditTrail(),
+                new EvidenceSourceProvider());
         }
 
         [Fact]
@@ -35,7 +37,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
                 dialogs,
                 new FakeWindowFactory(),
                 Messenger.Default,
-                new FakeAuditTrail());
+                new FakeAuditTrail(),
+                new EvidenceSourceProvider());
 
             vm.GenerateReportCommand.Execute(null);
 

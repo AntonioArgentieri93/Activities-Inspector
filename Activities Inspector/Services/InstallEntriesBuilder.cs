@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Microsoft.Win32;
+using Registry;
 using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
@@ -15,6 +16,13 @@ namespace Activities_Inspector.Services
 {
     public class InstallEntriesBuilder : IInstallEntriesBuilder
     {
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public InstallEntriesBuilder(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         private static string ApplicationLogPath => Path.Combine(
             Environment.SystemDirectory, "winevt", "Logs", "Application.evtx");
 
@@ -28,23 +36,45 @@ namespace Activities_Inspector.Services
                 var manifest = new List<IntegrityRecord>();
                 LastIntegrityManifest = manifest;
 
-                var wow6432Locals = await GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
-                var microsoftLocals = await GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
-                var users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
-                var events = await GetFromEventsAsync(cancellationToken);
+                List<InstallEntry> wow6432Locals;
+                List<InstallEntry> microsoftLocals;
+                List<InstallEntry> users;
+                List<InstallEntry> events;
+
+                if (_sources.Current.IsLive)
+                {
+                    wow6432Locals = await GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
+                    microsoftLocals = await GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                    users = await GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                    events = await GetFromEventsAsync(cancellationToken);
+
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        $@"HKLM\{AppConstants.Registry.Wow6432UninstallPath} (registro live, {wow6432Locals.Count} voci)"));
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        $@"HKLM\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {microsoftLocals.Count} voci)"));
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        $"Registro Applicazione (API live, {events.Count} voci)"));
+                    manifest.Add(IntegrityHasher.HashFile(ApplicationLogPath, EntryType.InstalledPrograms));
+                }
+                else
+                {
+                    wow6432Locals = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
+                        new[] { @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
+                    microsoftLocals = GetUninstallFromHiveFile(_sources.Current.GetSoftwareHivePath(),
+                        new[] { @"Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken);
+                    users = _sources.Current.GetUserHivePaths("NTUSER.DAT")
+                        .SelectMany(h => GetUninstallFromHiveFile(h,
+                            new[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" }, manifest, cancellationToken))
+                        .ToList();
+                    events = new List<InstallEntry>();
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        "Registro Applicazione leggibile solo via API live (non supportato offline)"));
+                }
 
                 var startMenu = await GetFromStartMenuAsync(manifest, cancellationToken);
                 var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
-
-                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
-                    $@"HKLM\{AppConstants.Registry.Wow6432UninstallPath} (registro live, {wow6432Locals.Count} voci)"));
-                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
-                    $@"HKLM\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {microsoftLocals.Count} voci)"));
-                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
-                    $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
-                manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
-                    $"Registro Applicazione (API live, {events.Count} voci)"));
-                manifest.Add(IntegrityHasher.HashFile(ApplicationLogPath, EntryType.InstalledPrograms));
 
                 if (all.Count == 0)
                     return Result.Failure<List<InstallEntry>>("Nessuna sorgente programmi installati leggibile: " +
@@ -182,6 +212,79 @@ namespace Activities_Inspector.Services
                 || releaseType.Equals("Update", StringComparison.OrdinalIgnoreCase);
         }
 
+        internal static List<InstallEntry> GetUninstallFromHiveFile(string hivePath, string[] relativePaths,
+            List<IntegrityRecord> manifest, CancellationToken cancellationToken)
+        {
+            var entries = new List<InstallEntry>();
+
+            manifest.Add(IntegrityHasher.HashFile(hivePath, EntryType.InstalledPrograms));
+
+            byte[] bytes;
+            try
+            {
+                bytes = File.ReadAllBytes(hivePath);
+            }
+            catch
+            {
+                return entries;
+            }
+
+            var reg = new Registry.RegistryHive(bytes, hivePath);
+            _ = reg.ParseHive();
+
+            foreach (var relativePath in relativePaths)
+            {
+                var key = GetKeyInsensitive(reg, relativePath);
+                if (key == null) continue;
+
+                foreach (var sub in key.SubKeys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var entry = BuildInstallEntryFromHiveValues(sub, $"{hivePath}\\{sub.KeyPath}");
+                    if (entry != null)
+                        entries.Add(entry);
+                }
+            }
+
+            return entries;
+        }
+
+        private static Registry.Abstractions.RegistryKey GetKeyInsensitive(Registry.RegistryHive hive, string path)
+        {
+            var direct = hive.GetKey(path);
+            if (direct != null) return direct;
+
+            Registry.Abstractions.RegistryKey current = hive.Root;
+            foreach (var segment in path.Split('\\'))
+            {
+                current = current?.SubKeys.FirstOrDefault(sk =>
+                    string.Equals(sk.KeyName, segment, StringComparison.OrdinalIgnoreCase));
+                if (current == null) return null;
+            }
+            return current;
+        }
+
+        private static InstallEntry BuildInstallEntryFromHiveValues(Registry.Abstractions.RegistryKey subKey, string dataSource)
+        {
+            var displayName = subKey.GetValue("DisplayName")?.ToString();
+
+            if (!ShouldInclude(
+                displayName,
+                subKey.GetValue("SystemComponent")?.ToString(),
+                subKey.GetValue("ParentKeyName")?.ToString(),
+                subKey.GetValue("ReleaseType")?.ToString()))
+            {
+                return null;
+            }
+
+            return new InstallEntry(
+                displayName,
+                dataSource,
+                subKey.GetValue("InstallLocation")?.ToString(),
+                DateBuilder.BuildDateTimeFromString(subKey.GetValue("InstallDate")?.ToString()));
+        }
+
         internal static List<InstallEntry> DedupeEntries(List<InstallEntry> entries)
         {
             if (entries == null) return new List<InstallEntry>();
@@ -214,7 +317,7 @@ namespace Activities_Inspector.Services
             {
                 var entries = new List<InstallEntry>();
 
-                foreach (var root in StartMenuDirectories())
+                foreach (var root in _sources.Current.GetStartMenuDirectories())
                 {
                     foreach (var lnkPath in EnumerateLnkFiles(root))
                     {
@@ -240,21 +343,6 @@ namespace Activities_Inspector.Services
 
                 return entries;
             }, cancellationToken);
-        }
-
-        private static IEnumerable<string> StartMenuDirectories()
-        {
-            var candidates = new[]
-            {
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
-                    "Programs"),
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
-                    "Programs")
-            };
-
-            return candidates.Where(Directory.Exists);
         }
 
         internal static IEnumerable<string> EnumerateLnkFiles(string root)

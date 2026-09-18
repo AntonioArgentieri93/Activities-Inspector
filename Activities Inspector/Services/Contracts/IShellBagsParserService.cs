@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface IShellBagsParserService
     {
         Task<Result<ShellBagsResult>> ParseShellBagsAsync(CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

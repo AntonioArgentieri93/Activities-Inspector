@@ -38,5 +38,16 @@ namespace Activities_Inspector.Services
 
             return dialog.ShowDialog(window) == CommonFileDialogResult.Ok ? dialog.FileName : null;
         }
+
+        public string SelectFolder(string description)
+        {
+            var dialog = new CommonOpenFileDialog
+            {
+                Title = description,
+                IsFolderPicker = true
+            };
+
+            return dialog.ShowDialog() == CommonFileDialogResult.Ok ? dialog.FileName : null;
+        }
     }
 }

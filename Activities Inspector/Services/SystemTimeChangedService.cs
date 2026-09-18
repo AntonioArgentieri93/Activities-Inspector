@@ -14,8 +14,19 @@ namespace Activities_Inspector.Services
 {
     public class SystemTimeChangedService : ISystemTimeChangedService
     {
+        private readonly Evidence.IEvidenceSourceProvider _sources;
+
+        public SystemTimeChangedService(Evidence.IEvidenceSourceProvider sources)
+        {
+            _sources = sources;
+        }
+
         public async Task<Result<List<SystemTimeChangedEntry>>> GetSystemTimeChangedEntriesAsync(CancellationToken cancellationToken = default)
         {
+            if (!_sources.Current.IsLive)
+                return Result.Failure<List<SystemTimeChangedEntry>>("Modifiche ora di sistema disponibili solo su sistema live " +
+                    "(registro System via API, parsing .evtx offline non supportato).");
+
             try
             {
                 var entries = new List<SystemTimeChangedEntry>();

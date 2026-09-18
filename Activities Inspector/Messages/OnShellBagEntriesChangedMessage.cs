@@ -7,11 +7,14 @@ namespace Activities_Inspector.Messages
     {
         public List<ShellBagEntry> NewShellBagEntries { get; }
         public bool IsPartial { get; }
+        public IReadOnlyList<IntegrityRecord> Manifest { get; }
 
-        public OnShellBagEntriesChangedMessage(List<ShellBagEntry> newShellBagEntries, bool isPartial = false)
+        public OnShellBagEntriesChangedMessage(List<ShellBagEntry> newShellBagEntries, bool isPartial = false,
+            IReadOnlyList<IntegrityRecord> manifest = null)
         {
             NewShellBagEntries = newShellBagEntries;
             IsPartial = isPartial;
+            Manifest = manifest ?? new List<IntegrityRecord>();
         }
     }
 }

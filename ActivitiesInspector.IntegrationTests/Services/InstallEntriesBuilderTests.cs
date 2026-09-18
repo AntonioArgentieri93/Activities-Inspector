@@ -1,4 +1,5 @@
 using Activities_Inspector.Services;
+using Activities_Inspector.Services.Evidence;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace ActivitiesInspector.IntegrationTests.Services
         [Fact]
         public async Task GetInstallEntries_Returns_Success()
         {
-            var service = new InstallEntriesBuilder();
+            var service = new InstallEntriesBuilder(new EvidenceSourceProvider());
 
             var result = await service.GetInstallEntriesAsync();
 

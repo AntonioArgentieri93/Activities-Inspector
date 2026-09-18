@@ -155,6 +155,7 @@ namespace Activities_Inspector.ViewModels
         private readonly IWindowFactory _windowFactory;
         private readonly IMessenger _messenger;
         private readonly IAuditTrail _auditTrail;
+        private readonly Services.Evidence.IEvidenceSourceProvider _sources;
 
         private UsageInfo[] _usageInfos;
         private InstallEntry[] _installEntries;
@@ -166,18 +167,20 @@ namespace Activities_Inspector.ViewModels
         private List<IntegrityRecord> _recentManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _prefetchManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _usbManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _shellBagsManifest = new List<IntegrityRecord>();
         private SessionEntry[] _sessionEntries;
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
 
         public ReportViewModel(IReportService reportService, IDialogService dialogService,
-            IWindowFactory windowFactory, IMessenger messenger, IAuditTrail auditTrail)
+            IWindowFactory windowFactory, IMessenger messenger, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
             : base(dialogService)
         {
             _reportService = reportService;
             _windowFactory = windowFactory;
             _messenger = messenger;
             _auditTrail = auditTrail;
+            _sources = sources;
 
             IsBusy = false;
             // Necessario: la base notifica OnIsBusyChanged solo su cambio
@@ -221,8 +224,8 @@ namespace Activities_Inspector.ViewModels
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
-                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).ToArray(),
-                    _auditTrail.Entries.ToArray());
+                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).Concat(_shellBagsManifest).ToArray(),
+                    _auditTrail.Entries.ToArray(), _sources.Current.DisplayName);
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 
@@ -278,6 +281,7 @@ namespace Activities_Inspector.ViewModels
         {
             _shellBagEntries = message.NewShellBagEntries.ToArray();
             _shellBagsPartial = message.IsPartial;
+            _shellBagsManifest = message.Manifest.ToList();
         }
 
         private void HandleOnSessionEntriesChangedMessage(OnSessionEntriesChangedMessage message)

@@ -14,13 +14,15 @@ namespace Activities_Inspector.Services
     public class PrefetchFileInfoBuilderService : IPrefetchFileInfoBuilderService
     {
         private readonly IPrefetchFileParserService _parser;
+        private readonly Evidence.IEvidenceSourceProvider _sources;
 
         public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
             = new List<IntegrityRecord>();
 
-        public PrefetchFileInfoBuilderService(IPrefetchFileParserService parser)
+        public PrefetchFileInfoBuilderService(IPrefetchFileParserService parser, Evidence.IEvidenceSourceProvider sources)
         {
             _parser = parser;
+            _sources = sources;
         }
 
         public async Task<Result<List<PrefetchInfoEntry>>> GetPrefetchFileInfosAsync(CancellationToken cancellationToken = default)
@@ -82,10 +84,11 @@ namespace Activities_Inspector.Services
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Nessun try/catch qui: gli errori (es. accesso negato alla cartella
-            // Prefetch) devono propagarsi al chiamante come Result.Failure,
-            // non essere mascherati da lista vuota con successo.
-            var files = Directory.GetFiles(AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchSearchPattern);
+                // Nessun try/catch qui: gli errori (es. accesso negato alla cartella
+                // Prefetch) devono propagarsi al chiamante come Result.Failure,
+                // non essere mascherati da lista vuota con successo.
+                var files = _sources.Current.EnumerateFiles(
+                    AppConstants.Paths.PrefetchDirectory, AppConstants.Paths.PrefetchSearchPattern);
             return Task.FromResult(files.ToList());
         }
     }

@@ -6,7 +6,8 @@ namespace Activities_Inspector.Models
     {
         Ricerca,
         Export,
-        Report
+        Report,
+        Sorgente
     }
 
     public class AuditEntry
