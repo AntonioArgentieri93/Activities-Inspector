@@ -29,7 +29,7 @@ namespace ActivitiesInspector.UnitTests.Services
             var entry = new SessionEntry("0x1", "u", "g", "m", logOn, logOff,
                 TimeSpan.FromHours(1), "10.0.0.1", "2");
 
-            var expected = string.Format("u ; g ; m ; {0} ; {1} ; 0 giorno/i - 1 ore - 0 minuti - 0 secondi. ; 10.0.0.1 ; Interactive (2) ;  ; 0x1",
+            var expected = string.Format("u ; g ; m ; {0} ; {1} ; 0 giorno/i - 1 ora/e - 0 minuti - 0 secondi. ; 10.0.0.1 ; Interactive (2) ;  ; 0x1",
                 DateBuilder.BuildFromDateTime(logOn), DateBuilder.BuildFromDateTime(logOff));
 
             Assert.Equal(expected, _formatter.AsCsv(entry));
@@ -41,7 +41,7 @@ namespace ActivitiesInspector.UnitTests.Services
             var start = new DateTime(2024, 1, 16, 8, 0, 0);
             var entry = new UsageInfo(new IntervalEntry(start, null), TimeSpan.Zero, "PC");
 
-            var expected = string.Format("{0} ;  ; 0 giorno/i - 0 ore - 0 minuti - 0 secondi. ; PC ; No",
+            var expected = string.Format("{0} ;  ; 0 giorno/i - 0 ora/e - 0 minuti - 0 secondi. ; PC ; No",
                 DateBuilder.BuildFromDateTime(start));
 
             Assert.Equal(expected, _formatter.AsCsv(entry));

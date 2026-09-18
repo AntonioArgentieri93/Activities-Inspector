@@ -169,7 +169,7 @@ namespace Activities_Inspector.Services
         {
             if (duration == null) return string.Empty;
 
-            return $"{duration.Days} giorno/i - {duration.Hours} ore - {duration.Minutes} minuti - " +
+            return $"{duration.Days} giorno/i - {duration.Hours} ora/e - {duration.Minutes} minuti - " +
                 $"{duration.Seconds} secondi.";
         }
 
