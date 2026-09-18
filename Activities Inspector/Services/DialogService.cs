@@ -32,7 +32,8 @@ namespace Activities_Inspector.Services
             var window = Application.Current.Windows.OfType<ReportWindow>().SingleOrDefault(w => w.IsActive);
             var dialog = new CommonOpenFileDialog();
 
-            dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            dialog.InitialDirectory = ExportLocations.RemovableRoot()
+                ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.IsFolderPicker = true;
 
             return dialog.ShowDialog(window) == CommonFileDialogResult.Ok ? dialog.FileName : null;

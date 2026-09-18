@@ -8,6 +8,6 @@ namespace Activities_Inspector.Services
 {
     public interface IEntriesExporter
     {
-        Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null);
+        Task<Result<string>> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null);
     }
 }

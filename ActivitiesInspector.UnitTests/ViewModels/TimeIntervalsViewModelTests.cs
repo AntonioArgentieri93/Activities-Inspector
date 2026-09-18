@@ -62,8 +62,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
 
         private sealed class FakeExporter : IEntriesExporter
         {
-            public Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null)
-                => Task.FromResult(Result.Success());
+            public Task<Result<string>> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null)
+                => Task.FromResult(Result.Success("Output"));
         }
     }
 }

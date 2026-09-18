@@ -68,7 +68,15 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
-                    Dialogs.ShowInfo(Activities_Inspector.Resources.ExportCommand_ExportComplete_Message);
+                    var message = Activities_Inspector.Resources.ExportCommand_ExportComplete_Message +
+                        $"\nPercorso: {result.Value}";
+
+                    if (!ExportLocations.IsRemovable(result.Value))
+                    {
+                        message += "\nAttenzione: disco locale. Per la catena di custodia esportare su un supporto rimovibile.";
+                    }
+
+                    Dialogs.ShowInfo(message);
                 }
                 else
                 {

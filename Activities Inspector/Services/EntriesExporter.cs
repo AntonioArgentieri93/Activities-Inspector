@@ -13,7 +13,6 @@ namespace Activities_Inspector.Services
     public class EntriesExporter : IEntriesExporter
     {
         private readonly IEntryFormatter _entryFormatter;
-        private static string ExportedDataRootPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
 
         public EntriesExporter(IEntryFormatter entryFormatter)
         {
@@ -21,30 +20,31 @@ namespace Activities_Inspector.Services
             InitFileSystem();
         }
 
-        public async Task<Result> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null)
+        public async Task<Result<string>> SaveEntriesDataAsync(IEnumerable<Entry> entries, EntryType entryType, CancellationToken cancellationToken = default, string footerNote = null)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var fileName = SetFileName(entryType);
-                var filePath = Path.Combine(ExportedDataRootPath, $"{fileName}.csv");
+                var root = ExportLocations.OutputDirectory();
+                var filePath = Path.Combine(root, $"{fileName}.csv");
 
                 using var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter);
                 writer.WriteEntries(entries, entryType, footerNote);
 
-                return Result.Success();
+                return Result.Success(filePath);
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                return Result.Failure(ex.ToString());
+                return Result.Failure<string>(ex.ToString());
             }
         }
 
         private void InitFileSystem()
         {
-            if (!Directory.Exists(ExportedDataRootPath))
-                Directory.CreateDirectory(ExportedDataRootPath);
+            if (!Directory.Exists(ExportLocations.OutputDirectory()))
+                Directory.CreateDirectory(ExportLocations.OutputDirectory());
         }
 
         private static string SetFileName(EntryType entryType)
