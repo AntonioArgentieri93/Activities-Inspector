@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Activities_Inspector.ViewModels.Infrastructure;
+using Activities_Inspector.Utils;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -68,7 +69,7 @@ namespace Activities_Inspector
 
                 var networkDateTime = new DateTime(ticksTo1900 + netTicks + pingTicks / 2);
 
-                return networkDateTime.ToLocalTime(); // without ToLocalTime() = faster
+                return DateBuilder.ToLocal(networkDateTime);
             }
             catch
             {

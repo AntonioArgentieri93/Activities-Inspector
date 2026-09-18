@@ -133,7 +133,7 @@ namespace Activities_Inspector.Services
                     var fileName = substrings2.Length > 0 ? substrings2[0].Trim() : string.Empty;
 
                     var entry = new InstallEntry(fileName, string.Empty, string.Empty,
-                        installedPrograms[i].TimeGenerated.ToLocalTime());
+                        DateBuilder.ToLocal(installedPrograms[i].TimeGenerated));
 
                     if (entries.Any(ie => ie.FileName == entry.FileName &&
                         ie.InstallDate == entry.InstallDate)) continue;

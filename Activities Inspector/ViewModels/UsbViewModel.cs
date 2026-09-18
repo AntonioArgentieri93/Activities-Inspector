@@ -168,7 +168,7 @@ namespace Activities_Inspector.ViewModels
                 {
                     device.Plugged = newIsPlugged;
 
-                    var now = DateTimeOffset.UtcNow.ToLocalTime();
+                    var now = DateTimeOffset.Now;
 
                     if (newIsPlugged)
                     {
@@ -189,7 +189,7 @@ namespace Activities_Inspector.ViewModels
                     var serialNumber = splitResult[2];
                     var deviceName = (string)instance.Properties["Caption"].Value;
                     var usbClass = (string)instance.Properties["PNPClass"].Value;
-                    var lastConnected = DateTimeOffset.Now.ToLocalTime();
+                    var lastConnected = DateTimeOffset.Now;
                     var newEntry = new UsbEntry(plugged, deviceName, serialNumber,
                         vid, pid, usbClass, lastConnected, null);
 

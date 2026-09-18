@@ -47,8 +47,8 @@ namespace Activities_Inspector.Services
                         continue;
                     }
 
-                    oldTime = oldTime.ToLocalTime();
-                    newTime = newTime.ToLocalTime();
+                    oldTime = DateBuilder.ToLocal(oldTime);
+                    newTime = DateBuilder.ToLocal(newTime);
 
                     if (oldTime == newTime) continue;
 

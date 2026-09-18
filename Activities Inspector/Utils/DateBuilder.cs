@@ -18,7 +18,7 @@ namespace Activities_Inspector.Utils
 
             if(DateTime.TryParseExact(strDate, "dd/M/yyyy HH:mm:ss", DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out dDate))
             {
-                var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
+                var offset = TimeZoneInfo.Local.GetUtcOffset(dDate);
                 var strOffset = $"GMT+{offset.Hours}";
 
                 return $"{strDate} {strOffset}";
@@ -38,13 +38,31 @@ namespace Activities_Inspector.Utils
 
         public static string BuildFromDateTime(DateTime dateTime)
         {
-            var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
+            var offset = TimeZoneInfo.Local.GetUtcOffset(dateTime);
 
             var strDate = dateTime.ToString("dd/M/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
             var strOffset = $"GMT+{offset.Hours}";
 
             return $"{strDate} {strOffset}";
         }
+
+        /// <summary>
+        /// Unico punto di conversione verso l'ora locale (stessa semantica
+        /// di DateTime.ToLocalTime/DateTimeOffset.ToLocalTime per ogni Kind).
+        /// </summary>
+        public static DateTime ToLocal(DateTime dateTime)
+        {
+            if (dateTime.Kind == DateTimeKind.Local) return dateTime;
+
+            var utc = dateTime.Kind == DateTimeKind.Utc
+                ? dateTime
+                : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+            return TimeZoneInfo.ConvertTimeFromUtc(utc, TimeZoneInfo.Local);
+        }
+
+        public static DateTimeOffset ToLocal(DateTimeOffset dateTimeOffset)
+            => dateTimeOffset.ToLocalTime();
 
         public static string BuildFromDateTimeOffset(DateTimeOffset? dateTimeOffset)
             => dateTimeOffset.HasValue == false ? string.Empty : BuildFromDateTime(dateTimeOffset.Value.LocalDateTime);
@@ -91,8 +109,7 @@ namespace Activities_Inspector.Utils
                 if (DateTime.TryParseExact(utcDate, "dd/M/yyyy HH:mm:ss", DateTimeFormatInfo.CurrentInfo,
                     DateTimeStyles.None, out dDate))
                 {
-                    var localDateTime = dDate.ToLocalTime();
-                    return localDateTime;
+                    return ToLocal(dDate);
                 }
 
                 return DateTime.MinValue;

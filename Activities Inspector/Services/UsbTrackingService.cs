@@ -266,7 +266,7 @@ namespace Activities_Inspector.Services
         private static DateTimeOffset? GetLocalDateTime(byte[] data)
         {
             if (data == null || data.Length != 8) return null;
-            return DateTimeOffset.FromFileTime(BitConverter.ToInt64(data, 0)).ToLocalTime();
+            return DateBuilder.ToLocal(DateTimeOffset.FromFileTime(BitConverter.ToInt64(data, 0)));
         }
 
         private static readonly Lazy<HashSet<string>> PluggedDeviceIds =
