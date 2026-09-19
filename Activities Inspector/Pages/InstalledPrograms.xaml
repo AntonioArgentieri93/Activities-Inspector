@@ -33,30 +33,20 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding FileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <TextBlock Text="{Binding DataSource}" 
-                           ToolTip="{Binding DataSource}"
-                           Style="{StaticResource DataTemplateItemStyle}"              
-                           Grid.Column="1"/>
-                <TextBlock Text="{Binding FullPath}"
-                           ToolTip="{Binding FullPath}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="2"/>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DataSource}" ToolTip="{Binding DataSource}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding DataSource}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding FullPath}" ToolTip="{Binding FullPath}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding FullPath}"/>
+                </StackPanel>
                 <TextBlock Text="{Binding InstallDate, Converter={StaticResource StringDateTimeConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
-                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
-                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="4">
-                    <fa:ImageAwesome.ToolTip>
-                        <StackPanel MaxWidth="400">
-                            <TextBlock Text="{Binding DataSource}" TextWrapping="Wrap" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding FullPath}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </fa:ImageAwesome.ToolTip>
-                </fa:ImageAwesome>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -96,7 +86,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_InstallEntry_FileName}" 
                        Style="{StaticResource HeaderFieldStyle}"

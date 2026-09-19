@@ -42,7 +42,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding UserName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -71,28 +70,18 @@
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="6"/>
 
-                <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeValueConverter}}"
-                           ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="7"/>
-                <TextBlock Text="{Binding Note}"
-                           ToolTip="{Binding Note}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="8"/>
-                <TextBlock Text="{Binding Index}"
-                           ToolTip="{Binding Index}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="9"/>
-                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
-                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="10">
-                    <fa:ImageAwesome.ToolTip>
-                        <StackPanel MaxWidth="400">
-                            <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}" TextWrapping="Wrap" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <TextBlock Text="{Binding Index, StringFormat=ID: {0}}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </fa:ImageAwesome.ToolTip>
-                </fa:ImageAwesome>
+                <StackPanel Orientation="Horizontal" Grid.Column="7" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeValueConverter}}" ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="8" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Note}" ToolTip="{Binding Note}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Note}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="9" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Index}" ToolTip="{Binding Index}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Index}"/>
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -137,7 +126,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_UserName}" 
                        Style="{StaticResource HeaderFieldStyle}"

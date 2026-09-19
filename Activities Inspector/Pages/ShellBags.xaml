@@ -32,28 +32,19 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="0.75*" />
                     <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding AbsolutePath}"
-                           ToolTip="{Binding AbsolutePath}"
-                           Style="{StaticResource DataTemplateItemStyle}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding AbsolutePath}" ToolTip="{Binding AbsolutePath}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding AbsolutePath}"/>
+                </StackPanel>
                 <TextBlock Text="{Binding LastRegistryWriteDate, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Margin="13,0,0,0"
                            Grid.Column="1"/>
-                <TextBlock Text="{Binding RegistryPath}"
-                           ToolTip="{Binding RegistryPath}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="2"/>
-                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
-                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="3">
-                    <fa:ImageAwesome.ToolTip>
-                        <StackPanel MaxWidth="400">
-                            <TextBlock Text="{Binding AbsolutePath}" TextWrapping="Wrap" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding RegistryPath}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </fa:ImageAwesome.ToolTip>
-                </fa:ImageAwesome>
+                <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding RegistryPath}" ToolTip="{Binding RegistryPath}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding RegistryPath}"/>
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -91,7 +82,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="0.75*" />
                 <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_AbsolutePath}" 
                        Style="{StaticResource HeaderFieldStyle}"

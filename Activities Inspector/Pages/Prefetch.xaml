@@ -35,14 +35,13 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding ExecutableFileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <TextBlock Text="{Binding SourceFileName}"
-                           ToolTip="{Binding SourceFileName}"
-                           Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="1"/>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SourceFileName}" ToolTip="{Binding SourceFileName}" Style="{StaticResource DataTemplateItemStyle}"/>
+                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding SourceFileName}"/>
+                </StackPanel>
                 <TextBlock Text="{Binding Extension}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
@@ -55,9 +54,6 @@
                 <TextBlock Text="{Binding RunCount}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="5"/>
-                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
-                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="6"
-                                 ToolTip="{Binding SourceFileName}" ToolTipService.ShowDuration="10000"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -98,7 +94,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_Prefetch_ExecutableFileName}" 
                        Style="{StaticResource HeaderFieldStyle}"
