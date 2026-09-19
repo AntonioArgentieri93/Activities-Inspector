@@ -23,6 +23,14 @@ namespace Activities_Inspector.Models
         public IntegrityRecord[] IntegrityManifest { get; }
         public AuditEntry[] AuditTrail { get; }
         public string EvidenceSource { get; }
+        public string UsageSource { get; }
+        public string InstallSource { get; }
+        public string RecentSource { get; }
+        public string PrefetchSource { get; }
+        public string ShellBagsSource { get; }
+        public string SessionsSource { get; }
+        public string TimeChangedSource { get; }
+        public string UsbSource { get; }
 
         public ReportContent(ProvisioningType provisioningType, string other, string inquirerSurname,
             string inquirerName, string inquirerQualification, string objectDescription, UsageInfo[] usageInfos,
@@ -30,7 +38,9 @@ namespace Activities_Inspector.Models
             ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries, 
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, string destinationPath,
             bool shellBagsPartial = false, IntegrityRecord[] integrityManifest = null,
-            AuditEntry[] auditTrail = null, string evidenceSource = null)
+            AuditEntry[] auditTrail = null, string evidenceSource = null,
+            string usageSource = null, string installSource = null, string recentSource = null, string prefetchSource = null,
+            string shellBagsSource = null, string sessionsSource = null, string timeChangedSource = null, string usbSource = null)
         {
             this.ProvisioningType = provisioningType;
             this.Other = other;
@@ -51,6 +61,14 @@ namespace Activities_Inspector.Models
             this.IntegrityManifest = integrityManifest ?? new IntegrityRecord[0];
             this.AuditTrail = auditTrail ?? new AuditEntry[0];
             this.EvidenceSource = evidenceSource ?? "Sistema live";
+            this.UsageSource = usageSource;
+            this.InstallSource = installSource;
+            this.RecentSource = recentSource;
+            this.PrefetchSource = prefetchSource;
+            this.ShellBagsSource = shellBagsSource;
+            this.SessionsSource = sessionsSource;
+            this.TimeChangedSource = timeChangedSource;
+            this.UsbSource = usbSource;
         }
     }
 }

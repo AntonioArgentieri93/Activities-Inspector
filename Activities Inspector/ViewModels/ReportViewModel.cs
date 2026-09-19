@@ -238,7 +238,8 @@ namespace Activities_Inspector.ViewModels
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
                     _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).Concat(_shellBagsManifest).Concat(_sessionsManifest).Concat(_usageManifest).Concat(_timeChangedManifest).ToArray(),
-                    _auditTrail.Entries.ToArray(), evidenceSource);
+                    _auditTrail.Entries.ToArray(), evidenceSource,
+                    _usageSource, _installSource, _recentSource, _prefetchSource, _shellBagsSource, _sessionsSource, _timeChangedSource, _usbSource);
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 

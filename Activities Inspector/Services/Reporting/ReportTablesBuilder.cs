@@ -15,18 +15,30 @@ namespace Activities_Inspector.Services.Reporting
             PrefetchInfoEntry[] prefetchInfoEntries, ShellBagEntry[] shellBagEntries, SessionEntry[] sessionEntries,
             SystemTimeChangedEntry[] systemTimeChangedEntries, UsbEntry[] usbEntries, Section section,
             double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool shellBagsPartial = false,
-            IntegrityRecord[] integrityManifest = null, AuditEntry[] auditTrail = null)
+            IntegrityRecord[] integrityManifest = null, AuditEntry[] auditTrail = null,
+            string usageSource = null, string installSource = null, string recentSource = null, string prefetchSource = null,
+            string shellBagsSource = null, string sessionsSource = null, string timeChangedSource = null, string usbSource = null)
         {
-            AddUsageInfos(usageInfos, section, totalWidthMm);
-            AddInstalledPrograms(installedPrograms, section, totalWidthMm);
-            AddRecentFolderEntries(recentFolderEntries, section, totalWidthMm);
-            AddPrefetchInfoEntries(prefetchInfoEntries, section, totalWidthMm);
-            AddShellbagsEntries(shellBagEntries, section, totalWidthMm, shellBagsPartial);
-            AddSessionEntries(sessionEntries, section, totalWidthMm);
-            AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm);
-            AddUsbEntries(usbEntries, section, totalWidthMm);
+            AddUsageInfos(usageInfos, section, totalWidthMm, usageSource);
+            AddInstalledPrograms(installedPrograms, section, totalWidthMm, installSource);
+            AddRecentFolderEntries(recentFolderEntries, section, totalWidthMm, recentSource);
+            AddPrefetchInfoEntries(prefetchInfoEntries, section, totalWidthMm, prefetchSource);
+            AddShellbagsEntries(shellBagEntries, section, totalWidthMm, shellBagsPartial, shellBagsSource);
+            AddSessionEntries(sessionEntries, section, totalWidthMm, sessionsSource);
+            AddSystemTimeChangedEntries(systemTimeChangedEntries, section, totalWidthMm, timeChangedSource);
+            AddUsbEntries(usbEntries, section, totalWidthMm, usbSource);
             AddIntegrityManifest(integrityManifest ?? new IntegrityRecord[0], section, totalWidthMm);
             AddAuditTrail(auditTrail ?? new AuditEntry[0], section, totalWidthMm);
+        }
+
+        private static void AddSourceNote(Section section, string source)
+        {
+            var text = string.IsNullOrEmpty(source) ? "Sorgente: nessuna ricerca eseguita" : $"Sorgente: {source}";
+            var p = section.AddParagraph(text);
+            ReportFormatting.OverrideParagraphDefaultStyle(p, 9, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
+                    Unit.FromMillimeter(0d), Unit.FromMillimeter(3d));
+            p.Format.Font.Italic = true;
+            p.Format.Font.Color = Colors.DimGray;
         }
 
         public static void AddAuditTrail(AuditEntry[] entries, Section section,
@@ -189,7 +201,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddUsageInfos(UsageInfo[] usageInfos, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -208,6 +220,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (usageInfos == null || usageInfos.Length == 0)
             {
@@ -263,7 +277,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddInstalledPrograms(InstallEntry[] installedPrograms, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -281,6 +295,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (installedPrograms == null || installedPrograms.Length == 0)
             {
@@ -327,7 +343,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddRecentFolderEntries(RecentFolderEntry[] recentFolderEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -344,6 +360,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (recentFolderEntries == null || recentFolderEntries.Length == 0)
             {
@@ -392,7 +410,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddPrefetchInfoEntries(PrefetchInfoEntry[] prefetchInfoEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -409,6 +427,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (prefetchInfoEntries == null || prefetchInfoEntries.Length == 0)
             {
@@ -459,7 +479,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddShellbagsEntries(ShellBagEntry[] shellBagEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool isPartial = false)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, bool isPartial = false, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -476,6 +496,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (isPartial)
             {
@@ -525,7 +547,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddSessionEntries(SessionEntry[] sessionEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -543,6 +565,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (sessionEntries == null || sessionEntries.Length == 0)
             {
@@ -609,7 +633,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddSystemTimeChangedEntries(SystemTimeChangedEntry[] systemTimeChangedEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -628,6 +652,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (systemTimeChangedEntries == null || systemTimeChangedEntries.Length == 0)
             {
@@ -667,7 +693,7 @@ namespace Activities_Inspector.Services.Reporting
         }
 
         public static void AddUsbEntries(UsbEntry[] usbEntries, Section section,
-            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters)
+            double totalWidthMm = ReportFormatting.PortraitContentWidthMillimeters, string source = null)
         {
             ReportFormatting.AddNewPage(section);
 
@@ -684,6 +710,8 @@ namespace Activities_Inspector.Services.Reporting
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(5d));
+
+            AddSourceNote(section, source);
 
             if (usbEntries == null || usbEntries.Length == 0)
             {
