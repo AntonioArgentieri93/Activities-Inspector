@@ -20,11 +20,23 @@ namespace Activities_Inspector.Services
             _sources = sources;
         }
 
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<SessionEntry>>> GetSessionsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var systemEvents = await GetSecurityEventLogEntriesAsync(cancellationToken);
+                var manifest = new List<IntegrityRecord>();
+                LastIntegrityManifest = manifest;
+
+                if (_sources.Current.IsLive)
+                {
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.Sessions,
+                        "Registro Sicurezza (API live)"));
+                }
+
+                var systemEvents = await GetSecurityEventLogEntriesAsync(manifest, cancellationToken);
 
                 if (systemEvents.Count == 0)
                     return Result.Failure<List<SessionEntry>>("Il registro eventi Sicurezza e' vuoto o illeggibile: " +
@@ -106,11 +118,12 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private Task<List<IEventRecord>> GetSecurityEventLogEntriesAsync(CancellationToken cancellationToken = default)
+        private Task<List<IEventRecord>> GetSecurityEventLogEntriesAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken = default)
         {
             if (!_sources.Current.IsLive)
             {
                 var path = _sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog);
+                manifest.Add(IntegrityHasher.HashFile(path, EntryType.Sessions));
                 return Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path), cancellationToken);
             }
 

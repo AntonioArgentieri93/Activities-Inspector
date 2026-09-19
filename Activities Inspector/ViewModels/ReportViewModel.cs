@@ -168,6 +168,9 @@ namespace Activities_Inspector.ViewModels
         private List<IntegrityRecord> _prefetchManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _usbManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _shellBagsManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _sessionsManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _usageManifest = new List<IntegrityRecord>();
+        private List<IntegrityRecord> _timeChangedManifest = new List<IntegrityRecord>();
         private SessionEntry[] _sessionEntries;
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
@@ -224,7 +227,7 @@ namespace Activities_Inspector.ViewModels
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
-                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).Concat(_shellBagsManifest).ToArray(),
+                    _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).Concat(_shellBagsManifest).Concat(_sessionsManifest).Concat(_usageManifest).Concat(_timeChangedManifest).ToArray(),
                     _auditTrail.Entries.ToArray(), _sources.Current.DisplayName);
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
@@ -257,6 +260,7 @@ namespace Activities_Inspector.ViewModels
         private void HandleOnUsageInfosChangedMessage(OnUsageInfosChangedMessage message)
         {
             _usageInfos = message.NewInfos.ToArray();
+            _usageManifest = message.Manifest.ToList();
         }
 
         private void HandleOnInstallEntriesChangedMessage(OnInstallEntriesChangedMessage message)
@@ -287,11 +291,13 @@ namespace Activities_Inspector.ViewModels
         private void HandleOnSessionEntriesChangedMessage(OnSessionEntriesChangedMessage message)
         {
             _sessionEntries = message.NewSessionEntries.ToArray();
+            _sessionsManifest = message.Manifest.ToList();
         }
 
         private void HandleOnSystemTimeChangedEntriesChangedMessage(OnSystemTimeChangedEntriesChangedMessage message)
         {
             _systemTimeChangedEntries = message.NewTimeChangedEntries.ToArray();
+            _timeChangedManifest = message.Manifest.ToList();
         }
 
         private void HandleOnUsbEntriesChangedMessage(OnUsbEntriesChangedMessage message)

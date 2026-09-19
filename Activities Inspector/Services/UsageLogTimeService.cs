@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Activities_Inspector.Constants;
 using Activities_Inspector.Models;
+using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,15 +22,25 @@ namespace Activities_Inspector.Services
             _sources = sources;
         }
 
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
+                var manifest = new List<IntegrityRecord>();
+                LastIntegrityManifest = manifest;
+
                 if (!_sources.Current.IsLive)
                 {
                     var path = _sources.Current.GetEventLogPath(LogFilter);
+                    manifest.Add(IntegrityHasher.HashFile(path, EntryType.TimeIntervals));
                     return Result.Success(await Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path), cancellationToken));
                 }
+
+                manifest.Add(IntegrityRecord.LiveSource(EntryType.TimeIntervals,
+                    "Registro System (API live)"));
 
                 using var myLog = new EventLog { Log = LogFilter };
                 var entries = new List<IEventRecord>();

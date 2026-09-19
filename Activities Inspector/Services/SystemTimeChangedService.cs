@@ -21,11 +21,23 @@ namespace Activities_Inspector.Services
             _sources = sources;
         }
 
+        public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; private set; }
+            = new List<IntegrityRecord>();
+
         public async Task<Result<List<SystemTimeChangedEntry>>> GetSystemTimeChangedEntriesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var logEntries = await GetSystemTimeChangedEventLogEntriesAsync(cancellationToken);
+                var manifest = new List<IntegrityRecord>();
+                LastIntegrityManifest = manifest;
+
+                if (_sources.Current.IsLive)
+                {
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.SystemTimeChanged,
+                        "Registro Sicurezza (API live)"));
+                }
+
+                var logEntries = await GetSystemTimeChangedEventLogEntriesAsync(manifest, cancellationToken);
 
                 // Parsing e filtri sull'intero log: CPU-bound su thread pool,
                 // mai sullo UI thread.
@@ -80,11 +92,12 @@ namespace Activities_Inspector.Services
             }
         }
 
-        private async Task<List<IEventRecord>> GetSystemTimeChangedEventLogEntriesAsync(CancellationToken cancellationToken = default)
+        private async Task<List<IEventRecord>> GetSystemTimeChangedEventLogEntriesAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken = default)
         {
             if (!_sources.Current.IsLive)
             {
                 var path = _sources.Current.GetEventLogPath(AppConstants.EventLog.SecurityLog);
+                manifest.Add(IntegrityHasher.HashFile(path, EntryType.SystemTimeChanged));
                 return await Task.Run(() => Evidence.EvtxFileReader.ReadEvents(path)
                     .Where(ev => ev.EventId == AppConstants.EventLog.SystemTimeChangedEventId &&
                         ev.Source == AppConstants.EventLog.SecurityProviderName)

@@ -169,6 +169,9 @@ namespace Activities_Inspector.Services.Reporting
                 case EntryType.Recents: return ReportSectionCatalog.RecentsTitle;
                 case EntryType.Prefetch: return ReportSectionCatalog.PrefetchTitle;
                 case EntryType.Usb: return ReportSectionCatalog.UsbTitle;
+                case EntryType.Sessions: return ReportSectionCatalog.SessionsTitle;
+                case EntryType.TimeIntervals: return ReportSectionCatalog.UsageTitle;
+                case EntryType.SystemTimeChanged: return ReportSectionCatalog.TimeChangedTitle;
                 default: return feature.ToString();
             }
         }

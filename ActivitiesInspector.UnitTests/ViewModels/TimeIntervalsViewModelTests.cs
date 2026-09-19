@@ -51,6 +51,8 @@ namespace ActivitiesInspector.UnitTests.ViewModels
 
         private sealed class FakeUsageLogTimeService : IUsageLogTimeService
         {
+            public IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; } = new List<IntegrityRecord>();
+
             public Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Result.Success(new List<IEventRecord>()));
 

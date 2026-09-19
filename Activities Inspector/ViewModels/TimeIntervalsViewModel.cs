@@ -89,7 +89,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<UsageInfo> entries)
         {
-            _messenger.Send(new OnUsageInfosChangedMessage(entries));
+            _messenger.Send(new OnUsageInfosChangedMessage(entries, _usageLogTimeService.LastIntegrityManifest));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
@@ -142,7 +142,7 @@ namespace Activities_Inspector.ViewModels
                 }
             }
 
-            _messenger.Send(new OnUsageInfosChangedMessage(Infos.ToList()));
+            _messenger.Send(new OnUsageInfosChangedMessage(Infos.ToList(), _usageLogTimeService.LastIntegrityManifest));
         }
     }
 }

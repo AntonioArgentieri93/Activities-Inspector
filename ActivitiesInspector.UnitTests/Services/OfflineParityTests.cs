@@ -156,6 +156,45 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
+        public async Task EventLog_Services_Record_Manifest_Row_On_Missing_Evtx()
+        {
+            var provider = OfflineProvider(_root);
+
+            var sessions = new LoggedInfoService(provider);
+            var intervals = new UsageLogTimeService(provider);
+            var timeChanged = new SystemTimeChangedService(provider);
+
+            await sessions.GetSessionsAsync();
+            await intervals.GetSystemEventsAsync();
+            await timeChanged.GetSystemTimeChangedEntriesAsync();
+
+            var sRow = Assert.Single(sessions.LastIntegrityManifest);
+            Assert.Equal(IntegrityStatus.NotAcquirable, sRow.Status);
+            Assert.Equal(EntryType.Sessions, sRow.Feature);
+
+            var uRow = Assert.Single(intervals.LastIntegrityManifest);
+            Assert.Equal(IntegrityStatus.NotAcquirable, uRow.Status);
+            Assert.Equal(EntryType.TimeIntervals, uRow.Feature);
+
+            var tRow = Assert.Single(timeChanged.LastIntegrityManifest);
+            Assert.Equal(IntegrityStatus.NotAcquirable, tRow.Status);
+            Assert.Equal(EntryType.SystemTimeChanged, tRow.Feature);
+        }
+
+        [Fact]
+        public async Task UsageLog_Live_Records_LiveSource_Manifest_Row()
+        {
+            var service = new UsageLogTimeService(new EvidenceSourceProvider());
+
+            var result = await service.GetSystemEventsAsync();
+
+            Assert.True(result.IsSuccess);
+            var row = Assert.Single(service.LastIntegrityManifest);
+            Assert.Equal(IntegrityStatus.LiveSource, row.Status);
+            Assert.Equal(EntryType.TimeIntervals, row.Feature);
+        }
+
+        [Fact]
         public async Task EventLog_Services_Fail_Explicitly_On_Missing_Evtx()
         {
             var provider = OfflineProvider(_root);

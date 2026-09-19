@@ -10,5 +10,7 @@ namespace Activities_Inspector.Services
     {
         Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default);
         IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

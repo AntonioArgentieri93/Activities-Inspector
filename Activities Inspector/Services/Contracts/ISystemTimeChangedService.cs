@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface ISystemTimeChangedService
     {
         Task<Result<List<SystemTimeChangedEntry>>> GetSystemTimeChangedEntriesAsync(CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }

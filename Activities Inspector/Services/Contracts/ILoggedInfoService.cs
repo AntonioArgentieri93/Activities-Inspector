@@ -9,5 +9,7 @@ namespace Activities_Inspector.Services
     public interface ILoggedInfoService
     {
         Task<Result<List<SessionEntry>>> GetSessionsAsync(CancellationToken cancellationToken = default);
+
+        IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }
 }
