@@ -36,12 +36,36 @@ namespace ActivitiesInspector.UnitTests.Services
             {
                 Assert.True(result.IsSuccess);
                 Assert.True(File.Exists(result.Value));
+                Assert.True(File.Exists(result.Value + ".sha256"), $"Sidecar mancante: {result.Value}.sha256");
                 Assert.Equal(ExportLocations.OutputDirectory(), Path.GetDirectoryName(result.Value));
             }
             finally
             {
                 if (result.IsSuccess && File.Exists(result.Value))
                     File.Delete(result.Value);
+                if (result.IsSuccess && File.Exists(result.Value + ".sha256"))
+                    File.Delete(result.Value + ".sha256");
+            }
+        }
+
+        [Fact]
+        public async Task Sidecar_Contains_Hash_Of_File()
+        {
+            var exporter = new EntriesExporter(new FakeFormatter());
+
+            var result = await exporter.SaveEntriesDataAsync(new List<Entry>(), EntryType.ShellBags);
+
+            try
+            {
+                var sidecar = File.ReadAllText(result.Value + ".sha256");
+                var hex = sidecar.Split(' ')[0].Trim();
+                var expected = Activities_Inspector.Utils.IntegrityHasher.ComputeHex(await File.ReadAllBytesAsync(result.Value));
+                Assert.Equal(expected, hex);
+            }
+            finally
+            {
+                if (File.Exists(result.Value)) File.Delete(result.Value);
+                if (File.Exists(result.Value + ".sha256")) File.Delete(result.Value + ".sha256");
             }
         }
 

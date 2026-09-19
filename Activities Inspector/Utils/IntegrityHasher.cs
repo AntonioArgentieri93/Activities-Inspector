@@ -49,6 +49,18 @@ namespace Activities_Inspector.Utils
             return sb.ToString();
         }
 
+        internal static string ComputeHex(byte[] data)
+        {
+            using var sha256 = SHA256.Create();
+            return ToHex(sha256.ComputeHash(data));
+        }
+
+        internal static void WriteSidecar(string filePath, byte[] data)
+        {
+            var hex = ComputeHex(data);
+            File.WriteAllText(filePath + ".sha256", $"{hex}  {Path.GetFileName(filePath)}\n");
+        }
+
         private static string ShortReason(Exception ex)
         {
             if (ex is UnauthorizedAccessException) return "Accesso negato";

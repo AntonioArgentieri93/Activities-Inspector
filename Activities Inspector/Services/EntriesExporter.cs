@@ -30,8 +30,13 @@ namespace Activities_Inspector.Services
                 var root = ExportLocations.OutputDirectory();
                 var filePath = Path.Combine(root, $"{fileName}.csv");
 
-                using var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter);
-                writer.WriteEntries(entries, entryType, footerNote);
+                using (var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter))
+                {
+                    writer.WriteEntries(entries, entryType, footerNote);
+                }
+
+                var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+                IntegrityHasher.WriteSidecar(filePath, bytes);
 
                 return Result.Success(filePath);
             }

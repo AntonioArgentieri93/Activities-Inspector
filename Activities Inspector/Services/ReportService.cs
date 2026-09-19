@@ -44,6 +44,7 @@ namespace Activities_Inspector.Services
 
                 var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now:dd-M-yyyy}.pdf");
                 await File.WriteAllBytesAsync(filePath, doc, cancellationToken);
+                Utils.IntegrityHasher.WriteSidecar(filePath, doc);
 
                 return Result.Success();
             }
