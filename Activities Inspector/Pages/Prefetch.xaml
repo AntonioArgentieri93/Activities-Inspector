@@ -38,10 +38,10 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding ExecutableFileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SourceFileName}" ToolTip="{Binding SourceFileName}" Style="{StaticResource DataTemplateItemStyle}"/>
-                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding SourceFileName}"/>
-                </StackPanel>
+                <TextBlock Text="{Binding SourceFileName}"
+                           ToolTip="{Binding SourceFileName}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="1"/>
                 <TextBlock Text="{Binding Extension}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>

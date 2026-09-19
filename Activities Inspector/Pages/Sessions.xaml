@@ -70,18 +70,18 @@
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="6"/>
 
-                <StackPanel Orientation="Horizontal" Grid.Column="7" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeValueConverter}}" ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}" Style="{StaticResource DataTemplateItemStyle}"/>
-                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Grid.Column="8" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Note}" ToolTip="{Binding Note}" Style="{StaticResource DataTemplateItemStyle}"/>
-                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Note}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Grid.Column="9" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Index}" ToolTip="{Binding Index}" Style="{StaticResource DataTemplateItemStyle}"/>
-                    <fa:ImageAwesome Icon="Solid_InfoCircle" Width="10" Height="10" Foreground="#FF6e6e6e" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Index}"/>
-                </StackPanel>
+                <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeValueConverter}}"
+                           ToolTip="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="7"/>
+                <TextBlock Text="{Binding Note}"
+                           ToolTip="{Binding Note}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="8"/>
+                <TextBlock Text="{Binding Index}"
+                           ToolTip="{Binding Index}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="9"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
