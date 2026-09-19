@@ -29,7 +29,7 @@ namespace ActivitiesInspector.UnitTests.Services
         public async Task Prefetch_Pilot_Offline_vs_Reference_Minimal_Parser()
         {
             var provider = Offline(FullImageRoot) ?? Offline(OfflineKitRoot);
-            if (provider == null) return; // skip if no image available
+            if (provider == null) throw new Xunit.Sdk.SkipException("Immagine assente in %TEMP%\\FullImage|OfflineKit — pilota saltato");
 
             var service = new PrefetchFileInfoBuilderService(new PrefetchFileParserService(), provider);
             var result = await service.GetPrefetchFileInfosAsync();
@@ -78,7 +78,7 @@ namespace ActivitiesInspector.UnitTests.Services
         public async Task Install_Pilot_Offline_Filtering_Matches_Direct_Hive_Enumeration()
         {
             var provider = Offline(FullImageRoot) ?? Offline(OfflineKitRoot);
-            if (provider == null) return;
+            if (provider == null) throw new Xunit.Sdk.SkipException("Immagine assente in %TEMP%\\FullImage|OfflineKit — pilota saltato");
 
             var service = new InstallEntriesBuilder(provider);
             var result = await service.GetInstallEntriesAsync();
@@ -86,7 +86,7 @@ namespace ActivitiesInspector.UnitTests.Services
 
             // Direct enumeration via RegistryHive on same file, with same ShouldInclude logic applied manually
             var hivePath = provider.Current.GetSoftwareHivePath();
-            if (!File.Exists(hivePath)) return;
+            if (!File.Exists(hivePath)) throw new Xunit.Sdk.SkipException("Hive SOFTWARE assente — pilota saltato");
 
             var direct = InstallEntriesBuilder.GetUninstallFromHiveFile(hivePath,
                 new[] { @"WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", @"Microsoft\Windows\CurrentVersion\Uninstall" },
