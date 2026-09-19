@@ -28,7 +28,14 @@ namespace Activities_Inspector.Services
 
                 var fileName = SetFileName(entryType);
                 var root = ExportLocations.OutputDirectory();
-                var filePath = Path.Combine(root, $"{fileName}_{DateTime.Now:dd-M-yyyy_HH-mm-ss}.csv");
+                var basePath = Path.Combine(root, $"{fileName}_{DateTime.Now:dd-M-yyyy_HH-mm-ss}");
+                var filePath = basePath + ".csv";
+                var counter = 0;
+                while (File.Exists(filePath))
+                {
+                    counter++;
+                    filePath = $"{basePath}_{counter}.csv";
+                }
 
                 using (var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter))
                 {
