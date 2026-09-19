@@ -26,7 +26,7 @@ namespace Activities_Inspector.Services
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now:dd-M-yyyy}.pdf");
+                var filePath = Path.Combine(content.DestinationPath, $"Report_{DateTime.Now:dd-M-yyyy_HH-mm-ss}.pdf");
 
                 // Rendering del PDF (CPU-bound, decine di pagine) su thread
                 // pool: senza questo la finestra resta congelata e lo
