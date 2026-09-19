@@ -47,9 +47,11 @@ namespace Activities_Inspector.ViewModels
             Sources = sources;
         }
 
+        private string _lastLoadSource;
+
         protected abstract EntryType EntryType { get; }
         protected virtual bool RequiresAdmin => false;
-        protected virtual string ExportFooterNote => null;
+        protected virtual string ExportFooterNote => _lastLoadSource != null ? $"Sorgente: {_lastLoadSource}" : null;
 
         private RelayCommand _exportCommand;
         public RelayCommand ExportCommand => _exportCommand
@@ -72,7 +74,7 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
-                    Audit.Record(AuditCategory.Export, $"{EntryType}: {Entries?.Count ?? 0} righe -> {result.Value} [{Sources.Current.DisplayName}]");
+                    Audit.Record(AuditCategory.Export, $"{EntryType}: {Entries?.Count ?? 0} righe -> {result.Value} [{_lastLoadSource ?? Sources.Current.DisplayName}]");
 
                     var message = Activities_Inspector.Resources.ExportCommand_ExportComplete_Message +
                         $"\nPercorso: {result.Value}";
@@ -86,13 +88,13 @@ namespace Activities_Inspector.ViewModels
                 }
                 else
                 {
-                    Audit.Record(AuditCategory.Export, $"{EntryType} fallito [{Sources.Current.DisplayName}]");
+                    Audit.Record(AuditCategory.Export, $"{EntryType} fallito [{_lastLoadSource ?? Sources.Current.DisplayName}]");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
-                Audit.Record(AuditCategory.Export, $"{EntryType} annullato [{Sources.Current.DisplayName}]");
+                Audit.Record(AuditCategory.Export, $"{EntryType} annullato [{_lastLoadSource ?? Sources.Current.DisplayName}]");
             }
             catch (Exception ex)
             {
@@ -119,7 +121,8 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
-                    Audit.Record(AuditCategory.Ricerca, $"{EntryType}: {result.Value.Count} risultati [{Sources.Current.DisplayName}]");
+                    _lastLoadSource = Sources.Current.DisplayName;
+                    Audit.Record(AuditCategory.Ricerca, $"{EntryType}: {result.Value.Count} risultati [{_lastLoadSource}]");
                     SetEntries(new ObservableCollection<TEntry>(result.Value));
                     PublishEntries(result.Value);
                     AfterLoad();

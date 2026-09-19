@@ -27,7 +27,10 @@ namespace Activities_Inspector.Utils
 
             if (!string.IsNullOrEmpty(footerNote))
             {
-                WriteLine(footerNote);
+                foreach (var line in footerNote.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+                {
+                    WriteLine(line);
+                }
             }
         }
 

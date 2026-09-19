@@ -71,7 +71,15 @@ namespace Activities_Inspector.ViewModels
         protected override EntryType EntryType => EntryType.ShellBags;
         protected override bool RequiresAdmin => true;
         protected override string ExportFooterNote
-            => _isPartial ? Services.Reporting.ReportFormatting.PartialResultsWarningText : null;
+        {
+            get
+            {
+                var parts = new List<string>();
+                if (!string.IsNullOrEmpty(base.ExportFooterNote)) parts.Add(base.ExportFooterNote);
+                if (_isPartial) parts.Add(Services.Reporting.ReportFormatting.PartialResultsWarningText);
+                return parts.Count == 0 ? null : string.Join("\n", parts);
+            }
+        }
 
         protected override async Task<Result<List<ShellBagEntry>>> LoadEntriesAsync(CancellationToken token)
         {
