@@ -51,8 +51,8 @@ namespace Activities_Inspector.ViewModels
         private readonly IMessenger _messenger;
 
         public SessionsViewModel(ILoggedInfoService loggedInfoService, IDialogService dialogService,
-            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail)
-            : base(dialogService, entriesExporter, auditTrail)
+            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
+            : base(dialogService, entriesExporter, auditTrail, sources)
         {
             _loggedInfoService = loggedInfoService;
             _messenger = messenger;

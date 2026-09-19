@@ -34,6 +34,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding FileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -52,6 +53,16 @@
                            ToolTip="{Binding SkippedShellItems}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="4"/>
+                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
+                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="5">
+                    <fa:ImageAwesome.ToolTip>
+                        <StackPanel MaxWidth="400">
+                            <TextBlock Text="{Binding DataSource}" TextWrapping="Wrap" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding FullPath}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding SkippedShellItems, StringFormat=Elementi saltati: {0}}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </fa:ImageAwesome.ToolTip>
+                </fa:ImageAwesome>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -91,6 +102,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_RecentFolder_FileName}" 
                        Style="{StaticResource HeaderFieldStyle}"

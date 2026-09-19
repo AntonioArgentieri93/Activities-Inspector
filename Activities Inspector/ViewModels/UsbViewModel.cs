@@ -51,17 +51,14 @@ namespace Activities_Inspector.ViewModels
 
         private readonly IUsbTrackingService _usbTrackingService;
         private readonly IMessenger _messenger;
-        private readonly Services.Evidence.IEvidenceSourceProvider _sources;
-
         private ObservableCollection<UsbEntry> _temp;
 
         public UsbViewModel(IUsbTrackingService usbTrackingService, IDialogService dialogService,
             IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
-            : base(dialogService, entriesExporter, auditTrail)
+            : base(dialogService, entriesExporter, auditTrail, sources)
         {
             _usbTrackingService = usbTrackingService;
             _messenger = messenger;
-            _sources = sources;
 
             UsbEntries = new ObservableCollection<UsbEntry>();
             _temp = new ObservableCollection<UsbEntry>();
@@ -143,7 +140,7 @@ namespace Activities_Inspector.ViewModels
         {
             // Su sorgente offline gli eventi WMI riguarderebbero il PC del
             // perito, non l'immagine: mai applicarli ai risultati.
-            if (!_sources.Current.IsLive) return;
+            if (!Sources.Current.IsLive) return;
 
             var instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 

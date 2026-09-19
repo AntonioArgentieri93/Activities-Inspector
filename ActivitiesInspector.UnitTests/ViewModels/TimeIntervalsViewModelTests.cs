@@ -1,6 +1,7 @@
 using ActivitiesInspector.UnitTests.Doubles;
 using Activities_Inspector.Models;
 using Activities_Inspector.Services;
+using Activities_Inspector.Services.Evidence;
 using Activities_Inspector.ViewModels;
 using CSharpFunctionalExtensions;
 using GalaSoft.MvvmLight.Messaging;
@@ -21,12 +22,14 @@ namespace ActivitiesInspector.UnitTests.ViewModels
         {
             var dialogs = new TestDialogService();
             var audit = new FakeAuditTrail();
+            var sources = new EvidenceSourceProvider();
             var vm = new TimeIntervalsViewModel(
                 new FakeUsageLogTimeService(),
                 dialogs,
                 new FakeExporter(),
                 Messenger.Default,
-                audit);
+                audit,
+                sources);
 
             Assert.False(vm.ExportCommand.CanExecute(null));
 

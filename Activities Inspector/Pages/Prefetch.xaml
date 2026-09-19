@@ -35,6 +35,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding ExecutableFileName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -54,6 +55,9 @@
                 <TextBlock Text="{Binding RunCount}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="5"/>
+                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
+                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="6"
+                                 ToolTip="{Binding SourceFileName}" ToolTipService.ShowDuration="10000"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -94,6 +98,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_Prefetch_ExecutableFileName}" 
                        Style="{StaticResource HeaderFieldStyle}"

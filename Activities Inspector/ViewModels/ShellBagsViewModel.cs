@@ -53,8 +53,8 @@ namespace Activities_Inspector.ViewModels
         private bool _isPartial;
 
         public ShellBagsViewModel(IShellBagsParserService shellBagsParserService, IDialogService dialogService,
-            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail)
-            : base(dialogService, entriesExporter, auditTrail)
+            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
+            : base(dialogService, entriesExporter, auditTrail, sources)
         {
             _shellBagsParserService = shellBagsParserService;
             _messenger = messenger;

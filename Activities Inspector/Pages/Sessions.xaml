@@ -42,6 +42,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding UserName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -82,6 +83,16 @@
                            ToolTip="{Binding Index}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="9"/>
+                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
+                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="10">
+                    <fa:ImageAwesome.ToolTip>
+                        <StackPanel MaxWidth="400">
+                            <TextBlock Text="{Binding AccessType, Converter={StaticResource AccessTypeTooltipValueConverter}}" TextWrapping="Wrap" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding Index, StringFormat=ID: {0}}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </fa:ImageAwesome.ToolTip>
+                </fa:ImageAwesome>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -126,6 +137,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_Sessions_UserName}" 
                        Style="{StaticResource HeaderFieldStyle}"

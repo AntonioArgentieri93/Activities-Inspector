@@ -37,12 +37,14 @@ namespace Activities_Inspector.ViewModels
 
         protected IEntriesExporter Exporter { get; }
         protected IAuditTrail Audit { get; }
+        protected Services.Evidence.IEvidenceSourceProvider Sources { get; }
 
-        protected FeatureViewModelBase(IDialogService dialogService, IEntriesExporter entriesExporter, IAuditTrail auditTrail)
+        protected FeatureViewModelBase(IDialogService dialogService, IEntriesExporter entriesExporter, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
             : base(dialogService)
         {
             Exporter = entriesExporter;
             Audit = auditTrail;
+            Sources = sources;
         }
 
         protected abstract EntryType EntryType { get; }
@@ -70,7 +72,7 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
-                    Audit.Record(AuditCategory.Export, $"{EntryType}: {Entries?.Count ?? 0} righe -> {result.Value}");
+                    Audit.Record(AuditCategory.Export, $"{EntryType}: {Entries?.Count ?? 0} righe -> {result.Value} [{Sources.Current.DisplayName}]");
 
                     var message = Activities_Inspector.Resources.ExportCommand_ExportComplete_Message +
                         $"\nPercorso: {result.Value}";
@@ -84,13 +86,13 @@ namespace Activities_Inspector.ViewModels
                 }
                 else
                 {
-                    Audit.Record(AuditCategory.Export, $"{EntryType} fallito");
+                    Audit.Record(AuditCategory.Export, $"{EntryType} fallito [{Sources.Current.DisplayName}]");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
-                Audit.Record(AuditCategory.Export, $"{EntryType} annullato");
+                Audit.Record(AuditCategory.Export, $"{EntryType} annullato [{Sources.Current.DisplayName}]");
             }
             catch (Exception ex)
             {
@@ -117,20 +119,20 @@ namespace Activities_Inspector.ViewModels
 
                 if (result.IsSuccess)
                 {
-                    Audit.Record(AuditCategory.Ricerca, $"{EntryType}: {result.Value.Count} risultati");
+                    Audit.Record(AuditCategory.Ricerca, $"{EntryType}: {result.Value.Count} risultati [{Sources.Current.DisplayName}]");
                     SetEntries(new ObservableCollection<TEntry>(result.Value));
                     PublishEntries(result.Value);
                     AfterLoad();
                 }
                 else
                 {
-                    Audit.Record(AuditCategory.Ricerca, $"{EntryType} fallita");
+                    Audit.Record(AuditCategory.Ricerca, $"{EntryType} fallita [{Sources.Current.DisplayName}]");
                     Dialogs.ShowError(result.Error);
                 }
             }
             catch (OperationCanceledException)
             {
-                Audit.Record(AuditCategory.Ricerca, $"{EntryType} annullata");
+                Audit.Record(AuditCategory.Ricerca, $"{EntryType} annullata [{Sources.Current.DisplayName}]");
             }
             catch (Exception ex)
             {

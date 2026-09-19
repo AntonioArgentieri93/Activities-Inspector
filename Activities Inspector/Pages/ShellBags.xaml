@@ -32,6 +32,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="0.75*" />
                     <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding AbsolutePath}"
                            ToolTip="{Binding AbsolutePath}"
@@ -44,6 +45,15 @@
                            ToolTip="{Binding RegistryPath}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
+                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
+                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="3">
+                    <fa:ImageAwesome.ToolTip>
+                        <StackPanel MaxWidth="400">
+                            <TextBlock Text="{Binding AbsolutePath}" TextWrapping="Wrap" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding RegistryPath}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </fa:ImageAwesome.ToolTip>
+                </fa:ImageAwesome>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -81,6 +91,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="0.75*" />
                 <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_AbsolutePath}" 
                        Style="{StaticResource HeaderFieldStyle}"

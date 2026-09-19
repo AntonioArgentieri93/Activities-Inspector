@@ -35,6 +35,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Interval.Start, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
@@ -57,6 +58,9 @@
                                  ToolTip="Avvio dopo un arresto anomalo"
                                  Visibility="{Binding Interval.StartedAfterCrash, Converter={StaticResource BoolToVisibilityConverter}}"
                                  Grid.Column="4"/>
+                <fa:ImageAwesome Icon="Solid_InfoCircle" Width="12" Height="12" Foreground="#FF6e6e6e"
+                                 VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="5"
+                                 ToolTip="{Binding MachineName}" ToolTipService.ShowDuration="8000"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -96,6 +100,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Start}" 
                        Style="{StaticResource HeaderFieldStyle}"

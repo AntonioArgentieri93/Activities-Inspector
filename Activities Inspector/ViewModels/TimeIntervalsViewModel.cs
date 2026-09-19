@@ -50,8 +50,8 @@ namespace Activities_Inspector.ViewModels
         private readonly IMessenger _messenger;
 
         public TimeIntervalsViewModel(IUsageLogTimeService usageLogTimeService, IDialogService dialogService,
-            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail)
-            : base(dialogService, entriesExporter, auditTrail)
+            IEntriesExporter entriesExporter, IMessenger messenger, IAuditTrail auditTrail, Services.Evidence.IEvidenceSourceProvider sources)
+            : base(dialogService, entriesExporter, auditTrail, sources)
         {
             _usageLogTimeService = usageLogTimeService;
             _messenger = messenger;
