@@ -43,7 +43,7 @@ namespace Activities_Inspector.Services.Reporting
             var chainValid = Services.AuditChain.Verify(entries);
 
             var content = "La tabella elenca le operazioni svolte dal software in questa sessione " +
-                "(ricerche, esportazioni, generazione del report) con ora in formato locale. \n" +
+                "(ricerche, esportazioni, generazione del report) con ora in formato gg/mm/aaaa HH:mm:ss GMT. \n" +
                 "Ogni riga contiene l'impronta della precedente: la catena " +
                 (chainValid ? "risulta integra." : "RISULTA ALTERATA: il diario non e' attendibile.") + " \n" +
                 "Il diario vive solo in memoria e non scrive nulla sul PC in esame.";
@@ -106,10 +106,10 @@ namespace Activities_Inspector.Services.Reporting
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
             var content = "La tabella riporta per ogni artefatto letto dal PC in esame il percorso, " +
-                "l'impronta SHA-256, la dimensione in byte e l'istante di acquisizione (UTC). \n" +
+                "l'impronta SHA-256, la dimensione in byte e l'istante di acquisizione in formato gg/mm/aaaa HH:mm:ss GMT. \n" +
                 "Le impronte sono calcolate in sola lettura al momento dell'analisi e attestano cio' che il software " +
                 "ha letto in quell'istante, non l'immutabilita' del sistema: su macchina live i file possono cambiare " +
-                "dopo l'acquisizione. \n" +
+                "dopo l'acquisizione, su immagine il contenuto e' statico. \n" +
                 "Le righe senza impronta indicano sorgenti lette via API live (nessun file acquisibile) oppure file " +
                 "non leggibili, con il motivo riportato nella colonna Stato.";
 
@@ -199,11 +199,11 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "È la funzionalità che consente di determinare tutti gli intervalli temporali indicanti il momento \n" +
-                "in cui il PC è stato acceso fino al momento in cui è stato spento. \n " +
-                "Si tiene conto anche degli eventuali log indicanti i riavvii di sistema e inizio/fine della fase di standby. \n" +
-                "Le date sono indicate nel formato gg/mm/aaaa e gli orari espressi attraverso lo standard GMT. \n" +
-                "Vengono inoltre riportate le durate di ogni sessione ed il nome del PC su cui la rilevazione è stata effettuata.";
+            var content = "Determinazione degli intervalli di alimentazione del sistema. " +
+                "La funzionalita' incrocia gli eventi di avvio (ID 6005), arresto (6006), arresto anomalo (41) e standby (42) del registro System. \n" +
+                "In modalita' live il registro System e' letto via API; in modalita' immagine dal file System.evtx dell'acquisizione. \n" +
+                "Le date sono in formato gg/mm/aaaa HH:mm:ss con offset GMT della data; la durata e' calcolata tra accensione e spegnimento; la colonna Avvio anomalo vale Si quando l'avvio segue un arresto non regolare. \n" +
+                "L'intervallo aperto (senza spegnimento) rappresenta la sessione in corso al momento dell'acquisizione.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -273,13 +273,10 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "La ricerca dei programmi installati viene effettuata attraverso la ricerca \n" +
-                "nel registro di sistema. La ricerca analizza due percorsi specifici del registro: \n" +
-                "\n" +
-                "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
-                "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall \n" +
-                "\n" +
-                "La ricerca restituisce così tutti i software installati sia a livello di singolo utente che di macchina (tutti gli utenti).";
+            var content = "Elenco dei software con evidenza di installazione. Le sorgenti sono: chiavi Uninstall del registry " +
+                "(HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall e HKLM\\SOFTWARE\\WOW6432Node\\...), chiavi per-utente (HKCU\\...), log Applicazione (eventi MsiInstaller 11707/1040/1042) e collegamenti del menu Start. \n" +
+                "In modalita' live le chiavi sono lette via API e il menu Start dal file system live; in modalita' immagine dagli hive SOFTWARE e NTUSER.DAT e dai file .lnk dell'acquisizione. \n" +
+                "La sorgente riporta la chiave o il percorso del collegamento; il percorso e' l'InstallLocation del registry o la destinazione del collegamento.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -340,12 +337,9 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "La seguente funzionalità tiene traccia dei file aperti recentemente da un utente. \n" +
-                "Ogni volta che un file viene aperto, Windows crea una sorta di collegamento allo stesso. \n" +
-                "La cartella in cui vengono creati i collegamenti si trova al percorso C:\\Users\\[NOME PROFILO]\\Recent ed il software ricerca i file " +
-                "con estensione .lnk contenuti in questa cartella. \n" +
-                "Ogni risultato contiene il nome del file, il percorso nella cartella dei file recenti, il percorso del file originario nel file system e" +
-                "la data di ultima apertura del file.";
+            var content = "File aperti di recente dall'utente. Windows crea per ogni apertura un collegamento .lnk. \n" +
+                "In modalita' live la ricerca interessa C:\\Users\\[profilo]\\Recent dell'utente corrente; in modalita' immagine tutti i profili presenti nell'acquisizione. \n" +
+                "Ogni riga riporta il nome del file, il percorso del collegamento nella cartella Recent, il percorso del file di origine e la data di ultima apertura (LastWrite del .lnk).";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -408,12 +402,9 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "I file di prefetch comunemente vengono utilizzati da Windows per velocizzare " +
-                "l’esecuzione delle applicazioni. Ogni volta che un utente esegue un’applicazione (file .exe), " +
-                "viene generato un file con estensione .pf rappresentante, appunto, un file prefetch. \n" +
-                "Questi file vengono salvati nella cartella C:\\Windows\\Prefetch \n" +
-                "All’interno della cartella Prefetch possono esserci anche dei collegamenti relativi ad applicazioni non più " +
-                "installate nel PC in uso.";
+            var content = "File Prefetch di Windows, generati all'esecuzione di un .exe per velocizzarne l'avvio. \n" +
+                "In modalita' live sono letti da C:\\Windows\\Prefetch; in modalita' immagine da Windows\\Prefetch dell'acquisizione. \n" +
+                "La tabella riporta il nome dell'eseguibile, il percorso del file .pf, l'estensione, la prima e l'ultima esecuzione e il conteggio. I file corrotti vengono ignorati e registrati nel manifest di integrita'.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -478,14 +469,9 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "Ogni volta che viene aperta una cartella attraverso la funzione “Esplora risorse”, " +
-                "Windows salva le impostazioni di questa directory nel registro di sistema. \n" +
-                "Lo scopo di questa funzionalità è quello di conoscere i percorsi, nomi e data " +
-                "di apertura delle cartelle aperte sia sul disco fisso che su dispositivi USB. \n" +
-                "E’ importante analizzare queste chiavi in quanto siamo in grado anche di rilevare eventuali " +
-                "azioni di un utente malevolo anche quando questo ha cancellato i file e le cartelle da esso visitate. \n" +
-                "I risultati restituiti contengono il percorso della cartella, data di accesso, data di creazione, data " +
-                "dell’ultima scrittura e il percorso nel registro di sistema.";
+            var content = "Percorsi di cartelle visitate in Esplora risorse, conservati nel registry. \n" +
+                "In modalita' live sono letti via API; in modalita' immagine dagli hive NTUSER.DAT e UsrClass.dat. \n" +
+                "La tabella riporta il percorso assoluto ricostruito, la data di ultima scrittura della chiave e il percorso nel registry.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -549,11 +535,10 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "Questa funzionalità ha lo scopo di determinare tutti gli accessi di un " +
-                "utente ad un PC. Per accesso non si intende l’accensione del PC stesso, ma l’operazione di scelta, ed eventualmente " +
-                "autenticazione, di un account. \n" +
-                "La funzionalità di ricerca si basa sui log di sistema. " +
-                "In particolare vengono presi come riferimento gli eventi della categoria “Sicurezza”. ";
+            var content = "Accessi a un account sul PC, distinti dall'accensione del sistema. \n" +
+                "La ricerca considera gli eventi 4624 (logon) e 4647 (logoff) del registro Sicurezza, filtrando i tipi guidati da persona (2,7,9,10,11) ed escludendo account di servizio (UMFD-, DWM-). \n" +
+                "In modalita' live il registro Sicurezza e' letto via API; in modalita' immagine dal file Security.evtx. \n" +
+                "La colonna Note segnala i logoff senza logon corrispondente e la colonna ID sessione il LogonId; un'assenza di righe puo' indicare sia assenza di accessi sia log ruotato o inaccessibile.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -634,20 +619,11 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "All’avvio dell’applicazione il software verifica che l’ora e la " +
-                "data del sistema siano genuine comunicando eventuali manomissioni da parte dell’utente. \n" +
-                "Questa operazione è molto importante perché può farci capire se anche i log possono aver subito delle alterazioni " +
-                "riportando dei dati non veritieri. \n" +
-                "La verifica delle modifiche a ora e data viene effettuata ricavando l’ora esatta del sistema e confrontando la " +
-                "stessa con l’ora e data restituita dal server NTP di Windows (time.windows.com). \n" +
-                "nel momento in cui la discrepanza fra i due orari è maggiore di 1 minuto il software comunica con una possibile manomissione.\n" +
-                "Il messaggio in questione può comparire anche nel momento in cui non è possibile interrogare il server di riferimento " +
-                "perchè il PC non è connesso alla rete oppure il server non è raggiungibile. \n" +
-                "Se non viene riportato alcun elemento allora e' molto probabile che non vi siano state alterazioni da parte dell'utente " +
-                "o che tali log siano stati eliminati dall’utente svuotando il registro eventi. \n" +
-                "La tabella dei risultati riporta il nome dell’utente che ha fatto l’eventuale modifica, " +
-                "l’ora in cui è stato effettuata l’operazione, l’ora iniziale del PC prima della modifica e " +
-                "l’ora del PC dopo la modifica.";
+            var content = "Eventi di modifica dell'ora di sistema (ID 4616 del registro Sicurezza). \n" +
+                "La ricerca considera autore, ora dell'evento, ora precedente e nuova ora, escludendo l'account di servizio S-1-5-19 e il processo svchost.exe. \n" +
+                "In modalita' live il registro Sicurezza e' letto via API; in modalita' immagine dal file Security.evtx. \n" +
+                "Un'assenza di righe puo' indicare sia assenza di modifiche sia log ruotato o svuotato. \n" +
+                "Nota: all'avvio l'applicazione esegue separatamente una verifica NTP su time.windows.com; una discrepanza superiore a un minuto o l'irraggiungibilita' del server viene segnalata a video e non compare in questa tabella.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -701,17 +677,9 @@ namespace Activities_Inspector.Services.Reporting
             ReportFormatting.OverrideParagraphDefaultStyle(promiseParagraph, 11, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
-            var content = "La seguente funzionalità riporta tutte le periferiche USB che sono state connesse/rimosse e/dal PC in questione. \n" +
-                "La ricerca dei dispositivi avviene scansionando il registro di sistema a partire dal file in C:\\Windows\\System32\\config\\SYSTEM ed intercettando" +
-                " gli eventi di connessione / disconnessine. \n" +
-                "I dati recuperati dal registro riguardano il nome del dispositivo, il seriale (ove disponibile), VendorId, " +
-                "ProductId, classe(tipologia di dispositivo) e le date di ultimo inserimento e ultima rimozione. \n" +
-                "Per ottenere i timestamps con le date di inserimento / rimozione è indispensabile avviare il software con privilegi " +
-                "di amministratore. \n" +
-                "\n" +
-                "Attraverso gli eventi di sistema, viene inoltre reperita un'ultima informazione riguardante lo stato del dispositivo che ci permette " +
-                "di determinare quando questo è connesso o meno, al momento della rilevazione.\n" +
-                "L'aggiornamento dello stato avviene in realtime.";
+            var content = "Dispositivi USB connessi o rimossi dal PC. \n" +
+                "In modalita' live la ricerca legge il registry di sistema e verifica lo stato via WMI; in modalita' immagine legge l'hive SYSTEM dell'acquisizione (lo stato risulta sempre Non connesso e non vi e' monitoraggio realtime). \n" +
+                "La tabella riporta stato, nome, seriale, VendorId, ProductId, classe e date di ultimo inserimento e rimozione; le date richiedono privilegi di amministratore.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
