@@ -81,7 +81,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<SystemTimeChangedEntry> entries)
         {
-            _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(entries, _timeChangedService.LastIntegrityManifest));
+            _messenger.Send(new OnSystemTimeChangedEntriesChangedMessage(entries, _timeChangedService.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

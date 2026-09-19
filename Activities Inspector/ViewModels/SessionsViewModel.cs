@@ -81,7 +81,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<SessionEntry> entries)
         {
-            _messenger.Send(new OnSessionEntriesChangedMessage(entries, _loggedInfoService.LastIntegrityManifest));
+            _messenger.Send(new OnSessionEntriesChangedMessage(entries, _loggedInfoService.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

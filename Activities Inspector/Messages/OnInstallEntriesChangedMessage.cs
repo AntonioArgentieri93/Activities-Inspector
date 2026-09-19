@@ -7,12 +7,14 @@ namespace Activities_Inspector.Messages
     {
         public List<InstallEntry> NewInstallEntries { get; }
         public IReadOnlyList<IntegrityRecord> Manifest { get; }
+        public string Source { get; }
 
         public OnInstallEntriesChangedMessage(List<InstallEntry> newInstallEntries,
-            IReadOnlyList<IntegrityRecord> manifest = null)
+            IReadOnlyList<IntegrityRecord> manifest = null, string source = null)
         {
             NewInstallEntries = newInstallEntries;
             Manifest = manifest ?? new List<IntegrityRecord>();
+            Source = source;
         }
     }
 }

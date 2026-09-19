@@ -171,6 +171,14 @@ namespace Activities_Inspector.ViewModels
         private List<IntegrityRecord> _sessionsManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _usageManifest = new List<IntegrityRecord>();
         private List<IntegrityRecord> _timeChangedManifest = new List<IntegrityRecord>();
+        private string _usageSource;
+        private string _installSource;
+        private string _recentSource;
+        private string _prefetchSource;
+        private string _shellBagsSource;
+        private string _sessionsSource;
+        private string _timeChangedSource;
+        private string _usbSource;
         private SessionEntry[] _sessionEntries;
         private SystemTimeChangedEntry[] _systemTimeChangedEntries;
         private UsbEntry[] _usbEntries;
@@ -224,11 +232,13 @@ namespace Activities_Inspector.ViewModels
             try
             {
 
+                var evidenceSource = GetEvidenceSourceForReport();
+
                 var content = new ReportContent(ProvisioningType, Other, InquirerSurname, InquirerName,
                     InquirerQualification, ObjectDescription, _usageInfos, _installEntries, _recentFolderEntries,
                     _prefetchInfoEntries, _shellBagEntries, _sessionEntries, _systemTimeChangedEntries, _usbEntries, destinationPath,
                     _shellBagsPartial, _installManifest.Concat(_recentManifest).Concat(_prefetchManifest).Concat(_usbManifest).Concat(_shellBagsManifest).Concat(_sessionsManifest).Concat(_usageManifest).Concat(_timeChangedManifest).ToArray(),
-                    _auditTrail.Entries.ToArray(), _sources.Current.DisplayName);
+                    _auditTrail.Entries.ToArray(), evidenceSource);
                 
                 var result = await _reportService.CreatePdfFileAsync(content, token);
 
@@ -261,24 +271,28 @@ namespace Activities_Inspector.ViewModels
         {
             _usageInfos = message.NewInfos.ToArray();
             _usageManifest = message.Manifest.ToList();
+            _usageSource = message.Source;
         }
 
         private void HandleOnInstallEntriesChangedMessage(OnInstallEntriesChangedMessage message)
         {
             _installEntries = message.NewInstallEntries.ToArray();
             _installManifest = message.Manifest.ToList();
+            _installSource = message.Source;
         }
 
         private void HandleOnRecentFolderEntriesChangedMessage(OnRecentFolderEntriesChangedMessage message)
         {
             _recentFolderEntries = message.NewRecentFoldersEntries.ToArray();
             _recentManifest = message.Manifest.ToList();
+            _recentSource = message.Source;
         }
 
         private void HandleOnPrefetchInfoEntriesChangedMessage(OnPrefetchInfoEntriesChangedMessage message)
         {
             _prefetchInfoEntries = message.NewPrefetchInfoEntries.ToArray();
             _prefetchManifest = message.Manifest.ToList();
+            _prefetchSource = message.Source;
         }
 
         private void HandleOnShellBagEntriesChangedMessage(OnShellBagEntriesChangedMessage message)
@@ -286,24 +300,46 @@ namespace Activities_Inspector.ViewModels
             _shellBagEntries = message.NewShellBagEntries.ToArray();
             _shellBagsPartial = message.IsPartial;
             _shellBagsManifest = message.Manifest.ToList();
+            _shellBagsSource = message.Source;
         }
 
         private void HandleOnSessionEntriesChangedMessage(OnSessionEntriesChangedMessage message)
         {
             _sessionEntries = message.NewSessionEntries.ToArray();
             _sessionsManifest = message.Manifest.ToList();
+            _sessionsSource = message.Source;
         }
 
         private void HandleOnSystemTimeChangedEntriesChangedMessage(OnSystemTimeChangedEntriesChangedMessage message)
         {
             _systemTimeChangedEntries = message.NewTimeChangedEntries.ToArray();
             _timeChangedManifest = message.Manifest.ToList();
+            _timeChangedSource = message.Source;
         }
 
         private void HandleOnUsbEntriesChangedMessage(OnUsbEntriesChangedMessage message)
         {
             _usbEntries = message.NewUsbEntries.ToArray();
             _usbManifest = message.Manifest.ToList();
+            _usbSource = message.Source;
+        }
+
+        private string GetEvidenceSourceForReport()
+        {
+            var sources = new List<string>();
+            if (_usageInfos != null && _usageInfos.Length > 0) sources.Add(_usageSource);
+            if (_installEntries != null && _installEntries.Length > 0) sources.Add(_installSource);
+            if (_recentFolderEntries != null && _recentFolderEntries.Length > 0) sources.Add(_recentSource);
+            if (_prefetchInfoEntries != null && _prefetchInfoEntries.Length > 0) sources.Add(_prefetchSource);
+            if (_shellBagEntries != null && _shellBagEntries.Length > 0) sources.Add(_shellBagsSource);
+            if (_sessionEntries != null && _sessionEntries.Length > 0) sources.Add(_sessionsSource);
+            if (_systemTimeChangedEntries != null && _systemTimeChangedEntries.Length > 0) sources.Add(_timeChangedSource);
+            if (_usbEntries != null && _usbEntries.Length > 0) sources.Add(_usbSource);
+
+            var distinct = sources.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+            if (distinct.Count == 1) return distinct[0];
+            if (distinct.Count > 1) return "Mista: " + string.Join(" / ", distinct);
+            return _sources.Current.DisplayName;
         }
     }
 }

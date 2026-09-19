@@ -7,12 +7,14 @@ namespace Activities_Inspector.Messages
     {
         public List<PrefetchInfoEntry> NewPrefetchInfoEntries { get; }
         public IReadOnlyList<IntegrityRecord> Manifest { get; }
+        public string Source { get; }
 
         public OnPrefetchInfoEntriesChangedMessage(List<PrefetchInfoEntry> newPrefetchInfoEntries,
-            IReadOnlyList<IntegrityRecord> manifest = null)
+            IReadOnlyList<IntegrityRecord> manifest = null, string source = null)
         {
             NewPrefetchInfoEntries = newPrefetchInfoEntries;
             Manifest = manifest ?? new List<IntegrityRecord>();
+            Source = source;
         }
     }
 }

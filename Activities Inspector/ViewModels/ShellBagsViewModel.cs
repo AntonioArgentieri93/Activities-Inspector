@@ -94,7 +94,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<ShellBagEntry> entries)
         {
-            _messenger.Send(new OnShellBagEntriesChangedMessage(entries, _isPartial, _shellBagsParserService.LastIntegrityManifest));
+            _messenger.Send(new OnShellBagEntriesChangedMessage(entries, _isPartial, _shellBagsParserService.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         protected override void AfterLoad()

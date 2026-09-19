@@ -7,12 +7,14 @@ namespace Activities_Inspector.Messages
     {
         public List<UsbEntry> NewUsbEntries { get; }
         public IReadOnlyList<IntegrityRecord> Manifest { get; }
+        public string Source { get; }
 
         public OnUsbEntriesChangedMessage(List<UsbEntry> newUsbEntries,
-            IReadOnlyList<IntegrityRecord> manifest = null)
+            IReadOnlyList<IntegrityRecord> manifest = null, string source = null)
         {
             NewUsbEntries = newUsbEntries;
             Manifest = manifest ?? new List<IntegrityRecord>();
+            Source = source;
         }
     }
 }

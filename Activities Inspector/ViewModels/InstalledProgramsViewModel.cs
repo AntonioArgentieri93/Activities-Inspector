@@ -79,7 +79,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<InstallEntry> entries)
         {
-            _messenger.Send(new OnInstallEntriesChangedMessage(entries, _installEntriesBuilder.LastIntegrityManifest));
+            _messenger.Send(new OnInstallEntriesChangedMessage(entries, _installEntriesBuilder.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

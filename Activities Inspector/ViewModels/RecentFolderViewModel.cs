@@ -79,7 +79,7 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<RecentFolderEntry> entries)
         {
-            _messenger.Send(new OnRecentFolderEntriesChangedMessage(entries, _recentFilesService.LastIntegrityManifest));
+            _messenger.Send(new OnRecentFolderEntriesChangedMessage(entries, _recentFilesService.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         protected override void AfterLoad()

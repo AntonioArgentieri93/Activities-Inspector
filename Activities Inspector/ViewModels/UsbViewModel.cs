@@ -101,7 +101,7 @@ namespace Activities_Inspector.ViewModels
             // SyncUsbEntries è idempotente: una singola chiamata equivale
             // al ciclo originale che la invocava N volte con gli stessi dati.
             SyncUsbEntries(new ObservableCollection<UsbEntry>(entries), _temp);
-            _messenger.Send(new OnUsbEntriesChangedMessage(entries, _usbTrackingService.LastIntegrityManifest));
+            _messenger.Send(new OnUsbEntriesChangedMessage(entries, _usbTrackingService.LastIntegrityManifest, Sources.Current.DisplayName));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
