@@ -288,9 +288,11 @@ namespace Activities_Inspector.Services.Reporting
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
             var content = "Elenco dei software con evidenza di installazione. Le sorgenti sono: chiavi Uninstall del registry " +
-                "(HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall e HKLM\\SOFTWARE\\WOW6432Node\\...), chiavi per-utente (HKCU\\...), log Applicazione (eventi MsiInstaller 11707/1040/1042) e collegamenti del menu Start. \n" +
-                "In modalita' live le chiavi sono lette via API e il menu Start dal file system live; in modalita' immagine dagli hive SOFTWARE e NTUSER.DAT e dai file .lnk dell'acquisizione. \n" +
-                "La sorgente riporta la chiave o il percorso del collegamento; il percorso e' l'InstallLocation del registry o la destinazione del collegamento.";
+                "(HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall 64-bit, HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall 32-bit), " +
+                "chiavi per-utente (HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall 64-bit, HKCU\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall 32-bit), " +
+                "log Applicazione (eventi MsiInstaller 11707/1040/1042). \n" +
+                "In modalita' live le chiavi sono lette via API e il log eventi via API; in modalita' immagine dagli hive SOFTWARE, NTUSER.DAT e dal file Application.evtx dell'acquisizione. \n" +
+                "La sorgente riporta la chiave di registry o il percorso del log eventi; il percorso e' l'InstallLocation del registry.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
