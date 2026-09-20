@@ -40,12 +40,10 @@ namespace Activities_Inspector.Services
                 List<InstallEntry> microsoftLocals;
                 List<InstallEntry> users;
                 List<InstallEntry> events;
-                var startMenuManifest = new List<IntegrityRecord>();
                 var eventsManifest = new List<IntegrityRecord>();
 
-                // Le 5 sorgenti sono indipendenti: in parallelo il tempo
+                // Le 4 sorgenti sono indipendenti: in parallelo il tempo
                 // totale e' quello della piu' lenta, non la somma.
-                var startMenuTask = GetFromStartMenuAsync(startMenuManifest, cancellationToken);
 
                 if (_sources.Current.IsLive)
                 {
@@ -54,14 +52,13 @@ namespace Activities_Inspector.Services
                     var usersTask = GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                     var eventsTask = GetFromEventsAsync(eventsManifest, cancellationToken);
 
-                    await Task.WhenAll(wowTask, msTask, usersTask, eventsTask, startMenuTask);
+                    await Task.WhenAll(wowTask, msTask, usersTask, eventsTask);
 
                     wow6432Locals = await wowTask;
                     microsoftLocals = await msTask;
                     users = await usersTask;
                     events = await eventsTask;
 
-                    manifest.AddRange(startMenuManifest);
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $@"HKLM\{AppConstants.Registry.Wow6432UninstallPath} (registro live, {wow6432Locals.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
@@ -70,7 +67,6 @@ namespace Activities_Inspector.Services
                         $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $"Registro Applicazione (API live, {events.Count} voci)"));
-                    manifest.AddRange(eventsManifest);
                 }
                 else
                 {
@@ -93,7 +89,7 @@ namespace Activities_Inspector.Services
                         return (software, usr, ev);
                     }, cancellationToken);
 
-                    await Task.WhenAll(offlineTask, startMenuTask);
+                    await Task.WhenAll(offlineTask);
 
                     var offline = await offlineTask;
                     wow6432Locals = offline.software;
@@ -101,12 +97,10 @@ namespace Activities_Inspector.Services
                     users = offline.usr;
                     events = offline.ev;
 
-                    manifest.AddRange(startMenuManifest);
                     manifest.AddRange(eventsManifest);
                 }
 
-                var startMenu = await startMenuTask;
-                var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).Concat(startMenu).ToList();
+                var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList();
 
                 if (all.Count == 0)
                     return Result.Failure<List<InstallEntry>>("Nessuna sorgente programmi installati leggibile: " +
@@ -355,100 +349,6 @@ namespace Activities_Inspector.Services
                 merged.InstallDate = dated.InstallDate;
 
             return merged;
-        }
-
-        private Task<List<InstallEntry>> GetFromStartMenuAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken)
-        {
-            return Task.Run(() =>
-            {
-                var entries = new List<InstallEntry>();
-
-                foreach (var root in _sources.Current.GetStartMenuDirectories())
-                {
-                    foreach (var lnkPath in EnumerateLnkFiles(root))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        manifest.Add(IntegrityHasher.HashFile(lnkPath, EntryType.InstalledPrograms));
-
-                        InstallEntry entry = null;
-
-                        try
-                        {
-                            entry = BuildStartMenuEntry(lnkPath);
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-
-                        if (entry != null)
-                            entries.Add(entry);
-                    }
-                }
-
-                return entries;
-            }, cancellationToken);
-        }
-
-        internal static IEnumerable<string> EnumerateLnkFiles(string root)
-        {
-            var stack = new Stack<string>();
-            stack.Push(root);
-
-            while (stack.Count > 0)
-            {
-                var dir = stack.Pop();
-
-                string[] subDirs = Array.Empty<string>();
-                string[] files = Array.Empty<string>();
-
-                try
-                {
-                    subDirs = Directory.GetDirectories(dir);
-                    files = Directory.GetFiles(dir, "*.lnk");
-                }
-                catch
-                {
-                    continue;
-                }
-
-                foreach (var file in files)
-                    yield return file;
-
-                foreach (var subDir in subDirs)
-                    stack.Push(subDir);
-            }
-        }
-
-        internal static InstallEntry BuildStartMenuEntry(string lnkPath)
-        {
-            var raw = File.ReadAllBytes(lnkPath);
-            if (raw.Length == 0 || raw[0] != 0x4c) return null;
-
-            var lnkFile = new LnkFile(raw, lnkPath);
-            var target = RecentFilesService.ResolveTargetPath(
-                lnkFile.LocalPath,
-                lnkFile.NetworkShareInfo?.NetworkShareName,
-                lnkFile.CommonPath);
-
-            if (string.IsNullOrEmpty(target) || !File.Exists(target)) return null;
-
-            FileVersionInfo info;
-            try
-            {
-                info = FileVersionInfo.GetVersionInfo(target);
-            }
-            catch
-            {
-                return null;
-            }
-
-            var name = !string.IsNullOrWhiteSpace(info.ProductName) ? info.ProductName
-                : !string.IsNullOrWhiteSpace(info.FileDescription) ? info.FileDescription
-                : Path.GetFileNameWithoutExtension(target);
-
-            return new InstallEntry(name, lnkPath, target, null);
         }
     }
 }
