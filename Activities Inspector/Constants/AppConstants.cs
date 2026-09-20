@@ -25,6 +25,7 @@ namespace Activities_Inspector.Constants
             public const string UsbRootPrefix = "ROOT";
             public const string Wow6432UninstallPath = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
             public const string MicrosoftUninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            public const string Wow6432CurrentUserUninstallPath = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
             public const string RegistrySystemPath = @"SYSTEM";
         }
 

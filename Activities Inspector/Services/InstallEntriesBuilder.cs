@@ -50,13 +50,15 @@ namespace Activities_Inspector.Services
                     var wowTask = GetFromLocalMachineAsync(AppConstants.Registry.Wow6432UninstallPath, cancellationToken);
                     var msTask = GetFromLocalMachineAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
                     var usersTask = GetFromCurrentUserAsync(AppConstants.Registry.MicrosoftUninstallPath, cancellationToken);
+                    var usersWow6432Task = GetFromCurrentUserWow6432Async(AppConstants.Registry.Wow6432CurrentUserUninstallPath, cancellationToken);
                     var eventsTask = GetFromEventsAsync(eventsManifest, cancellationToken);
 
-                    await Task.WhenAll(wowTask, msTask, usersTask, eventsTask);
+                    await Task.WhenAll(wowTask, msTask, usersTask, usersWow6432Task, eventsTask);
 
                     wow6432Locals = await wowTask;
                     microsoftLocals = await msTask;
                     users = await usersTask;
+                    var usersWow6432Live = await usersWow6432Task;
                     events = await eventsTask;
 
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
@@ -65,6 +67,8 @@ namespace Activities_Inspector.Services
                         $@"HKLM\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {microsoftLocals.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $@"HKCU\{AppConstants.Registry.MicrosoftUninstallPath} (registro live, {users.Count} voci)"));
+                    manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
+                        $@"HKCU\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall (registro live, {usersWow6432Live.Count} voci)"));
                     manifest.Add(IntegrityRecord.LiveSource(EntryType.InstalledPrograms,
                         $"Registro Applicazione (API live, {events.Count} voci)"));
                 }
@@ -100,6 +104,7 @@ namespace Activities_Inspector.Services
                     manifest.AddRange(eventsManifest);
                 }
 
+                var usersWow6432Offline = new List<InstallEntry>(); // Empty for offline mode
                 var all = wow6432Locals.Concat(microsoftLocals).Concat(users).Concat(events).ToList();
 
                 if (all.Count == 0)
@@ -139,6 +144,30 @@ namespace Activities_Inspector.Services
         }
 
         private Task<List<InstallEntry>> GetFromCurrentUserAsync(string keyPath, CancellationToken cancellationToken)
+        {
+            return Task.Run(() =>
+            {
+                var entries = new List<InstallEntry>();
+
+                using var rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyPath);
+                if (rk == null) return entries;
+
+                foreach (var skName in rk.GetSubKeyNames())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var sk = rk.OpenSubKey(skName);
+                    if (sk == null) continue;
+
+                    var entry = BuildInstallEntry(sk);
+                    if (entry != null)
+                        entries.Add(entry);
+                }
+
+                return entries;
+            }, cancellationToken);
+        }
+
+        private Task<List<InstallEntry>> GetFromCurrentUserWow6432Async(string keyPath, CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
