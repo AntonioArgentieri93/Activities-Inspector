@@ -45,7 +45,7 @@
                            ToolTip="{Binding FullPath}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
-                <TextBlock Text="{Binding ActionTime, Converter={StaticResource DateTimeFormatConverter}}"
+                <TextBlock Text="{Binding ActionTime, Converter={StaticResource DateTimeFormatConverter}, TargetNullValue=N/D}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
                 <TextBlock Text="{Binding SkippedShellItems}"

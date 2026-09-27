@@ -26,6 +26,9 @@ namespace Activities_Inspector.Constants
             public const string Wow6432UninstallPath = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
             public const string MicrosoftUninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
             public const string Wow6432CurrentUserUninstallPath = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+            public const string RecentDocsPath = @"Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs";
+            public const string OpenSavePidlMRUPath = @"Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU";
+            public const string ShellFoldersPath = @"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders";
             public const string RegistrySystemPath = @"SYSTEM";
         }
 

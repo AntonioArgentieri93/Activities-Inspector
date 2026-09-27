@@ -36,6 +36,9 @@ namespace Activities_Inspector.Utils
             }
         }
 
+        /// <summary>Testo per date non documentate dalla sorgente (equivalente al "N / A" di NirSoft).</summary>
+        public const string NotAvailable = "N/D";
+
         public static string BuildFromDateTime(DateTime dateTime)
         {
             var offset = TimeZoneInfo.Local.GetUtcOffset(dateTime);

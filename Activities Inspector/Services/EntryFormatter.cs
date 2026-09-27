@@ -95,7 +95,7 @@ namespace Activities_Inspector.Services
                 recentFolderEntry.FileName,
                 recentFolderEntry.DataSource,
                 recentFolderEntry.FullPath,
-                DateBuilder.BuildFromDateTime(recentFolderEntry.ActionTime),
+                recentFolderEntry.ActionTime.HasValue ? DateBuilder.BuildFromDateTime(recentFolderEntry.ActionTime.Value) : DateBuilder.NotAvailable,
                 recentFolderEntry.SkippedShellItems);
 
         private string BuildPrefetchInfoEntryFormat(PrefetchInfoEntry prefetchInfoEntry)

@@ -391,12 +391,9 @@ namespace Activities_Inspector.Services.Reporting
 
             foreach (var item in recentFolderEntries)
             {
-                var actionTime = string.Empty;
-
-                if (item.ActionTime != null)
-                {
-                    actionTime = DateBuilder.BuildFromDateTime(item.ActionTime);
-                }
+                var actionTime = item.ActionTime.HasValue
+                    ? DateBuilder.BuildFromDateTime(item.ActionTime.Value)
+                    : DateBuilder.NotAvailable;
 
                 var rowValues = new List<string>()
                 {

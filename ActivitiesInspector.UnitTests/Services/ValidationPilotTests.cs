@@ -99,5 +99,29 @@ namespace ActivitiesInspector.UnitTests.Services
             var missing = directNames.Where(n => !ourNames.Contains(n)).Take(5).ToList();
             Assert.True(missing.Count == 0, "mancanti: " + string.Join(", ", missing));
         }
+
+        [Fact]
+        public async Task RecentFiles_Pilot_Offline_Reads_Registry_Sources()
+        {
+            var provider = Offline(FullImageRoot) ?? Offline(OfflineKitRoot);
+            if (provider == null) throw new Xunit.Sdk.SkipException("Immagine assente in %TEMP%\\FullImage|OfflineKit — pilota saltato");
+            if (!provider.Current.GetUserHivePaths("NTUSER.DAT").Any())
+                throw new Xunit.Sdk.SkipException("NTUSER.DAT assente nell'immagine — pilota saltato");
+
+            var service = new RecentFilesService(provider);
+            var result = await service.GetRecentFilesAsync();
+            Assert.True(result.IsSuccess);
+
+            // Regressione: offline GetValue() restituiva i REG_BINARY come stringa hex → 0 voci dal registro
+            Assert.Contains(result.Value, e => e.DataSource.IndexOf(@"\RecentDocs\", StringComparison.OrdinalIgnoreCase) >= 0);
+            var openSave = result.Value
+                .Where(e => e.DataSource.IndexOf(@"\OpenSavePidlMRU\", StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+            Assert.NotEmpty(openSave);
+
+            // Come NirSoft: per ogni sottochiave MRU solo la voce più recente ha una data (LastWriteTime della chiave)
+            Assert.All(openSave.GroupBy(e => e.DataSource),
+                g => Assert.True(g.Count(e => e.ActionTime.HasValue) <= 1, "più di una data in " + g.Key));
+        }
     }
 }
