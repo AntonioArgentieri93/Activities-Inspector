@@ -67,9 +67,13 @@ namespace Activities_Inspector.Utils
 
                 case EntryType.ShellBags:
                     return string.Format(
-                        "{0} ; {1} ; {2}",
+                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6}",
                         Activities_Inspector.Resources.MainWindows_ShellBags_AbsolutePath,
+                        Activities_Inspector.Resources.MainWindows_ShellBags_LastInteracted,
                         Activities_Inspector.Resources.MainWindows_ShellBags_LastRegistryWriteDate,
+                        "Creazione cartella",
+                        "Modifica cartella",
+                        "Accesso cartella",
                         Activities_Inspector.Resources.MainWindows_ShellBags_RegistryPath);
 
                 case EntryType.TimeIntervals:

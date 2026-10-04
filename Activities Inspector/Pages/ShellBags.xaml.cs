@@ -31,6 +31,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_ShellBags_AbsolutePath):
                     propertyType = ShellBagsPropertyType.AbsolutePath;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_ShellBags_LastInteracted):
+                    propertyType = ShellBagsPropertyType.LastInteracted;
+                    break;
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_ShellBags_LastRegistryWriteDate):
                     propertyType = ShellBagsPropertyType.LastRegistryWriteDate;
                     break;
@@ -65,6 +68,7 @@ namespace Activities_Inspector.Pages
     public enum ShellBagsPropertyType
     {
         AbsolutePath,
+        LastInteracted,
         LastRegistryWriteDate,
         RegistryPath
     }

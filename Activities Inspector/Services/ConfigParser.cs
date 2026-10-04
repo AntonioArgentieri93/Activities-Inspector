@@ -74,40 +74,50 @@ namespace Activities_Inspector.Services
             }
         }
 
+        /// <summary>
+        /// Chiavi BagMRU da visitare in NTUSER.DAT e UsrClass.dat (un percorso assente in un hive viene ignorato).
+        /// Non dipende dalla versione di Windows dell'analista: un'immagine può provenire da un sistema diverso
+        /// (XP → ShellNoRoam, Vista+ → UsrClass). Le chiavi "Bags" (impostazioni di visualizzazione) non contengono
+        /// shell item e sono escluse.
+        /// </summary>
+        public static readonly IReadOnlyList<string> KnownBagMruLocations = new[]
+        {
+            @"Software\Microsoft\Windows\Shell\BagMRU",
+            @"Software\Microsoft\Windows\ShellNoRoam\BagMRU",
+            @"Local Settings\Software\Microsoft\Windows\Shell\BagMRU",
+            @"Local Settings\Software\Microsoft\Windows\ShellNoRoam\BagMRU",
+            @"Wow6432Node\Local Settings\Software\Microsoft\Windows\Shell\BagMRU",
+        };
+
         public List<string> GetRegistryLocations()
         {
-            List<string> locations = new List<string>();
+            var locations = new List<string>(KnownBagMruLocations);
 
-            if (OSRegistryFile.Equals(string.Empty))
+            // Eventuali percorsi BagMRU aggiuntivi da Assets\OS.json (tutte le versioni, senza filtrare per OS)
+            try
             {
-                GetDefaultRegistryLocations();
-            }
-            else
-            {
-                IList<RegistryLocations> registrylocations = new List<RegistryLocations>();
-
-                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AppConstants.Assembly.Namespace + OSRegistryFile);
-
-                using (var reader = new StreamReader(stream))
+                if (!OSRegistryFile.Equals(string.Empty))
                 {
-                    registrylocations = JsonConvert.DeserializeObject<IList<RegistryLocations>>(reader.ReadToEnd());
-                }
-
-                foreach (var regLocation in registrylocations)
-                {
-                    if (OsVersion.Contains(regLocation.OperatingSystem))
+                    var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AppConstants.Assembly.Namespace + OSRegistryFile);
+                    if (stream != null)
                     {
-                        foreach (IList<string> registryPaths in regLocation.GetRegistryFilePaths().Values)
+                        using (var reader = new StreamReader(stream))
                         {
-                            locations.AddRange(registryPaths);
+                            var registrylocations = JsonConvert.DeserializeObject<IList<RegistryLocations>>(reader.ReadToEnd());
+                            locations.AddRange(registrylocations
+                                .SelectMany(l => l.GetRegistryFilePaths().Values)
+                                .SelectMany(p => p));
                         }
-
-                        return locations;
                     }
                 }
             }
+            catch (JsonException)
+            { }
 
-            return locations;
+            return locations
+                .Where(l => l.EndsWith(@"\BagMRU", System.StringComparison.OrdinalIgnoreCase))
+                .Distinct(System.StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         public List<string> GetUsernameLocations()

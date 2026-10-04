@@ -494,11 +494,20 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Data ultima scrittura.
+        ///   Looks up a localized string similar to Ultima scrittura chiave.
         /// </summary>
         public static string MainWindows_ShellBags_LastRegistryWriteDate {
             get {
                 return ResourceManager.GetString("MainWindows_ShellBags_LastRegistryWriteDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ultima interazione.
+        /// </summary>
+        public static string MainWindows_ShellBags_LastInteracted {
+            get {
+                return ResourceManager.GetString("MainWindows_ShellBags_LastInteracted", resourceCulture);
             }
         }
         

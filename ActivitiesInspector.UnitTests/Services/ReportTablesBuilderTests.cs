@@ -102,9 +102,10 @@ namespace ActivitiesInspector.UnitTests.Services
 
             var table = BuildTable(s => ReportTablesBuilder.AddShellbagsEntries(entries, s));
 
+            // Percorso, Ultima interazione, Ultima scrittura chiave, Percorso nel registro
             Assert.Equal(3, table.Rows.Count);
-            Assert.Equal(3, table.Rows[0].Cells.Count);
-            Assert.Equal(3, table.Rows[1].Cells.Count);
+            Assert.Equal(4, table.Rows[0].Cells.Count);
+            Assert.Equal(4, table.Rows[1].Cells.Count);
         }
 
         [Fact]

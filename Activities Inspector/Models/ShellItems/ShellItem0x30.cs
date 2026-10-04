@@ -22,31 +22,30 @@ namespace Activities_Inspector.Models
         {
             get
             {
-                var extensionBlock = ExtensionBlocks.FirstOrDefault();
-                if (extensionBlock != null && extensionBlock is ExtensionBlockBEEF0004)
-                    return ((ExtensionBlockBEEF0004)extensionBlock).LongName;
-                return ShortName;
+                // Nome lungo solo da un blocco 0xBEEF0004 valido e non vuoto; altrimenti nome corto 8.3
+                var longName = Beef0004?.LongName;
+                return !string.IsNullOrEmpty(longName) ? longName : ShortName;
             }
 
         }
+
+        /// <summary>Blocco 0xBEEF0004 con firma valida, o null se l'item non ne ha (es. Windows XP).</summary>
+        protected ExtensionBlockBEEF0004 Beef0004 => ExtensionBlocks.OfType<ExtensionBlockBEEF0004>().FirstOrDefault();
+
         public override DateTime CreationDate
         {
             get
             {
-                var extensionBlock = ExtensionBlocks.FirstOrDefault();
-                if (extensionBlock != null && extensionBlock is ExtensionBlockBEEF0004)
-                    return ((ExtensionBlockBEEF0004)extensionBlock).CreationDate;
-                return base.CreationDate;
+                var block = Beef0004;
+                return block != null ? block.CreationDate : base.CreationDate;
             }
         }
         public override DateTime AccessedDate
         {
             get
             {
-                var extensionBlock = ExtensionBlocks.FirstOrDefault();
-                if (extensionBlock != null && extensionBlock is ExtensionBlockBEEF0004)
-                    return ((ExtensionBlockBEEF0004)extensionBlock).AccessedDate;
-                return base.AccessedDate;
+                var block = Beef0004;
+                return block != null ? block.AccessedDate : base.AccessedDate;
             }
         }
 
@@ -66,16 +65,34 @@ namespace Activities_Inspector.Models
             off += 2;
             ExtensionOffset = unpack_word(Size - 2);
 
-            if (ExtensionOffset > Size)
-                throw new OverrunBufferException(ExtensionOffset, Size);
+            // Gli ultimi 2 byte sono l'offset del primo blocco di estensione solo se cadono dopo il nome e
+            // lasciano spazio all'header del blocco; negli item senza estensioni (es. Windows XP) sono byte del nome.
+            bool hasExtension = ExtensionOffset > off && ExtensionOffset + 8 <= Size;
+            int nameLength = (hasExtension ? ExtensionOffset : Size) - off;
 
-            if ((Type & 0x04) != 0)
-                ShortName = unpack_wstring(off, ExtensionOffset - off);
+            if (nameLength <= 0)
+                ShortName = string.Empty;
+            else if ((Type & 0x04) != 0)
+                ShortName = unpack_wstring(off, nameLength);
             else
-                ShortName = unpack_string(off, ExtensionOffset - off);
+                ShortName = unpack_string(off, nameLength);
 
-            ExtensionBlockBEEF0004 ExtensionBlock = new ExtensionBlockBEEF0004(buf, ExtensionOffset + offset);
-            ExtensionBlocks.Add(ExtensionBlock);
+            // Il nome termina al primo NUL (dopo possono esserci padding o altri campi)
+            ShortName = ShortName.Split('\0')[0];
+
+            if (hasExtension)
+            {
+                try
+                {
+                    var block = new ExtensionBlockBEEF0004(buf, ExtensionOffset + offset);
+                    if (block.Signature == ExtensionBlockBEEF0004.ExpectedSignature)
+                        ExtensionBlocks.Add(block);
+                }
+                catch (Exception)
+                {
+                    // Blocco corrotto: resta il nome corto
+                }
+            }
 
         }
 

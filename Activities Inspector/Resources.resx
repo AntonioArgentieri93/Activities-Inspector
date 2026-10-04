@@ -209,7 +209,10 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
     <value>Data di creazione</value>
   </data>
   <data name="MainWindows_ShellBags_LastRegistryWriteDate" xml:space="preserve">
-    <value>Data ultima scrittura</value>
+    <value>Ultima scrittura chiave</value>
+  </data>
+  <data name="MainWindows_ShellBags_LastInteracted" xml:space="preserve">
+    <value>Ultima interazione</value>
   </data>
   <data name="MainWindows_ShellBags_RegistryPath" xml:space="preserve">
     <value>Percorso nel registro</value>

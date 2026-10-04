@@ -490,7 +490,10 @@ namespace Activities_Inspector.Services.Reporting
 
             var content = "Percorsi di cartelle visitate in Esplora risorse, conservati nel registry. \n" +
                 "In modalita' live sono letti via API; in modalita' immagine dagli hive NTUSER.DAT e UsrClass.dat. \n" +
-                "La tabella riporta il percorso assoluto ricostruito, la data di ultima scrittura della chiave e il percorso nel registry.";
+                "La tabella riporta il percorso assoluto ricostruito, l'ultima interazione e l'ultima scrittura della chiave e il percorso nel registry. \n" +
+                "L'ultima interazione e' documentata solo per la cartella piu' recente di ogni livello (prima posizione di MRUListEx): " +
+                "per le altre e' indicata come N/D. L'ultima scrittura della chiave cambia quando cambiano le sottocartelle, " +
+                "non quando la cartella stessa viene aperta.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -519,7 +522,8 @@ namespace Activities_Inspector.Services.Reporting
             var headerLabels = new List<string>()
             {
                 "Percorso assoluto",
-                "Data ultima scrittura",
+                "Ultima interazione",
+                "Ultima scrittura chiave",
                 "Percorso nel registro"
             };
 
@@ -527,17 +531,13 @@ namespace Activities_Inspector.Services.Reporting
 
             foreach (var item in shellBagEntries)
             {
-                var lastRegistryWriteData = string.Empty;
-
-                if (item.LastRegistryWriteDate != null)
-                {
-                    lastRegistryWriteData = DateBuilder.BuildFromDateTime(item.LastRegistryWriteDate);
-                }
-
                 var rowValues = new List<string>()
                 {
                     item.AbsolutePath ?? string.Empty,
-                    lastRegistryWriteData ?? string.Empty,
+                    item.LastInteracted.HasValue ? DateBuilder.BuildFromDateTime(item.LastInteracted.Value) : DateBuilder.NotAvailable,
+                    item.LastRegistryWriteDate.HasValue && item.LastRegistryWriteDate.Value != DateTime.MinValue
+                        ? DateBuilder.BuildFromDateTime(item.LastRegistryWriteDate.Value)
+                        : DateBuilder.NotAvailable,
                     item.RegistryPath ?? string.Empty,
                 };
 

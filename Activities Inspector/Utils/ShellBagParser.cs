@@ -47,6 +47,11 @@ namespace Activities_Inspector.Utils
                                 {
                                     parentShellItem = pShellItem;
                                 }
+                                else
+                                {
+                                    // Il genitore non è stato decodificato: il percorso di questo elemento è incompleto
+                                    truncated = true;
+                                }
                             }
 
                             RegistryShellItemDecorator decoratedShellItem = new RegistryShellItemDecorator(shellItem, keyWrapper, parentShellItem);

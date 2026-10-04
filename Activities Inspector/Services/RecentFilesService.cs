@@ -428,8 +428,10 @@ namespace Activities_Inspector.Services
 
                 try
                 {
-                    var hive = new Registry.RegistryHive(hiveBytes, hivePath);
-                    hive.ParseHive();
+                    // Hive "sporco" (copiato da sistema acceso): applica .LOG1/.LOG2 per non perdere le voci più recenti
+                    var hive = OfflineHiveLoader.Load(hiveBytes, hivePath, out var appliedLogs);
+                    foreach (var log in appliedLogs)
+                        manifest.Add(IntegrityHasher.HashFile(log, EntryType.Recents));
 
                     // Read from RecentDocs
                     var recentDocsEntries = ParseRecentDocsKey(hive, hivePath, manifest, cancellationToken);

@@ -148,6 +148,12 @@ namespace Activities_Inspector.Models
                 int minute = (dostime & 0x7E0) >> 5;
                 int hour = (dostime & 0xF800) >> 11;
 
+                if (month < 1 || month > 12 || day < 1 || day > DateTime.DaysInMonth(year, month)
+                    || hour > 23 || minute > 59 || sec > 59)
+                {
+                    return DateTime.MinValue; // data DOS non valida: nessuna data, senza far fallire l'item
+                }
+
                 return new DateTime(year, month, day, hour, minute, sec);
             }
             catch (IndexOutOfRangeException)

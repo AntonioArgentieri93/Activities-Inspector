@@ -113,19 +113,33 @@ namespace Activities_Inspector.ViewModels
             }
         }
 
-        private static IEnumerable<ShellBagEntry> GetShellBagsEntries(List<IShellItem> shellBags)
+        internal static IEnumerable<ShellBagEntry> GetShellBagsEntries(List<IShellItem> shellBags)
         {
             foreach (var item in shellBags)
             {
+                if (item is RegistryShellItemDecorator decorated)
+                {
+                    // Date passate come DateTime (prima: ToString() + parse "dd/M/yyyy", dipendente dalla cultura di Windows)
+                    yield return new ShellBagEntry(decorated.AbsolutePath, decorated.KeyLastWriteTime, decorated.RegistryPath)
+                    {
+                        LastInteracted = decorated.LastInteracted,
+                        CreatedOn = ShellItemUtcToLocal(decorated.CreationDate),
+                        ModifiedOn = ShellItemUtcToLocal(decorated.ModifiedDate),
+                        AccessedOn = ShellItemUtcToLocal(decorated.AccessedDate),
+                    };
+                    continue;
+                }
+
                 var properties = item.GetAllProperties();
-
                 var absPath = properties.ContainsKey("AbsolutePath") ? properties["AbsolutePath"] : string.Empty;
-                var lrwDate = properties.ContainsKey("LastRegistryWriteDate") ? DateBuilder.ConvertToLocalDate(properties["LastRegistryWriteDate"]) : DateTime.MinValue;
                 var regPath = properties.ContainsKey("RegistryPath") ? properties["RegistryPath"] : string.Empty;
-
-                yield return new ShellBagEntry(absPath, lrwDate, regPath);
+                yield return new ShellBagEntry(absPath, null, regPath);
             }
         }
+
+        /// <summary>Le date DOS degli shell item sono in UTC (FileTimeToDosDateTime sul FILETIME): conversione in ora locale.</summary>
+        private static DateTime? ShellItemUtcToLocal(DateTime value)
+            => value == DateTime.MinValue ? (DateTime?)null : DateTime.SpecifyKind(value, DateTimeKind.Utc).ToLocalTime();
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)
         {

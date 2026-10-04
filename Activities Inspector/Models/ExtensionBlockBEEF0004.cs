@@ -6,6 +6,8 @@ namespace Activities_Inspector.Models
 {
     public class ExtensionBlockBEEF0004 : ExtensionBlock
     {
+        public const uint ExpectedSignature = 0xBEEF0004;
+
         public DateTime CreationDate { get; protected set; }
         public DateTime AccessedDate { get; protected set; }
         public ushort LongNameSize { get; protected set; }

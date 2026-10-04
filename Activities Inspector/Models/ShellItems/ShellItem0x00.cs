@@ -15,7 +15,8 @@ namespace Activities_Inspector.Models
                 {
                     if (KnownGuids.dict.ContainsKey(Guid))
                     {
-                        return string.Format("{{{0}}}", KnownGuids.dict[Guid]);
+                        // Known folder (es. FOLDERID_SkyDrive → "OneDrive") senza graffe
+                        return KnownGuids.dict[Guid];
                     }
                     else
                     {

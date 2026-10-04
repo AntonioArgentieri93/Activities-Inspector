@@ -39,37 +39,45 @@ namespace Activities_Inspector.Services
 
             RegistryKey store = Microsoft.Win32.Registry.Users;
 
-            List<RegistryKey> userStores = new List<RegistryKey>();
-            List<RegistryKey> currentUserStores = new List<RegistryKey>();
-
-            foreach (string userStoreName in store.GetSubKeyNames())
-            {
-                var storeKey = store.OpenSubKey(userStoreName);
-
-                if (storeKey == null)
-                    continue;
-
-                string userOfStore = FindOnlineUsername(storeKey);
-
-                if (userOfStore.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase))
-                {
-                    currentUserStores.Add(storeKey);
-                }
-
-                userStores.Add(storeKey);
-            }
-
             if (parseAllUsers)
             {
+                List<RegistryKey> userStores = new List<RegistryKey>();
+                foreach (string userStoreName in store.GetSubKeyNames())
+                {
+                    var storeKey = store.OpenSubKey(userStoreName);
+                    if (storeKey != null)
+                        userStores.Add(storeKey);
+                }
+
                 retList.AddRange(GetLoggedInUserKeys(userStores));
                 retList.AddRange(GetLoggedOffUserKeys());
             }
             else
             {
-                retList.AddRange(GetLoggedInUserKeys(currentUserStores));
+                retList.AddRange(GetLoggedInUserKeys(GetCurrentUserStores(store)));
             }
 
             return retList;
+        }
+
+        /// <summary>
+        /// HKU\&lt;SID&gt; (NTUSER.DAT) e HKU\&lt;SID&gt;_Classes (UsrClass.dat) dell'utente che esegue l'applicazione,
+        /// individuati dal SID del token: non dipende dal nome utente né dai percorsi in Shell Folders.
+        /// </summary>
+        private List<RegistryKey> GetCurrentUserStores(RegistryKey usersRoot)
+        {
+            var stores = new List<RegistryKey>();
+            var sid = System.Security.Principal.WindowsIdentity.GetCurrent().User?.Value;
+            if (string.IsNullOrEmpty(sid)) return stores;
+
+            foreach (var name in new[] { sid, sid + "_Classes" })
+            {
+                var key = usersRoot.OpenSubKey(name);
+                if (key != null) stores.Add(key);
+            }
+
+            sidToUsernameMappings[sid.ToUpperInvariant()] = Environment.UserName;
+            return stores;
         }
 
         private List<RegistryKeyWrapper> GetLoggedInUserKeys(List<RegistryKey> userStores)
@@ -262,11 +270,18 @@ namespace Activities_Inspector.Services
             }
 
             string[] subKeys = rk.GetSubKeyNames();
-            string[] values = rk.GetValueNames();
+
+            // Come NirSoft/SBECmd: solo l'elemento in posizione 0 del MRUListEx ha una data di interazione certa,
+            // pari al LastWriteTime della chiave genitore
+            var mruFirst = RegistryKeyWrapper.MostRecentIndex(rk.GetValue("MRUListEx") as byte[]);
+            DateTime? rkLastWrite = rk.Name.StartsWith("HKEY_USERS\\", StringComparison.OrdinalIgnoreCase)
+                ? RegistryHelper.GetDateModified(RegistryHive.Users, rk.Name.Substring("HKEY_USERS\\".Length))
+                : null;
 
             foreach (string valueName in subKeys)
             {
-                if (valueName.ToUpper() == "ASSOCIATIONS")
+                //shellbags only have their numerical identifer for the value name, not a shellbag otherwise
+                if (!int.TryParse(valueName, out int index))
                 {
                     continue;
                 }
@@ -283,21 +298,19 @@ namespace Activities_Inspector.Services
                 }
 
                 RegistryKeyWrapper rkNextWrapper = null;
-
-                //shellbags only have their numerical identifer for the value name, not a shellbag otherwise
-                bool isNumeric = int.TryParse(valueName, out _);
-                if (isNumeric)
+                try
                 {
-                    try
+                    if (rkNext != null && rk.GetValue(valueName) is byte[] byteVal)
                     {
-                        byte[] byteVal = (byte[])rk.GetValue(valueName);
                         rkNextWrapper = new RegistryKeyWrapper(rkNext, byteVal, parent);
+                        if (mruFirst == index)
+                            rkNextWrapper.LastInteracted = rkLastWrite;
                         retList.Add(rkNextWrapper);
                     }
-                    catch (OverrunBufferException)
-                    { }
-                    catch (Exception)
-                    { }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[OnlineRegistryReader] {rk.Name}\\{valueName}: {ex.Message}");
                 }
 
                 retList.AddRange(IterateRegistry(rkNext, sk, rkNextWrapper));

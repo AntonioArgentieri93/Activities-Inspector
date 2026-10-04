@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System;
+using System.Linq;
 
 namespace Activities_Inspector.Utils
 {
@@ -23,6 +24,15 @@ namespace Activities_Inspector.Utils
             get => lastRegistryWriteDate == DateTime.MinValue ? DateTime.MinValue : TimeZoneInfo.ConvertTimeToUtc(lastRegistryWriteDate);
             internal set => lastRegistryWriteDate = value;
         }
+
+        /// <summary>LastWriteTime (ora locale) della chiave BagMRU di questo elemento; null se non disponibile.</summary>
+        public DateTime? KeyLastWriteTime => lastRegistryWriteDate == DateTime.MinValue ? (DateTime?)null : lastRegistryWriteDate;
+
+        /// <summary>
+        /// Ultima interazione (ora locale): LastWriteTime della chiave genitore, solo se questo elemento è in
+        /// posizione 0 nel suo MRUListEx (cartella più recente). Per le altre posizioni la data non è documentata → null.
+        /// </summary>
+        public DateTime? LastInteracted { get; internal set; }
 
         public string ShellbagPath { get; internal set; }
         public RegistryKeyWrapper Parent { get; }
@@ -61,7 +71,7 @@ namespace Activities_Inspector.Utils
         /// <param name="registryKey">A Registry Key associated with a Shellbag, retrieved from a offline registry reader API</param>
         /// <param name="keyValue">The Value of a Registry key containing Shellbag information. Found in the Parent of the registryKey being inspected</param>
         /// <param name="parent">The parent of the currently inspected registryKey. Can be null.</param>
-        public RegistryKeyWrapper(global::Registry.Abstractions.RegistryKey registryKey, byte[] keyValue, global::Registry.RegistryHiveOnDemand hive, RegistryKeyWrapper parent = null) : this(keyValue)
+        public RegistryKeyWrapper(global::Registry.Abstractions.RegistryKey registryKey, byte[] keyValue, global::Registry.RegistryHive hive, RegistryKeyWrapper parent = null) : this(keyValue)
         {
             Parent = parent;
             RegistryPath = registryKey.KeyPath;
@@ -79,7 +89,7 @@ namespace Activities_Inspector.Utils
             UserSID = UserSID.ToUpper().Replace("_CLASSES", "");
             RegistrySID = UserSID;
 
-            //if we dont know the username, default to the SID. 
+            //if we dont know the username, default to the SID.
             RegistryUser = RegistrySID;
 
             //obtain NodeSlot (Shellbag Path in registry)
@@ -87,8 +97,6 @@ namespace Activities_Inspector.Utils
             ShellbagPath = string.Empty;
             try
             {
-                //int slot = (int)registryKey.GetValue("NodeSlot");
-
                 int slot = 0;
                 var value = registryKey.GetValue("NodeSlot");
 
@@ -112,19 +120,12 @@ namespace Activities_Inspector.Utils
 
         }
 
-        private void AdaptOfflineKey(global::Registry.Abstractions.RegistryKey registryKey, global::Registry.RegistryHiveOnDemand hive)
+        private void AdaptOfflineKey(global::Registry.Abstractions.RegistryKey registryKey, global::Registry.RegistryHive hive)
         {
-            //obtain SID and Username(?)
-
-            //HKEY USERS registry is UserSID\....
-            string UserSID = registryKey.KeyPath.Split('\\')[0];
-
-            // "_classes" is actually just a user's usrclass.dat, not a seperate user.
-            UserSID = UserSID.ToUpper().Replace("_CLASSES", "");
-            RegistrySID = UserSID;
-
-            //if we dont know the username, default to the SID. 
-            RegistryUser = RegistrySID;
+            // Offline il primo segmento del KeyPath è il nome della chiave radice dell'hive (es. "ROOT"),
+            // non un SID: utente e SID sono impostati dal reader (cartella del profilo).
+            RegistrySID = string.Empty;
+            RegistryUser = string.Empty;
 
             //obtain NodeSlot (Shellbag Path in registry)
             SlotModifiedDate = DateTime.MinValue;
@@ -132,23 +133,32 @@ namespace Activities_Inspector.Utils
             ShellbagPath = string.Empty;
             try
             {
-                var values = registryKey.Values;
-                foreach (global::Registry.Abstractions.KeyValue kv in registryKey.Values)
+                var nodeSlot = registryKey.Values.FirstOrDefault(kv => kv.ValueName.Equals("NodeSlot"));
+                if (nodeSlot != null)
                 {
-                    if (kv.ValueName.Equals("NodeSlot"))
-                    {
-                        string slot = kv.ValueData;
-                        ShellbagPath = string.Format("{0}{1}\\{2}", registryKey.KeyPath.Substring(0, registryKey.KeyPath.IndexOf("BagMRU", StringComparison.Ordinal)), "Bags", slot);
-                    }
+                    ShellbagPath = string.Format("{0}{1}\\{2}", registryKey.KeyPath.Substring(0, registryKey.KeyPath.IndexOf("BagMRU", StringComparison.Ordinal)), "Bags", nodeSlot.ValueData);
+                    var shellbagKey = hive.GetKey(ShellbagPath);
+                    if (shellbagKey?.LastWriteTime != null)
+                        SlotModifiedDate = shellbagKey.LastWriteTime.Value.LocalDateTime;
                 }
-                var shellbagKey = hive.GetKey(ShellbagPath);
-                SlotModifiedDate = shellbagKey.LastWriteTime.Value.LocalDateTime;
             }
             catch (Exception)
             { }
 
             //obtain the date the registry last wrote this key
-            LastRegistryWriteDate = registryKey.LastWriteTime.Value.LocalDateTime;
+            if (registryKey.LastWriteTime != null)
+                LastRegistryWriteDate = registryKey.LastWriteTime.Value.LocalDateTime;
+        }
+
+        /// <summary>
+        /// Valore numerico (indice del valore figlio) in posizione 0 di un MRUListEx, o null se vuoto/assente.
+        /// MRUListEx = sequenza di DWORD, terminata da 0xFFFFFFFF.
+        /// </summary>
+        internal static int? MostRecentIndex(byte[] mruListEx)
+        {
+            if (mruListEx == null || mruListEx.Length < 4) return null;
+            var first = BitConverter.ToInt32(mruListEx, 0);
+            return first < 0 ? (int?)null : first;
         }
     }
 }

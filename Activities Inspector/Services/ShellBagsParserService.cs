@@ -72,6 +72,10 @@ namespace Activities_Inspector.Services
                             var (part, partTruncated) = ShellBagParser.GetShellItems(reader);
                             items.AddRange(part);
                             truncated = truncated || partTruncated;
+
+                            // Transaction log applicati all'hive "sporco": fanno parte dell'evidenza usata
+                            foreach (var log in reader.AppliedLogs)
+                                manifest.Add(IntegrityHasher.HashFile(log, EntryType.ShellBags));
                         }
 
                         result = new ShellBagsResult(items, truncated, manifest);
@@ -88,7 +92,9 @@ namespace Activities_Inspector.Services
 
         private FileLocations InitPaths()
         {
-            string workingRoot = Directory.GetCurrentDirectory();
+            // Cartella dell'eseguibile, non la cartella di lavoro corrente (diversa se l'app è avviata da un collegamento
+            // o da un'altra cartella: in quel caso GUID e script non venivano caricati)
+            string workingRoot = AppContext.BaseDirectory;
 
             var guidsPath = Path.Combine(workingRoot, AppConstants.Assets.GuidsJson);
             var osPath = Path.Combine(workingRoot, AppConstants.Assets.OsJson);

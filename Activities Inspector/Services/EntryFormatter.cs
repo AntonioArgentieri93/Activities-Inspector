@@ -110,10 +110,19 @@ namespace Activities_Inspector.Services
 
         private string BuildShellBagEntry(ShellBagEntry shellBagEntry)
             => string.Format(
-                "{0} ; {1} ; {2}",
+                "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6}",
                 shellBagEntry.AbsolutePath,
-                DateBuilder.BuildFromDateTime(shellBagEntry.LastRegistryWriteDate),
+                FormatOptionalDate(shellBagEntry.LastInteracted),
+                FormatOptionalDate(shellBagEntry.LastRegistryWriteDate),
+                FormatOptionalDate(shellBagEntry.CreatedOn),
+                FormatOptionalDate(shellBagEntry.ModifiedOn),
+                FormatOptionalDate(shellBagEntry.AccessedOn),
                 shellBagEntry.RegistryPath);
+
+        private static string FormatOptionalDate(DateTime? date)
+            => date.HasValue && date.Value != DateTime.MinValue
+                ? DateBuilder.BuildFromDateTime(date.Value)
+                : DateBuilder.NotAvailable;
 
         private string BuildSessionEntry(SessionEntry sessionEntry)
         {

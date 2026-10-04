@@ -31,19 +31,24 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="0.75*" />
-                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="0.75*" />
+                    <ColumnDefinition Width="2.25*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding AbsolutePath}"
                            ToolTip="{Binding AbsolutePath}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <TextBlock Text="{Binding LastRegistryWriteDate, Converter={StaticResource DateTimeFormatConverter}}"
+                <TextBlock Text="{Binding LastInteracted, Converter={StaticResource DateTimeFormatConverter}, TargetNullValue=N/D}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Margin="13,0,0,0"
                            Grid.Column="1"/>
+                <TextBlock Text="{Binding LastRegistryWriteDate, Converter={StaticResource DateTimeFormatConverter}, TargetNullValue=N/D}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Margin="13,0,0,0"
+                           Grid.Column="2"/>
                 <TextBlock Text="{Binding RegistryPath}"
                            ToolTip="{Binding RegistryPath}"
                            Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="2"/>
+                           Grid.Column="3"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -80,21 +85,27 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="0.75*" />
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="0.75*" />
+                <ColumnDefinition Width="2.25*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_AbsolutePath}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_AbsolutePath}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="0"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_LastRegistryWriteDate}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_LastInteracted}"
                        Style="{StaticResource HeaderFieldStyle}"
                        Margin="10,0,0,0"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="1"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_RegistryPath}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_LastRegistryWriteDate}"
                        Style="{StaticResource HeaderFieldStyle}"
+                       Margin="10,0,0,0"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="2"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_ShellBags_RegistryPath}"
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="3"  />
         </Grid>
 
         <ListBox ItemsSource="{Binding ShellBagsEntries}"

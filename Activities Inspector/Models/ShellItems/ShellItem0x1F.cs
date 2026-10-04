@@ -16,7 +16,8 @@ namespace Activities_Inspector.Models
             {
                 if (KnownGuids.dict.ContainsKey(guid))
                 {
-                    return string.Format("{{{0}}}", KnownGuids.dict[guid]);
+                    // Nome noto senza graffe (es. "My Computer"): entra nel percorso come le altre cartelle
+                    return KnownGuids.dict[guid];
                 }
                 else
                 {
