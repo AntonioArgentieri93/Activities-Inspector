@@ -101,6 +101,7 @@ namespace Activities_Inspector.Utils
                 {"36011842-dccc-40fe-aa3d-6177ea401788", "Documents Search Results"},
                 {"36eef7db-88ad-4e81-ad49-0e313f0c35f8", "Windows Update"},
                 {"374de290-123f-4565-9164-39c4925e467b", "Downloads"},
+                {"e88865ea-0e1c-4e20-9aa6-edcd0212c87c", "Gallery"},          // Windows 11
                 {"37efd44d-ef8d-41b1-940d-96973a50e9e0", "Desktop Gadgets"},
                 {"38a98528-6cbf-4ca9-8dc0-b1e1d10f7b1b", "Connect To"},
                 {"3add1653-eb32-4cb0-bbd7-dfa0abb5acca", "Pictures"},
