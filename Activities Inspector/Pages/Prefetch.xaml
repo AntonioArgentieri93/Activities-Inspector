@@ -48,7 +48,7 @@
                 <TextBlock Text="{Binding LastRunTime, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
-                <TextBlock Text="{Binding FirstRunTime, Converter={StaticResource DateTimeFormatConverter}}"
+                <TextBlock Text="{Binding FirstRunTime, Converter={StaticResource DateTimeFormatConverter}, TargetNullValue=N/D}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="4"/>
                 <TextBlock Text="{Binding RunCount}"

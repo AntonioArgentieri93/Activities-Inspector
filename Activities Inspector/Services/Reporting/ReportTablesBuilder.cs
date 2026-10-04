@@ -469,7 +469,7 @@ namespace Activities_Inspector.Services.Reporting
                     item.SourceFileName ?? string.Empty,
                     item.Extension ?? string.Empty,
                     lastRunTime ?? string.Empty,
-                    DateBuilder.BuildFromDateTime(item.FirstRunTime) ?? string.Empty,
+                    item.FirstRunTime.HasValue ? DateBuilder.BuildFromDateTime(item.FirstRunTime.Value) : DateBuilder.NotAvailable,
                     item.RunCount.ToString()
                 };
 

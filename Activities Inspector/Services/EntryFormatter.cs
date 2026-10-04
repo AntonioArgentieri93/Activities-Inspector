@@ -105,7 +105,7 @@ namespace Activities_Inspector.Services
                 prefetchInfoEntry.SourceFileName,
                 DateBuilder.BuildFromDateTime(prefetchInfoEntry.LastRunTime),
                 prefetchInfoEntry.Extension,
-                DateBuilder.BuildFromDateTime(prefetchInfoEntry.FirstRunTime),
+                prefetchInfoEntry.FirstRunTime.HasValue ? DateBuilder.BuildFromDateTime(prefetchInfoEntry.FirstRunTime.Value) : DateBuilder.NotAvailable,
                 prefetchInfoEntry.RunCount);
 
         private string BuildShellBagEntry(ShellBagEntry shellBagEntry)
