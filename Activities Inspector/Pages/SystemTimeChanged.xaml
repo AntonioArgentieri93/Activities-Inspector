@@ -24,6 +24,7 @@
                                             Visible="Collapsed"
                                             Collapsed="Visible"/>
         <converters:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" />
+        <converters:DateTimeFormatConverter x:Key="DateTimeFormatConverter"/>
 
         <DataTemplate DataType="{x:Type models:SystemTimeChangedEntry}">
             <Grid Width="{Binding ActualWidth, ElementName=MainGrid}">
@@ -35,13 +36,13 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding AccountName}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <TextBlock Text="{Binding TimeGenerated}" 
+                <TextBlock Text="{Binding TimeGenerated, Converter={StaticResource DateTimeFormatConverter}}" 
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="1"/>
-                <TextBlock Text="{Binding OldTime}"
+                <TextBlock Text="{Binding OldTime, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
-                <TextBlock Text="{Binding NewTime}"
+                <TextBlock Text="{Binding NewTime, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
             </Grid>

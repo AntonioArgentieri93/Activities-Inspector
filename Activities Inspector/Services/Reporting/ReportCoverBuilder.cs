@@ -101,7 +101,7 @@ namespace Activities_Inspector.Services.Reporting
             var cell2 = row.Cells[1];
             var par1 = cell2.AddParagraph("ACTIVITIES INSPECTOR");
             var par2 = cell2.AddParagraph("REPORT DELLE EVIDENZE DIGITALI");
-            var par3 = cell2.AddParagraph($"Documento generato in data: {DateTime.Now.ToString("dd-M-yyyy")}");
+            var par3 = cell2.AddParagraph($"Documento generato in data: {DateTime.Now.ToString(Activities_Inspector.Utils.DateBuilder.DateFormat, System.Globalization.CultureInfo.InvariantCulture)}");
 
             ReportFormatting.OverrideParagraphDefaultStyle(par1, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d),
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true,

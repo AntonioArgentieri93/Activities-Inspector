@@ -160,9 +160,9 @@ namespace Activities_Inspector.Services
             => string.Format(
                 "{0} ; {1} ; {2} ; {3}",
                 systemTimeChangedEntry.AccountName,
-                systemTimeChangedEntry.TimeGenerated,
-                systemTimeChangedEntry.OldTime,
-                systemTimeChangedEntry.NewTime);
+                DateBuilder.BuildFromDateTime(systemTimeChangedEntry.TimeGenerated),
+                DateBuilder.BuildFromDateTime(systemTimeChangedEntry.OldTime),
+                DateBuilder.BuildFromDateTime(systemTimeChangedEntry.NewTime));
 
         private string BuildUsbEntry(UsbEntry usbEntry)
          => string.Format("{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8}",

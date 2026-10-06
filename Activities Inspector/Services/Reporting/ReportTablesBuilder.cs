@@ -685,9 +685,9 @@ namespace Activities_Inspector.Services.Reporting
                 var rowValues = new List<string>()
                 {
                     item.AccountName ?? string.Empty,
-                    item.TimeGenerated ?? string.Empty,
-                    item.OldTime ?? string.Empty,
-                    item.NewTime ?? string.Empty
+                    DateBuilder.BuildFromDateTime(item.TimeGenerated),
+                    DateBuilder.BuildFromDateTime(item.OldTime),
+                    DateBuilder.BuildFromDateTime(item.NewTime)
                 };
 
                 ReportFormatting.AddRowValuesToTable(table, rowValues);

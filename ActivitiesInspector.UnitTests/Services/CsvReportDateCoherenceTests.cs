@@ -122,16 +122,20 @@ namespace ActivitiesInspector.UnitTests.Services
         }
 
         [Fact]
-        public void SystemTimeChanged_Strings_Match()
+        public void SystemTimeChanged_Dates_Match()
         {
-            var entry = new SystemTimeChangedEntry("u", "t", "old", "new");
+            var generated = new DateTime(2024, 1, 15, 10, 0, 0);
+            var oldTime = new DateTime(2024, 1, 15, 9, 59, 0);
+            var newTime = new DateTime(2024, 1, 15, 10, 0, 0);
+            var entry = new SystemTimeChangedEntry("u", generated, oldTime, newTime);
 
             var csv = _formatter.AsCsv(entry);
             var report = TableText(BuildReport(s => ReportTablesBuilder.AddSystemTimeChangedEntries(new[] { entry }, s)));
 
-            Assert.Contains("u ; t ; old ; new", csv);
-            foreach (var token in new[] { "u", "t", "old", "new" })
-                Assert.Contains(token, report);
+            Assert.Contains(string.Format("u ; {0} ; {1} ; {2}", DateBuilder.BuildFromDateTime(generated),
+                DateBuilder.BuildFromDateTime(oldTime), DateBuilder.BuildFromDateTime(newTime)), csv);
+            AssertSameDates(csv, report, DateBuilder.BuildFromDateTime(generated), DateBuilder.BuildFromDateTime(oldTime),
+                DateBuilder.BuildFromDateTime(newTime));
         }
 
         [Fact]

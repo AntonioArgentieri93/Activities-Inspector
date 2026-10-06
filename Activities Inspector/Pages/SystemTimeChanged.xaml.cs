@@ -24,21 +24,21 @@ namespace Activities_Inspector.Pages
             var control = (TextBlock)sender;
             var cellName = control.Text;
 
-            UsageInfoPropertyType propertyType;
+            SystemTimeChangedPropertyType propertyType;
 
             switch (cellName)
             {
                 case string str when str.Equals(Activities_Inspector.Resources.SystemTimeChanged_AccountName_ColumnHeader):
-                    propertyType = UsageInfoPropertyType.IntervalStart;
+                    propertyType = SystemTimeChangedPropertyType.AccountName;
                     break;
                 case string str when str.Equals(Activities_Inspector.Resources.SystemTimeChanged_TimeGenerated_ColumnHeader):
-                    propertyType = UsageInfoPropertyType.IntervalEnd;
+                    propertyType = SystemTimeChangedPropertyType.TimeGenerated;
                     break;
                 case string str when str.Equals(Activities_Inspector.Resources.SystemTimeChanged_OldTime_ColumnHeader):
-                    propertyType = UsageInfoPropertyType.Duration;
+                    propertyType = SystemTimeChangedPropertyType.OldTime;
                     break;
                 case string str when str.Equals(Activities_Inspector.Resources.SystemTimeChanged_NewTime_ColumnHeader):
-                    propertyType = UsageInfoPropertyType.MachineName;
+                    propertyType = SystemTimeChangedPropertyType.NewTime;
                     break;
                 default:
                     throw new ArgumentException("Il valore di 'cellName' non corrisponde a nessuna delle proprietà della classe.");

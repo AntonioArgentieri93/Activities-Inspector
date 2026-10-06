@@ -132,7 +132,7 @@ namespace ActivitiesInspector.UnitTests.Services
         {
             var entries = new[]
             {
-                new SystemTimeChangedEntry("u", "t", "old", "new")
+                new SystemTimeChangedEntry("u", new DateTime(2024, 1, 15), new DateTime(2024, 1, 15), new DateTime(2024, 1, 16))
             };
 
             var table = BuildTable(s => ReportTablesBuilder.AddSystemTimeChangedEntries(entries, s));

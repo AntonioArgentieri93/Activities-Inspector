@@ -58,14 +58,11 @@ namespace Activities_Inspector.Services
 
                         if (entry.ReplacementStrings[7] == @"C:\Windows\System32\svchost.exe") continue;
 
-                        if (!DateTime.TryParseExact(entry.TimeGenerated.ToString("dd/M/yyyy HH:mm:ss"), "dd/M/yyyy HH:mm:ss",
-                            DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime timeGenerated))
-                        {
-                            continue;
-                        }
+                        // Ora dell'evento al secondo (le frazioni non si mostrano)
+                        var timeGenerated = entry.TimeGenerated.AddTicks(-(entry.TimeGenerated.Ticks % TimeSpan.TicksPerSecond));
 
-                        if (!DateTime.TryParse(entry.ReplacementStrings[4], null, DateTimeStyles.RoundtripKind, out DateTime oldTime) ||
-                            !DateTime.TryParse(entry.ReplacementStrings[5], null, DateTimeStyles.RoundtripKind, out DateTime newTime))
+                        if (!DateTime.TryParse(entry.ReplacementStrings[4], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime oldTime) ||
+                            !DateTime.TryParse(entry.ReplacementStrings[5], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime newTime))
                         {
                             continue;
                         }
@@ -75,10 +72,7 @@ namespace Activities_Inspector.Services
 
                         if (oldTime == newTime) continue;
 
-                        list.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1],
-                            DateBuilder.BuildFromDateTime(timeGenerated),
-                            DateBuilder.BuildFromString(oldTime.ToString()),
-                            DateBuilder.BuildFromString(newTime.ToString())));
+                        list.Add(new SystemTimeChangedEntry(entry.ReplacementStrings[1], timeGenerated, oldTime, newTime));
                     }
 
                     return list.OrderBy(ee => ee.TimeGenerated).ToList();
