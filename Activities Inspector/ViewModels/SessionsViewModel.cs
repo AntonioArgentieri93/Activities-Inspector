@@ -69,6 +69,21 @@ namespace Activities_Inspector.ViewModels
         protected override EntryType EntryType => EntryType.Sessions;
         protected override bool RequiresAdmin => true;
 
+        // Periodo coperto dal registro Sicurezza: senza, l'assenza di accessi in un periodo non e' distinguibile
+        // dall'assenza di dati (log ruotato o cancellato)
+        private string CoverageText => _loggedInfoService.LastCoverage?.ToText();
+
+        protected override string ExportFooterNote
+        {
+            get
+            {
+                var parts = new List<string>();
+                if (!string.IsNullOrEmpty(base.ExportFooterNote)) parts.Add(base.ExportFooterNote);
+                if (!string.IsNullOrEmpty(CoverageText)) parts.Add(CoverageText);
+                return parts.Count == 0 ? null : string.Join("\n", parts);
+            }
+        }
+
         protected override async Task<Result<List<SessionEntry>>> LoadEntriesAsync(CancellationToken token)
         {
             return await _loggedInfoService.GetSessionsAsync(token);
@@ -81,7 +96,8 @@ namespace Activities_Inspector.ViewModels
 
         protected override void PublishEntries(List<SessionEntry> entries)
         {
-            _messenger.Send(new OnSessionEntriesChangedMessage(entries, _loggedInfoService.LastIntegrityManifest, Sources.Current.DisplayName));
+            _messenger.Send(new OnSessionEntriesChangedMessage(entries, _loggedInfoService.LastIntegrityManifest,
+                string.IsNullOrEmpty(CoverageText) ? Sources.Current.DisplayName : $"{Sources.Current.DisplayName} | {CoverageText}"));
         }
 
         private void HandleOnSortColumnMessage(OnSortColumnMessage message)

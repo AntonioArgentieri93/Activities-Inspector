@@ -13,6 +13,14 @@ namespace Activities_Inspector.Models
         public int AccessType { get; set; }
         public string SourceAddress { get; set; }
 
+        /// <summary>Logon ID della sessione collegata (token elevato/limitato di uno stesso accesso); null se assente.</summary>
+        public string LinkedLogonId { get; set; }
+
+        /// <summary>Elevated Token del 4624: %%1842 = elevato (sì), %%1843 = limitato (no).</summary>
+        public string ElevatedToken { get; set; }
+
+        public bool IsElevated => string.Equals(ElevatedToken, "%%1842", StringComparison.Ordinal);
+
         public LogOnEntry(int eventId, string machineName, string index, DateTime timeGenerated, string accountName,
             string domainName, string group, int accessType, string sourceAddress) : base(index)
         {

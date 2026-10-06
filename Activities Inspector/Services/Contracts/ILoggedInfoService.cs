@@ -11,5 +11,8 @@ namespace Activities_Inspector.Services
         Task<Result<List<SessionEntry>>> GetSessionsAsync(CancellationToken cancellationToken = default);
 
         IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
+
+        /// <summary>Periodo coperto dal registro Sicurezza letto nell'ultima ricerca (null prima della ricerca).</summary>
+        LogCoverage LastCoverage { get; }
     }
 }

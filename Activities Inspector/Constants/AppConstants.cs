@@ -40,6 +40,8 @@ namespace Activities_Inspector.Constants
             public const string MsiInstallerProviderName = "MsiInstaller";
             public const int LogonEventId = 4624;
             public const int LogoffEventId = 4647;
+            /// <summary>4634: una sessione di accesso e' stata chiusa (fine di qualsiasi tipo di accesso).</summary>
+            public const int SessionEndedEventId = 4634;
             public const int SystemTimeChangedEventId = 4616;
             public const int MsiInstallEventId = 11707;
             public const int BootEventId = 6005;

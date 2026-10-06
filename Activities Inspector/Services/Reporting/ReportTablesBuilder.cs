@@ -559,9 +559,10 @@ namespace Activities_Inspector.Services.Reporting
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
             var content = "Accessi a un account sul PC, distinti dall'accensione del sistema. \n" +
-                "La ricerca considera gli eventi 4624 (logon) e 4647 (logoff) del registro Sicurezza, filtrando i tipi guidati da persona (2,7,9,10,11) ed escludendo account di servizio (UMFD-, DWM-). \n" +
+                "La ricerca considera gli eventi 4624 (logon), 4647 (uscita avviata dall'utente) e 4634 (sessione chiusa) del registro Sicurezza, filtrando i tipi guidati da persona (2 interattivo, 9 nuove credenziali, 10 remoto, 11 in cache); lo sblocco dello schermo (7) e gli account di servizio (UMFD-, DWM-) sono esclusi. \n" +
                 "In modalita' live il registro Sicurezza e' letto via API; in modalita' immagine dal file Security.evtx. \n" +
-                "La colonna Note segnala i logoff senza logon corrispondente e la colonna ID sessione il LogonId; un'assenza di righe puo' indicare sia assenza di accessi sia log ruotato o inaccessibile.";
+                "Un accesso con privilegi elevati genera due sessioni collegate (due LogonId): sono unite in una sola riga, e l'ID sessione indica il LogonId principale e quello collegato. La fine e' l'evento 4647 o, in sua assenza, 4634; una sessione senza fine risulta ancora aperta o non registrata. \n" +
+                "La colonna Note segnala le uscite senza accesso corrispondente; un'assenza di righe puo' indicare sia assenza di accessi sia log ruotato o inaccessibile: il periodo effettivamente coperto dal registro e' riportato nella nota sulla sorgente.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
