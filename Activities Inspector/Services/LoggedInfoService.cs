@@ -307,8 +307,31 @@ namespace Activities_Inspector.Services
                 int.TryParse(ev.ReplacementStrings[8], out int accessType) &&
                 HumanAccessTypes.Contains(accessType));
 
-        private static string Field(string[] values, int index)
-            => values != null && index < values.Length ? values[index] : null;
+        private static readonly System.Text.RegularExpressions.Regex LogonIdPattern =
+            new System.Text.RegularExpressions.Regex(@"^0x[0-9a-fA-F]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        private static readonly System.Text.RegularExpressions.Regex ElevatedTokenPattern =
+            new System.Text.RegularExpressions.Regex(@"^%%\d+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>
+        /// TargetLinkedLogonId ed ElevatedToken sono SEMPRE gli ultimi due campi del 4624 v2, ma la loro posizione
+        /// dipende dalla build: 27 campi (25, 26) nelle versioni documentate, 28 campi (26, 27) in Windows 11 recente
+        /// (un campo aggiunto prima). Con indici fissi i gemelli non venivano uniti. Si leggono dalla fine, verificando
+        /// la forma dei valori; sui sistemi piu' vecchi (meno di 27 campi) non ci sono.
+        /// </summary>
+        internal static void ExtractLinkedFields(string[] values, out string linkedLogonId, out string elevatedToken)
+        {
+            linkedLogonId = null;
+            elevatedToken = null;
+
+            if (values == null || values.Length < 27) return;
+
+            var linked = values[values.Length - 2];
+            var elevated = values[values.Length - 1];
+
+            if (linked != null && LogonIdPattern.IsMatch(linked)) linkedLogonId = linked;
+            if (elevated != null && ElevatedTokenPattern.IsMatch(elevated)) elevatedToken = elevated;
+        }
 
         private static IEnumerable<LogOnEntry> BuildLogOnEntries(List<IEventRecord> entries)
         {
@@ -318,6 +341,8 @@ namespace Activities_Inspector.Services
 
                 try
                 {
+                    ExtractLinkedFields(entry.ReplacementStrings, out var linkedLogonId, out var elevatedToken);
+
                     parsed = new LogOnEntry(
                         eventId: entry.EventId,
                         machineName: entry.MachineName,
@@ -329,9 +354,8 @@ namespace Activities_Inspector.Services
                         accessType: Convert.ToInt32(entry.ReplacementStrings[8]),
                         sourceAddress: entry.ReplacementStrings[18])
                     {
-                        // 4624 versione 2: TargetLinkedLogonId (25) e ElevatedToken (26); assenti nei sistemi piu' vecchi
-                        LinkedLogonId = Field(entry.ReplacementStrings, 25),
-                        ElevatedToken = Field(entry.ReplacementStrings, 26)
+                        LinkedLogonId = linkedLogonId,
+                        ElevatedToken = elevatedToken
                     };
                 }
                 catch

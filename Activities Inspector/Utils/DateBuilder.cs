@@ -41,6 +41,10 @@ namespace Activities_Inspector.Utils
 
         public static string BuildFromDateTime(DateTime dateTime)
         {
+            // DateTime.MinValue e' il segnaposto interno di "data assente" (es. uscita senza accesso nel log):
+            // non va mai mostrato come "01/1/0001 00:00:00"
+            if (dateTime == DateTime.MinValue) return NotAvailable;
+
             var offset = TimeZoneInfo.Local.GetUtcOffset(dateTime);
 
             var strDate = dateTime.ToString("dd/M/yyyy HH:mm:ss", CultureInfo.InvariantCulture);

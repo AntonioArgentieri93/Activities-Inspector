@@ -296,6 +296,105 @@ namespace ActivitiesInspector.UnitTests.Services
             Assert.Equal("0x99", session.Index);
         }
 
+        // --- Layout del 4624 diversi tra le build di Windows ---
+
+        // Windows 11 build 26100: 28 campi (un campo in piu' in posizione 25), valori reali dal PC
+        private static IEventRecord Win11Logon(string time, string id, string linked, string elevated)
+        {
+            var rs = new[]
+            {
+                "S-1-5-18", "MSI$", "WORKGROUP", "0x3e7", "S-1-5-21-2817601148-3543085385-2292922267-1001",
+                Account, "MicrosoftAccount", id, "11", "User32", "Negotiate", "MSI", "{00000000-0000-0000-0000-000000000000}",
+                "-", "-", "0", "0xa38", @"C:\Windows\System32\svchost.exe", "127.0.0.1", "0", "%%1833", "-", "-", "-", "-",
+                "%%1843", linked, elevated
+            };
+            Assert.Equal(28, rs.Length);
+            return new SecEv { EventId = 4624, TimeGenerated = T(time), ReplacementStrings = rs };
+        }
+
+        [Fact]
+        public void Windows11_28_Field_Layout_Merges_The_Linked_Sessions()
+        {
+            // Regressione: con indici fissi (25/26) l'ID collegato risultava "%%1843" e i gemelli restavano due righe
+            var sessions = Build(
+                Win11Logon("2026-10-06 22:03:44", "0x40500a9", linked: "0x405001d", elevated: Limited),
+                Win11Logon("2026-10-06 22:03:44", "0x405001d", linked: "0x40500a9", elevated: Elevated));
+
+            var session = Assert.Single(sessions);
+            Assert.Equal("0x40500a9 (collegato 0x405001d)", session.Index);
+            Assert.Equal("11", session.AccessType);
+            Assert.Equal("127.0.0.1", session.NetworkAddress);
+        }
+
+        [Fact]
+        public void Windows11_Layout_Closes_The_Merged_Session_With_The_Limited_Logoff()
+        {
+            var session = Assert.Single(Build(
+                Win11Logon("2026-10-04 19:01:23", "0x2d7256f", linked: "0x2d725be", elevated: Elevated),
+                Win11Logon("2026-10-04 19:01:23", "0x2d725be", linked: "0x2d7256f", elevated: Limited),
+                UserLogoff("2026-10-04 19:43:45", "0x2d725be")));
+
+            Assert.Equal(T("2026-10-04 19:43:45"), session.LogOffTime);
+            Assert.Equal(TimeSpan.FromMinutes(42) + TimeSpan.FromSeconds(22), session.Duration);
+        }
+
+        [Fact]
+        public void Documented_27_Field_Layout_Still_Works()
+        {
+            var sessions = Build(
+                Logon("2026-10-04 10:00:00", "0xA", 2, linked: "0xB", elevated: Elevated),
+                Logon("2026-10-04 10:00:00", "0xB", 2, linked: "0xA", elevated: Limited));
+
+            Assert.Equal("0xB (collegato 0xA)", Assert.Single(sessions).Index);
+        }
+
+        [Theory]
+        [InlineData(27, "0x1f", "%%1842", "0x1f", "%%1842")]
+        [InlineData(28, "0xABC", "%%1843", "0xABC", "%%1843")]
+        [InlineData(26, "0x1f", "%%1842", null, null)]            // piu' vecchio: nessun campo
+        [InlineData(28, "%%1843", "0x1f", null, null)]            // forma sbagliata (campi scambiati): ignorati
+        [InlineData(28, "-", "-", null, null)]
+        public void LinkedFields_Are_Read_From_The_End_And_Validated(int count, string penultimate, string last, string expectedLinked, string expectedElevated)
+        {
+            var values = Enumerable.Repeat("x", count).ToArray();
+            values[count - 2] = penultimate;
+            values[count - 1] = last;
+
+            LoggedInfoService.ExtractLinkedFields(values, out var linked, out var elevated);
+
+            Assert.Equal(expectedLinked, linked);
+            Assert.Equal(expectedElevated, elevated);
+        }
+
+        [Fact]
+        public void LinkedFields_Of_Null_Or_Short_Arrays_Are_Absent()
+        {
+            LoggedInfoService.ExtractLinkedFields(null, out var l1, out var e1);
+            LoggedInfoService.ExtractLinkedFields(new[] { "a", "b" }, out var l2, out var e2);
+
+            Assert.Null(l1); Assert.Null(e1); Assert.Null(l2); Assert.Null(e2);
+        }
+
+        // --- Data assente ---
+
+        [Fact]
+        public void Missing_Logon_Time_Is_Shown_As_NA_In_The_Csv()
+        {
+            // Regressione: l'uscita senza accesso mostrava "01/1/0001 00:00:00 GMT+1"
+            var orphan = Build(UserLogoff("2026-10-04 15:37:35", "0x203997")).Single();
+
+            var csv = new EntryFormatter().AsCsv(orphan).Split(new[] { " ; " }, StringSplitOptions.None);
+
+            Assert.Equal("N/D", csv[3]);                      // Ora di accesso
+            Assert.DoesNotContain("0001", string.Join(" ", csv));
+        }
+
+        [Fact]
+        public void DateBuilder_Never_Renders_The_Min_Value_Placeholder()
+        {
+            Assert.Equal("N/D", Activities_Inspector.Utils.DateBuilder.BuildFromDateTime(DateTime.MinValue));
+        }
+
         // --- Periodo coperto dal registro ---
 
         [Fact]
