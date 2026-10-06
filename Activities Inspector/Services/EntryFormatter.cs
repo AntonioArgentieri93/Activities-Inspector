@@ -164,10 +164,11 @@ namespace Activities_Inspector.Services
                 systemTimeChangedEntry.NewTime);
 
         private string BuildUsbEntry(UsbEntry usbEntry)
-         => string.Format("{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7}",
+         => string.Format("{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8}",
                 MapUsbState(usbEntry.Plugged),
                 usbEntry.DeviceName,
                 usbEntry.SerialNumber,
+                usbEntry.InstanceId,
                 usbEntry.VendorId,
                 usbEntry.ProductId,
                 usbEntry.UsbClass,

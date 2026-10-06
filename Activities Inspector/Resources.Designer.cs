@@ -152,6 +152,15 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ID istanza.
+        /// </summary>
+        public static string MainWindow_Usb_InstanceId {
+            get {
+                return ResourceManager.GetString("MainWindow_Usb_InstanceId", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Serial number.
         /// </summary>
         public static string MainWindow_Usb_SerialNumber {

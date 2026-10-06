@@ -136,6 +136,17 @@ namespace Activities_Inspector.ViewModels
             EvaluateState(e, false);
         }
 
+        /// <summary>
+        /// Voce corrispondente a un evento di collegamento/scollegamento: stesso VID, PID e ID di istanza.
+        /// Prima si abbinava solo VID/PID, quindi con più dispositivi identici (es. le tre interfacce di un ricevitore
+        /// o le due videocamere di un portatile) l'evento aggiornava sempre la prima riga e non quella giusta.
+        /// </summary>
+        internal static UsbEntry FindMatchingEntry(IEnumerable<UsbEntry> entries, string vid, string pid, string instanceId)
+            => entries?.FirstOrDefault(ue =>
+                string.Equals(ue.VendorId, vid, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(ue.ProductId, pid, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(ue.InstanceId, instanceId, StringComparison.OrdinalIgnoreCase));
+
         private void EvaluateState(EventArrivedEventArgs e, bool newIsPlugged)
         {
             // Su sorgente offline gli eventi WMI riguarderebbero il PC del
@@ -165,7 +176,7 @@ namespace Activities_Inspector.ViewModels
                 var vid = intermediateResult[0].Replace("VID_", string.Empty);
                 var pid = intermediateResult[1].Replace("PID_", string.Empty);
 
-                var device = UsbEntries?.Where(ue => ue.VendorId == vid && ue.ProductId == pid).FirstOrDefault() ?? null;
+                var device = FindMatchingEntry(UsbEntries, vid, pid, splitResult[2]);
 
                 if (device != null)
                 {
@@ -196,7 +207,7 @@ namespace Activities_Inspector.ViewModels
                     var newEntry = new UsbEntry(plugged, deviceName, serialNumber,
                         vid, pid, usbClass, lastConnected, null);
 
-                    if (_temp.Any(ue => ue.SerialNumber == newEntry.SerialNumber && ue.VendorId == newEntry.VendorId &&
+                    if (_temp.Any(ue => ue.InstanceId == newEntry.InstanceId && ue.VendorId == newEntry.VendorId &&
                         ue.ProductId == newEntry.ProductId) == false)
                     {
                         _temp.Add(newEntry);
@@ -222,7 +233,7 @@ namespace Activities_Inspector.ViewModels
 
             foreach (var usbEntry in tempResult)
             {
-                if (UsbEntries.Any(ue => ue.SerialNumber == usbEntry.SerialNumber && ue.VendorId == usbEntry.VendorId &&
+                if (UsbEntries.Any(ue => ue.InstanceId == usbEntry.InstanceId && ue.VendorId == usbEntry.VendorId &&
                          ue.ProductId == usbEntry.ProductId) == false)
                 {
                     UsbEntries.Add(usbEntry);

@@ -704,7 +704,9 @@ namespace Activities_Inspector.Services.Reporting
 
             var content = "Dispositivi USB connessi o rimossi dal PC. \n" +
                 "In modalita' live la ricerca legge il registry di sistema e verifica lo stato via WMI; in modalita' immagine legge l'hive SYSTEM dell'acquisizione (lo stato risulta sempre Non connesso e non vi e' monitoraggio realtime). \n" +
-                "La tabella riporta stato, nome, seriale, VendorId, ProductId, classe e date di ultimo inserimento e rimozione; le date richiedono privilegi di amministratore.";
+                "La tabella riporta stato, nome, seriale, ID istanza, VendorId, ProductId, classe e date di ultimo inserimento e rimozione; le date richiedono privilegi di amministratore. \n" +
+                "Il seriale e' indicato solo se fornito dal dispositivo; molti dispositivi (es. ricevitori, webcam, schede Bluetooth) non ne hanno e Windows assegna un ID di istanza generato (colonna ID istanza), che non e' un numero di serie hardware. \n" +
+                "Le date sono quelle registrate nell'ultimo punto di salvataggio dell'hive piu' le modifiche dei suoi file di log (LOG1/LOG2), se presenti.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -730,9 +732,10 @@ namespace Activities_Inspector.Services.Reporting
                 "Stato",
                 "Nome dispositivo",
                 "Serial number",
+                "ID istanza",
                 "VID",
                 "PID",
-                "Classe number",
+                "Classe",
                 "Ultimo inserimento",
                 "Ultima rimozione"
             };
@@ -746,6 +749,7 @@ namespace Activities_Inspector.Services.Reporting
                     MapUsbState(item.Plugged) ?? string.Empty,
                     item.DeviceName ?? string.Empty,
                     item.SerialNumber ?? string.Empty,
+                    item.InstanceId ?? string.Empty,
                     item.VendorId ?? string.Empty,
                     item.ProductId ?? string.Empty,
                     item.UsbClass ?? string.Empty,

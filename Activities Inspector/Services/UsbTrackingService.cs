@@ -44,7 +44,12 @@ namespace Activities_Inspector.Services
                         var hivePath = _sources.Current.GetSystemHivePath();
                         var hiveBytes = await File.ReadAllBytesAsync(hivePath, cancellationToken);
                         manifest.Add(IntegrityHasher.HashBytes(hiveBytes, hivePath, EntryType.Usb));
-                        return await BuildUsbEntriesFromHiveBytesAsync(hiveBytes, hivePath, false, cancellationToken);
+
+                        // Transaction log accanto all'hive dell'immagine (SYSTEM.LOG1/.LOG2)
+                        var logs = OfflineHiveLoader.FindTransactionLogs(hivePath)
+                            .Select(f => new TransactionLogFileInfo(f, File.ReadAllBytes(f)))
+                            .ToList();
+                        return await BuildUsbEntriesFromHiveBytesAsync(hiveBytes, hivePath, false, logs, manifest, cancellationToken);
                     }
 
                     if (isAdministrator)
@@ -67,24 +72,62 @@ namespace Activities_Inspector.Services
 
         private async Task<List<UsbEntry>> BuildUsbEntriesFromHiveAsync(List<IntegrityRecord> manifest, CancellationToken cancellationToken)
         {
-            var entries = new List<UsbEntry>();
-
-            var files = new List<string> { AppConstants.Paths.SystemHivePath };
-            var rawFiles = Helper.GetRawFiles(files);
+            // Le proprietà dei dispositivi (date di collegamento/rimozione) non sono leggibili via API nemmeno da
+            // amministratore: si legge una copia grezza del file SYSTEM. Quel file però riflette solo l'ultimo
+            // checkpoint: le modifiche più recenti (es. un dispositivo ricollegato da pochi minuti) sono in
+            // SYSTEM.LOG1/.LOG2, che vanno applicati, altrimenti le date risultano vecchie.
+            var rawFiles = Helper.GetRawFiles(new List<string> { AppConstants.Paths.SystemHivePath });
             var rawFile = rawFiles.First();
 
             var byteArray = await rawFile.FileStream.ReadFullyAsync();
             manifest.Add(IntegrityHasher.HashBytes(byteArray, rawFile.InputFilename, EntryType.Usb));
-            return await BuildUsbEntriesFromHiveBytesAsync(byteArray, rawFile.InputFilename, true, cancellationToken);
+
+            var logs = await ReadRawTransactionLogsAsync(AppConstants.Paths.SystemHivePath);
+
+            return await BuildUsbEntriesFromHiveBytesAsync(byteArray, rawFile.InputFilename, true, logs, manifest, cancellationToken);
+        }
+
+        /// <summary>
+        /// Legge (copia grezza, il file è in uso) i transaction log accanto a un hive di sistema. Sono opzionali:
+        /// SYSTEM.LOG non esiste nelle versioni recenti, e un hive pulito non ne ha bisogno.
+        /// </summary>
+        private static async Task<List<TransactionLogFileInfo>> ReadRawTransactionLogsAsync(string hivePath)
+        {
+            var logs = new List<TransactionLogFileInfo>();
+
+            foreach (var suffix in new[] { ".LOG1", ".LOG2", ".LOG" })
+            {
+                try
+                {
+                    var raw = Helper.GetRawFiles(new List<string> { hivePath + suffix }).FirstOrDefault();
+                    if (raw == null || !raw.Exists || raw.FileStream == null) continue;
+
+                    var bytes = await raw.FileStream.ReadFullyAsync();
+                    if (bytes != null && bytes.Length > 0)
+                        logs.Add(new TransactionLogFileInfo(raw.InputFilename ?? (hivePath + suffix), bytes));
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UsbTrackingService] Log {suffix} non letto: {ex.Message}");
+                }
+            }
+
+            return logs;
         }
 
         private async Task<List<UsbEntry>> BuildUsbEntriesFromHiveBytesAsync(byte[] byteArray, string hiveName,
-            bool resolvePlugged, CancellationToken cancellationToken)
+            bool resolvePlugged, IReadOnlyList<TransactionLogFileInfo> logs, List<IntegrityRecord> manifest,
+            CancellationToken cancellationToken)
         {
             var entries = new List<UsbEntry>();
 
-            var reg = new RegistryHive(byteArray, hiveName);
-            _ = reg.ParseHive();
+            // Hive "sporco" → applica i log (un solo ParseHive, vedi OfflineHiveLoader)
+            var reg = OfflineHiveLoader.Load(byteArray, hiveName, logs, out var logsApplied);
+            if (logsApplied)
+            {
+                foreach (var log in logs)
+                    manifest.Add(IntegrityHasher.HashBytes(log.FileBytes, log.FileName, EntryType.Usb));
+            }
 
             var subKeys = reg.Root.SubKeys;
             var controlSets = subKeys.Where(sk => sk.KeyName.StartsWith(AppConstants.Registry.ControlSetPrefix)).ToList();
@@ -149,18 +192,18 @@ namespace Activities_Inspector.Services
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var serialNumber = sskeyName;
+                            var instanceId = sskeyName;
                             using var ssKey = skey.OpenSubKey(sskeyName);
                             if (ssKey == null) continue;
 
                             var registryValue = ssKey.GetValue("DeviceDesc")?.ToString() ?? string.Empty;
-                            var deviceName = BuildDeviceName(registryValue);
+                            var deviceName = BuildDeviceName(registryValue, ssKey.GetValue("FriendlyName")?.ToString());
 
                             var usbClassRegistryValue = (string[])ssKey.GetValue("CompatibleIDs") ?? Array.Empty<string>();
                             var joinStr = string.Join(" ", usbClassRegistryValue);
                             var usbClass = BuildUsbClass(joinStr);
 
-                            var candidate = new UsbEntry(plugged, deviceName, serialNumber, vendorId, productId, usbClass);
+                            var candidate = new UsbEntry(plugged, deviceName, instanceId, vendorId, productId, usbClass);
 
                             if (!entries.Any(ue => ue.Equals(candidate)))
                             {
@@ -191,9 +234,9 @@ namespace Activities_Inspector.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var serialNumber = subKey.KeyName;
+                    var instanceId = subKey.KeyName;
                     var registryValue = subKey.GetValue("DeviceDesc")?.ToString() ?? string.Empty;
-                    var deviceName = BuildDeviceName(registryValue);
+                    var deviceName = BuildDeviceName(registryValue, subKey.GetValue("FriendlyName")?.ToString());
 
                     var usbClassRegistryValue = (string)subKey.GetValue("CompatibleIDs") ?? string.Empty;
                     var usbClass = BuildUsbClass(usbClassRegistryValue);
@@ -204,7 +247,7 @@ namespace Activities_Inspector.Services
                     var lastRemoved = GetLocalDateTime(
                         GetData(subKey, AppConstants.Registry.UsbDevicePropertiesGuid, AppConstants.Registry.UsbLastRemovedValue));
 
-                    var candidate = new UsbEntry(plugged, deviceName, serialNumber, vendorId, productId, usbClass, lastConnected, lastRemoved);
+                    var candidate = new UsbEntry(plugged, deviceName, instanceId, vendorId, productId, usbClass, lastConnected, lastRemoved);
 
                     if (!entries.Any(ue => ue.Equals(candidate)))
                     {
@@ -228,6 +271,23 @@ namespace Activities_Inspector.Services
             var parts = registryKey.Split('&');
             if (parts.Length < 2 || parts[1].Length <= 4) return string.Empty;
             return parts[1].Substring(4);
+        }
+
+        /// <summary>
+        /// Nome del dispositivo: descrizione del driver, più il nome descrittivo (FriendlyName) quando esiste ed è
+        /// diverso, es. "USB Video Device (HD Camera)": senza, le due videocamere di un portatile
+        /// sarebbero indistinguibili. Come fa USBDeview (Description + Friendly Name).
+        /// </summary>
+        internal static string BuildDeviceName(string deviceDesc, string friendlyName)
+        {
+            var description = BuildDeviceName(deviceDesc);
+            var friendly = BuildDeviceName(friendlyName);
+
+            if (string.IsNullOrWhiteSpace(friendly) || string.Equals(friendly, description, StringComparison.OrdinalIgnoreCase))
+                return description;
+            if (string.IsNullOrWhiteSpace(description))
+                return friendly;
+            return $"{description} ({friendly})";
         }
 
         private static string BuildDeviceName(string registryValue)

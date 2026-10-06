@@ -109,10 +109,11 @@ namespace Activities_Inspector.Utils
 
                 case EntryType.Usb:
                     return string.Format(
-                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7}",
+                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5} ; {6} ; {7} ; {8}",
                         Activities_Inspector.Resources.MainWindow_Usb_State,
                         Activities_Inspector.Resources.MainWindow_Usb_DeviceName,
                         Activities_Inspector.Resources.MainWindow_Usb_SerialNumber,
+                        Activities_Inspector.Resources.MainWindow_Usb_InstanceId,
                         Activities_Inspector.Resources.MainWindow_Usb_VendorId,
                         Activities_Inspector.Resources.MainWindow_Usb_ProductId,
                         Activities_Inspector.Resources.MainWindow_Usb_UsbClass,

@@ -292,6 +292,9 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="MainWindow_Usb_SerialNumber" xml:space="preserve">
     <value>Serial number</value>
   </data>
+  <data name="MainWindow_Usb_InstanceId" xml:space="preserve">
+    <value>ID istanza</value>
+  </data>
   <data name="MainWindow_Usb_State" xml:space="preserve">
     <value>Stato</value>
   </data>

@@ -154,8 +154,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddUsbEntries(entries, s));
 
             Assert.Equal(3, table.Rows.Count);
-            Assert.Equal(8, table.Rows[0].Cells.Count);
-            Assert.Equal(8, table.Rows[1].Cells.Count);
+            Assert.Equal(9, table.Rows[0].Cells.Count);
+            Assert.Equal(9, table.Rows[1].Cells.Count);
         }
 
         [Fact]

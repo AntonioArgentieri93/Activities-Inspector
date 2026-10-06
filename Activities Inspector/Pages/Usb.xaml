@@ -43,6 +43,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Ellipse Width="12"
                          Height="12"
@@ -53,21 +54,25 @@
                 <TextBlock Text="{Binding SerialNumber}" 
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
-                <TextBlock Text="{Binding VendorId}"
+                <TextBlock Text="{Binding InstanceId}"
+                           ToolTip="{Binding InstanceId}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="3"/>
-                <TextBlock Text="{Binding ProductId}"
+                <TextBlock Text="{Binding VendorId}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="4"/>
-                <TextBlock Text="{Binding UsbClass}"
+                <TextBlock Text="{Binding ProductId}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="5"/>
-                <TextBlock Text="{Binding LastConnected, Converter={StaticResource DateTimeOffsetFormatConverter}}"
+                <TextBlock Text="{Binding UsbClass}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="6"/>
-                <TextBlock Text="{Binding LastRemoved, Converter={StaticResource DateTimeOffsetFormatConverter}}"
+                <TextBlock Text="{Binding LastConnected, Converter={StaticResource DateTimeOffsetFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="7"/>
+                <TextBlock Text="{Binding LastRemoved, Converter={StaticResource DateTimeOffsetFormatConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="8"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -110,8 +115,9 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_DeviceName}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_DeviceName}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="1"  />
@@ -119,26 +125,30 @@
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="2"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_VendorId}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_InstanceId}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="3"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_ProductId}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_VendorId}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="4"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_UsbClass}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_ProductId}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="5"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_PluggedTime}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_UsbClass}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="6"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_UnpluggedTime}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_PluggedTime}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="7"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindow_Usb_UnpluggedTime}"
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="8"  />
         </Grid>
 
         <ListBox ItemsSource="{Binding UsbEntries}"

@@ -34,6 +34,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindow_Usb_SerialNumber):
                     propertyType = UsbPropertyType.SerialNumber;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindow_Usb_InstanceId):
+                    propertyType = UsbPropertyType.InstanceId;
+                    break;
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindow_Usb_VendorId):
                     propertyType = UsbPropertyType.VendorId;
                     break;
@@ -78,6 +81,7 @@ namespace Activities_Inspector.Pages
     {
         DeviceName,
         SerialNumber,
+        InstanceId,
         VendorId,
         ProductId,
         UsbClass,
