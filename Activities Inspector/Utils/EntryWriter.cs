@@ -16,6 +16,12 @@ namespace Activities_Inspector.Utils
             _entryFormatter = entryFormatter;
         }
 
+        /// <summary>Scrive su uno stream gia' aperto (es. creato con FileMode.CreateNew: il nome del file e' riservato in modo atomico).</summary>
+        public EntryWriter(Stream stream, Encoding encoding, IEntryFormatter entryFormatter) : base(stream, encoding)
+        {
+            _entryFormatter = entryFormatter;
+        }
+
         public void WriteEntries(IEnumerable<Entry> entries, EntryType entryType, string footerNote = null)
         {
             WriteLine(BuildHeader(entryType));

@@ -30,7 +30,7 @@ namespace ActivitiesInspector.UnitTests.Services
             var path = await ExportWithSource(new[] { new ShellBagEntry("C:\\A", System.DateTime.Now, "R") }, EntryType.ShellBags);
             var sidecar = File.ReadAllText(path + ".sha256");
             var hex = sidecar.Split(' ')[0].Trim();
-            var expected = IntegrityHasher.ComputeHex(await File.ReadAllBytesAsync(path));
+            var expected = IntegrityHasher.ComputeHex(await Activities_Inspector.Utils.FileRetry.ReadAllBytesAsync(path));
             Assert.Equal(expected, hex);
             File.Delete(path);
             File.Delete(path + ".sha256");

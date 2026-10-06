@@ -3,6 +3,7 @@ using Activities_Inspector.Models;
 using Activities_Inspector.Utils;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,8 @@ namespace Activities_Inspector.Services
     public class EntriesExporter : IEntriesExporter
     {
         private readonly IEntryFormatter _entryFormatter;
+
+        private const int MaxNameAttempts = 10000;
 
         public EntriesExporter(IEntryFormatter entryFormatter)
         {
@@ -28,21 +31,36 @@ namespace Activities_Inspector.Services
 
                 var fileName = SetFileName(entryType);
                 var root = ExportLocations.OutputDirectory();
-                var basePath = Path.Combine(root, $"{fileName}_{DateTime.Now:dd-M-yyyy_HH-mm-ss}");
-                var filePath = basePath + ".csv";
-                var counter = 0;
-                while (File.Exists(filePath))
+                var basePath = Path.Combine(root, $"{fileName}_{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss", CultureInfo.InvariantCulture)}");
+
+                // Il nome si riserva creando il file con FileMode.CreateNew (atomico): con "controlla se esiste, poi
+                // crea" due esportazioni dello stesso tipo nello stesso secondo sceglievano lo stesso nome e una
+                // falliva (file in uso) o sovrascriveva l'altra
+                var filePath = string.Empty;
+                FileStream stream = null;
+                for (var counter = 0; stream == null; counter++)
                 {
-                    counter++;
-                    filePath = $"{basePath}_{counter}.csv";
+                    if (counter > MaxNameAttempts)
+                        throw new IOException($"Impossibile creare un nome file univoco per {basePath}.csv");
+
+                    filePath = counter == 0 ? basePath + ".csv" : $"{basePath}_{counter}.csv";
+
+                    try
+                    {
+                        stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                    }
+                    catch (IOException) when (File.Exists(filePath))
+                    {
+                        // nome gia' preso da un'altra esportazione: prova il successivo
+                    }
                 }
 
-                using (var writer = new EntryWriter(filePath, false, Encoding.Default, _entryFormatter))
+                using (var writer = new EntryWriter(stream, Encoding.Default, _entryFormatter))
                 {
                     writer.WriteEntries(entries, entryType, footerNote);
                 }
 
-                var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+                var bytes = await FileRetry.ReadAllBytesAsync(filePath, cancellationToken);
                 IntegrityHasher.WriteSidecar(filePath, bytes);
 
                 return Result.Success(filePath);
