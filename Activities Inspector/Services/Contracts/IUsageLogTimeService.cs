@@ -9,7 +9,7 @@ namespace Activities_Inspector.Services
     public interface IUsageLogTimeService
     {
         Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default);
-        IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events);
+        IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events, System.DateTime? observedUntil = null);
 
         IReadOnlyList<IntegrityRecord> LastIntegrityManifest { get; }
     }

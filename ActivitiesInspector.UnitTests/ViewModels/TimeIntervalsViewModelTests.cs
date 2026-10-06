@@ -59,7 +59,7 @@ namespace ActivitiesInspector.UnitTests.ViewModels
             public Task<Result<List<IEventRecord>>> GetSystemEventsAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Result.Success(new List<IEventRecord>()));
 
-            public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events)
+            public IEnumerable<UsageInfo> BuildUsageInfo(IEnumerable<IEventRecord> events, DateTime? observedUntil = null)
                 => new[]
                 {
                     new UsageInfo(

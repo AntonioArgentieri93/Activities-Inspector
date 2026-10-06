@@ -244,6 +244,9 @@ Per verificare eventuali modifiche all'orario di sistema consultare la sezione "
   <data name="MainWindows_TimeIntervals_Duration" xml:space="preserve">
     <value>Durata</value>
   </data>
+  <data name="MainWindows_TimeIntervals_EndKind" xml:space="preserve">
+    <value>Tipo di fine</value>
+  </data>
   <data name="MainWindows_TimeIntervals_End" xml:space="preserve">
     <value>Spegnimento</value>
   </data>

@@ -212,10 +212,10 @@ namespace Activities_Inspector.Services.Reporting
                     Unit.FromMillimeter(0d), Unit.FromMillimeter(1.5d), bold: true);
 
             var content = "Determinazione degli intervalli di alimentazione del sistema. " +
-                "La funzionalita' incrocia gli eventi di avvio (ID 6005), arresto (6006), arresto anomalo (41) e standby (42) del registro System. \n" +
+                "La funzionalita' incrocia gli eventi del registro System: avvio (ID 6005) e risveglio da sospensione (Power-Troubleshooter 1) aprono un intervallo; arresto (6006) e standby/ibernazione (Kernel-Power 42) lo chiudono. \n" +
                 "In modalita' live il registro System e' letto via API; in modalita' immagine dal file System.evtx dell'acquisizione. \n" +
-                "Le date sono in formato gg/mm/aaaa HH:mm:ss con offset GMT della data; la durata e' calcolata tra accensione e spegnimento; la colonna Avvio anomalo vale Si quando l'avvio segue un arresto non regolare. \n" +
-                "L'intervallo aperto (senza spegnimento) rappresenta la sessione in corso al momento dell'acquisizione.";
+                "Le date sono in formato gg/mm/aaaa HH:mm:ss con offset GMT della data; la durata e' calcolata tra accensione e spegnimento; la colonna Avvio anomalo vale Si quando l'avvio segue un arresto non regolare (Kernel-Power 41 / EventLog 6008). \n" +
+                "Tipo di fine: Spegnimento, Sospensione, In corso (nessuna fine registrata all'ultimo evento disponibile) oppure Anomalo (stimato): il sistema si e' spento senza registrare l'arresto (crash, blackout, spegnimento forzato) e la fine indicata e' una STIMA, cioe' l'ora dell'ultimo evento registrato prima del riavvio successivo; l'effettivo spegnimento puo' essere stato successivo.";
 
             var contentParagraph = section.AddParagraph(content);
             ReportFormatting.OverrideParagraphDefaultStyle(contentParagraph, 10, Unit.FromMillimeter(0d), Unit.FromMillimeter(0d),
@@ -240,6 +240,7 @@ namespace Activities_Inspector.Services.Reporting
             {
                 "Accensione",
                 "Spegnimento",
+                "Tipo di fine",
                 "Durata",
                 "Nome macchina",
                 "Avvio anomalo"
@@ -267,6 +268,7 @@ namespace Activities_Inspector.Services.Reporting
                 {
                     DateBuilder.BuildFromDateTime(info.Interval.Start) ?? string.Empty,
                     endInterval ?? string.Empty,
+                    info.Interval.EndKindText,
                     duration ?? string.Empty,
                     info.MachineName ?? string.Empty,
                     info.Interval.StartedAfterCrash ? "Sì" : "No"

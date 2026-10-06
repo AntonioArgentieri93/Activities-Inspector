@@ -78,9 +78,10 @@ namespace Activities_Inspector.Utils
 
                 case EntryType.TimeIntervals:
                     return string.Format(
-                        "{0} ; {1} ; {2} ; {3} ; {4}",
+                        "{0} ; {1} ; {2} ; {3} ; {4} ; {5}",
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_Start,
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_End,
+                        Activities_Inspector.Resources.MainWindows_TimeIntervals_EndKind,
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_Duration,
                         Activities_Inspector.Resources.MainWindows_TimeIntervals_MachineName,
                         "Avvio anomalo");

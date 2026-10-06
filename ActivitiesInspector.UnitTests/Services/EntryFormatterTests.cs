@@ -41,7 +41,7 @@ namespace ActivitiesInspector.UnitTests.Services
             var start = new DateTime(2024, 1, 16, 8, 0, 0);
             var entry = new UsageInfo(new IntervalEntry(start, null), TimeSpan.Zero, "PC");
 
-            var expected = string.Format("{0} ;  ; 0 giorno/i - 0 ora/e - 0 minuti - 0 secondi. ; PC ; No",
+            var expected = string.Format("{0} ;  ; In corso ; 0 giorno/i - 0 ora/e - 0 minuti - 0 secondi. ; PC ; No",
                 DateBuilder.BuildFromDateTime(start));
 
             Assert.Equal(expected, _formatter.AsCsv(entry));

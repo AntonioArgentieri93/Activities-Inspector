@@ -35,19 +35,24 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Interval.Start, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"/>
-                <TextBlock Text="{Binding Interval.End, Converter={StaticResource DateTimeFormatConverter}}" 
+                <TextBlock Text="{Binding Interval.End, Converter={StaticResource DateTimeFormatConverter}}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="1"/>
-                <TextBlock Text="{Binding Duration, Converter={StaticResource TimeSpanDurationConverter}}"
+                <TextBlock Text="{Binding Interval.EndKindText}"
+                           ToolTip="{Binding Interval.EndKindText}"
                            Style="{StaticResource DataTemplateItemStyle}"
                            Grid.Column="2"/>
+                <TextBlock Text="{Binding Duration, Converter={StaticResource TimeSpanDurationConverter}}"
+                           Style="{StaticResource DataTemplateItemStyle}"
+                           Grid.Column="3"/>
                 <TextBlock Text="{Binding MachineName}"
                            ToolTip="{Binding MachineName}"
                            Style="{StaticResource DataTemplateItemStyle}"
-                           Grid.Column="3"/>
+                           Grid.Column="4"/>
                 <fa:ImageAwesome Icon="Solid_ExclamationTriangle"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
@@ -56,7 +61,7 @@
                                  Margin="5,0,0,0"
                                  ToolTip="Avvio dopo un arresto anomalo"
                                  Visibility="{Binding Interval.StartedAfterCrash, Converter={StaticResource BoolToVisibilityConverter}}"
-                                 Grid.Column="4"/>
+                                 Grid.Column="5"/>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -96,27 +101,32 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Start}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Start}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="0"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_End}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_End}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="1"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Duration}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_EndKind}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="2"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_MachineName}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_Duration}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="3"  />
-            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_StartedAfterCrash}" 
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_MachineName}"
                        Style="{StaticResource HeaderFieldStyle}"
                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                        Grid.Column="4"  />
+            <TextBlock Text="{x:Static resx:Resources.MainWindows_TimeIntervals_StartedAfterCrash}"
+                       Style="{StaticResource HeaderFieldStyle}"
+                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                       Grid.Column="5"  />
         </Grid>
 
         <ListBox ItemsSource="{Binding Infos}"

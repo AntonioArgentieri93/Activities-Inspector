@@ -39,8 +39,8 @@ namespace ActivitiesInspector.UnitTests.Services
             var table = BuildTable(s => ReportTablesBuilder.AddUsageInfos(infos, s));
 
             Assert.Equal(3, table.Rows.Count);
-            Assert.Equal(5, table.Rows[0].Cells.Count);
-            Assert.Equal(5, table.Rows[1].Cells.Count);
+            Assert.Equal(6, table.Rows[0].Cells.Count);
+            Assert.Equal(6, table.Rows[1].Cells.Count);
         }
 
         [Fact]

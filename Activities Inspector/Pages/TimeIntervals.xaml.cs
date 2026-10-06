@@ -34,6 +34,9 @@ namespace Activities_Inspector.Pages
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_TimeIntervals_End):
                     propertyType = UsageInfoPropertyType.IntervalEnd;
                     break;
+                case string str when str.Equals(Activities_Inspector.Resources.MainWindows_TimeIntervals_EndKind):
+                    propertyType = UsageInfoPropertyType.EndKind;
+                    break;
                 case string str when str.Equals(Activities_Inspector.Resources.MainWindows_TimeIntervals_Duration):
                     propertyType = UsageInfoPropertyType.Duration;
                     break;
@@ -72,6 +75,7 @@ namespace Activities_Inspector.Pages
     {
         IntervalStart,
         IntervalEnd,
+        EndKind,
         Duration,
         MachineName,
         StartedAfterCrash

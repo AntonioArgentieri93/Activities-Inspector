@@ -611,6 +611,15 @@ namespace Activities_Inspector {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tipo di fine.
+        /// </summary>
+        public static string MainWindows_TimeIntervals_EndKind {
+            get {
+                return ResourceManager.GetString("MainWindows_TimeIntervals_EndKind", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Spegnimento.
         /// </summary>
         public static string MainWindows_TimeIntervals_End {

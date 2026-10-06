@@ -77,7 +77,7 @@ namespace Activities_Inspector.ViewModels
             // Filtri e pairing sull'intero log System: CPU-bound su thread
             // pool, mai sullo UI thread.
             var infos = await Task.Run(
-                () => _usageLogTimeService.BuildUsageInfo(eventsResult.Value).ToList(), token);
+                () => _usageLogTimeService.BuildUsageInfo(eventsResult.Value, Sources.Current.IsLive ? DateTime.Now : (DateTime?)null).ToList(), token);
 
             return Result.Success(infos);
         }
@@ -109,6 +109,9 @@ namespace Activities_Inspector.ViewModels
                     case UsageInfoPropertyType.IntervalEnd:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderBy(d => d.Interval.End));
                         break;
+                    case UsageInfoPropertyType.EndKind:
+                        Infos = new ObservableCollection<UsageInfo>(Infos.OrderBy(d => d.Interval.EndKind));
+                        break;
                     case UsageInfoPropertyType.Duration:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderBy(d => d.Duration));
                         break;
@@ -129,6 +132,9 @@ namespace Activities_Inspector.ViewModels
                         break;
                     case UsageInfoPropertyType.IntervalEnd:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderByDescending(d => d.Interval.End));
+                        break;
+                    case UsageInfoPropertyType.EndKind:
+                        Infos = new ObservableCollection<UsageInfo>(Infos.OrderByDescending(d => d.Interval.EndKind));
                         break;
                     case UsageInfoPropertyType.Duration:
                         Infos = new ObservableCollection<UsageInfo>(Infos.OrderByDescending(d => d.Duration));

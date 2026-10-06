@@ -62,15 +62,17 @@ namespace ActivitiesInspector.UnitTests.Services
         public void Usage_PairIntervals_Does_Not_Reuse_Start()
         {
             var now = DateTime.Now;
-            var points = new List<(DateTime Time, string Machine, bool IsStart, bool IsCrashBoot)>
+            var points = new List<IntervalPoint>
             {
-                (now.AddHours(-3), "PC", true, false),
-                (now.AddHours(-2), "PC", true, false),
-                (now.AddHours(-1), "PC", false, false)
+                new IntervalPoint(now.AddHours(-3), "PC", IntervalPointKind.Boot),
+                new IntervalPoint(now.AddHours(-2), "PC", IntervalPointKind.Boot),
+                new IntervalPoint(now.AddHours(-1), "PC", IntervalPointKind.Shutdown)
             };
             var pairs = UsageLogTimeService.PairIntervals(points);
-            // One end consumes only one start, plus open interval
+            // Il primo avvio resta senza arresto (interrotto), il secondo e' chiuso dallo spegnimento: nessuno viene riusato
             Assert.Equal(2, pairs.Count);
+            Assert.Equal(IntervalEndKind.Unexpected, pairs[0].Interval.EndKind);
+            Assert.Equal(IntervalEndKind.Shutdown, pairs[1].Interval.EndKind);
         }
 
         [Fact]

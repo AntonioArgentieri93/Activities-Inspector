@@ -73,9 +73,10 @@ namespace Activities_Inspector.Services
             var duration = GetDuration(usageInfo.Duration);
 
             return string.Format(
-                "{0} ; {1} ; {2} ; {3} ; {4}",
+                "{0} ; {1} ; {2} ; {3} ; {4} ; {5}",
                 DateBuilder.BuildFromDateTime(usageInfo.Interval.Start),
                 endInterval,
+                usageInfo.Interval.EndKindText,
                 duration,
                 usageInfo.MachineName,
                 usageInfo.Interval.StartedAfterCrash ? "Sì" : "No");

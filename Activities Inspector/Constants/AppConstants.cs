@@ -46,8 +46,16 @@ namespace Activities_Inspector.Constants
             public const int ShutdownEventId = 6006;
             public const int UnexpectedShutdownEventId = 41;
             public const int SleepEventId = 42;
+            /// <summary>EventLog 6008: "l'arresto precedente del sistema è stato imprevisto".</summary>
+            public const int PreviousShutdownUnexpectedEventId = 6008;
+            /// <summary>Power-Troubleshooter 1: il sistema è uscito da uno stato di basso consumo (risveglio da sospensione/ibernazione).</summary>
+            public const int WakeEventId = 1;
+            /// <summary>Kernel-General 12: avvio del sistema operativo (precede di qualche secondo il 6005).</summary>
+            public const int OsStartEventId = 12;
             public const string EventLogProviderName = "EventLog";
             public const string KernelPowerProviderName = "Microsoft-Windows-Kernel-Power";
+            public const string PowerTroubleshooterProviderName = "Microsoft-Windows-Power-Troubleshooter";
+            public const string KernelGeneralProviderName = "Microsoft-Windows-Kernel-General";
         }
 
         public static class Prefetch
